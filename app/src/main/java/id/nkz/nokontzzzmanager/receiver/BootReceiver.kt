@@ -57,40 +57,35 @@ class BootReceiver : BroadcastReceiver() {
         runCatching {
             val enabled = isBatteryMonitorEnabled(context)
             if (enabled) {
-                // Try immediate start
-                val ok = tryStartFgs(context)
-                if (!ok) {
-                    // Retry after a small delay (to pass device idle windows)
-                    try { Thread.sleep(7000) } catch (_: InterruptedException) {}
-                    if (!tryStartFgs(context)) {
-                        Log.w(TAG, "FGS still blocked, enqueueing WorkManager fallback")
-                        val req = OneTimeWorkRequestBuilder<StartBatteryMonitorWorker>()
-                            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-                            .build()
-                        try {
-                            WorkManager.getInstance(context)
-                                .enqueueUniqueWork("start_battery_monitor", ExistingWorkPolicy.REPLACE, req)
-                        } catch (ise: IllegalStateException) {
-                            WorkManager.initialize(
-                                context,
-                                Configuration.Builder().setMinimumLoggingLevel(android.util.Log.DEBUG).build()
-                            )
-                            WorkManager.getInstance(context)
-                                .enqueueUniqueWork("start_battery_monitor", ExistingWorkPolicy.REPLACE, req)
-                        }
-                        // Schedule multiple alarm fallbacks to improve reliability across ROMs
-                        scheduleAlarm(context, 15_000L)
-                        scheduleAlarm(context, 45_000L)
-                        scheduleAlarm(context, 120_000L)
+                // Try immediate start, and if it fails, fall back to robust methods
+                if (!tryStartFgs(context)) {
+                    Log.w(TAG, "Immediate FGS start failed, enqueueing WorkManager fallback")
+                    val req = OneTimeWorkRequestBuilder<StartBatteryMonitorWorker>()
+                        .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                        .build()
+                    try {
+                        WorkManager.getInstance(context)
+                            .enqueueUniqueWork("start_battery_monitor", ExistingWorkPolicy.REPLACE, req)
+                    } catch (ise: IllegalStateException) {
+                        WorkManager.initialize(
+                            context,
+                            Configuration.Builder().setMinimumLoggingLevel(android.util.Log.DEBUG).build()
+                        )
+                        WorkManager.getInstance(context)
+                            .enqueueUniqueWork("start_battery_monitor", ExistingWorkPolicy.REPLACE, req)
+                    }
+                    // Schedule multiple alarm fallbacks to improve reliability across ROMs
+                    scheduleAlarm(context, 15_000L)
+                    scheduleAlarm(context, 45_000L)
+                    scheduleAlarm(context, 120_000L)
                     // Launch a transparent warm-start Activity to create app process if needed
-                        try {
-                            val i = Intent(context, WarmStartActivity::class.java)
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            context.startActivity(i)
-                            Log.d(TAG, "WarmStartActivity launched to prewarm process")
-                        } catch (t: Throwable) {
-                            Log.w(TAG, "Failed to launch WarmStartActivity: ${t.message}")
-                        }
+                    try {
+                        val i = Intent(context, WarmStartActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        context.startActivity(i)
+                        Log.d(TAG, "WarmStartActivity launched to prewarm process")
+                    } catch (t: Throwable) {
+                        Log.w(TAG, "Failed to launch WarmStartActivity: ${t.message}")
                     }
                 }
             } else {

@@ -84,8 +84,10 @@
             android:enabled="true"
             android:exported="false"
             android:directBootAware="true"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="false">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="battery_monitor" />
+        </service>
 
         <!-- Boot Receiver for auto-start functionality -->
         <receiver

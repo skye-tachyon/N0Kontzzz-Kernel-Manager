@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ServiceInfo
 import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
@@ -32,6 +33,7 @@ class BatteryMonitorService : Service() {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private lateinit var notificationManager: NotificationManager
     private var batteryManager: BatteryManager? = null
+    private var serviceStartedAtMs: Long = 0L
 
     private val channelId = "battery_monitor_channel"
     private val notificationId = 1001
@@ -75,10 +77,23 @@ class BatteryMonitorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        serviceStartedAtMs = System.currentTimeMillis()
         batteryManager = getSystemService(BATTERY_SERVICE) as BatteryManager
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         createNotificationChannel()
-        startForeground(notificationId, createNotification("Starting...", "Collecting battery data..."))
+        val initialNotification = createNotification("Starting...", "Collecting battery data...")
+        try {
+            if (Build.VERSION.SDK_INT >= 34) {
+                startForeground(notificationId, initialNotification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(notificationId, initialNotification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            } else {
+                startForeground(notificationId, initialNotification)
+            }
+        } catch (e: Exception) {
+            // Prevent crash if FGS is blocked
+            stopSelf()
+        }
         designCapacityUah = getDesignCapacityUah()
         restoreStateIfAny()
         initScreenTracking()
@@ -576,6 +591,8 @@ class BatteryMonitorService : Service() {
             .setContentText(null)
             .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
             .setContentIntent(pendingIntent)
+            .setShowWhen(true)
+            .setWhen(if (serviceStartedAtMs != 0L) serviceStartedAtMs else System.currentTimeMillis())
             .setOngoing(true)
             .setSilent(true)
             .build()
