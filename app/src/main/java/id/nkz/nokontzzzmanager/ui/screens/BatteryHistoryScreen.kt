@@ -60,8 +60,22 @@ import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.database.BatteryGraphEntry
 import id.nkz.nokontzzzmanager.ui.MainActivity
 import id.nkz.nokontzzzmanager.viewmodel.BatteryHistoryViewModel
+import id.nkz.nokontzzzmanager.viewmodel.HistoryFilter
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -70,6 +84,7 @@ fun BatteryHistoryScreen(
     viewModel: BatteryHistoryViewModel = hiltViewModel()
 ) {
     val historyData by viewModel.historyData.collectAsState()
+    val currentFilter by viewModel.filter.collectAsState()
     var graphMode by remember { mutableStateOf(BatteryGraphMode.SPEED) }
     var showClearDialog by remember { mutableStateOf(false) }
 
@@ -89,23 +104,12 @@ fun BatteryHistoryScreen(
     }
 
     if (showClearDialog) {
-        AlertDialog(
-            onDismissRequest = { showClearDialog = false },
-            title = { Text("Clear History") },
-            text = { Text("Are you sure you want to delete all battery history?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.clearHistory()
-                    showClearDialog = false
-                }) {
-                    Text("Delete")
-                }
+        ClearHistoryDialog(
+            onConfirm = {
+                viewModel.clearHistory()
+                showClearDialog = false
             },
-            dismissButton = {
-                TextButton(onClick = { showClearDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            onDismiss = { showClearDialog = false }
         )
     }
 
@@ -120,20 +124,33 @@ fun BatteryHistoryScreen(
             // Mode Toggle
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
             ) {
-                FilterChip(
-                    selected = graphMode == BatteryGraphMode.SPEED,
-                    onClick = { graphMode = BatteryGraphMode.SPEED },
-                    label = { Text("Charge/Discharge Speed") },
-                    leadingIcon = { Icon(Icons.Default.Speed, null) }
-                )
-                FilterChip(
-                    selected = graphMode == BatteryGraphMode.DRAIN,
-                    onClick = { graphMode = BatteryGraphMode.DRAIN },
-                    label = { Text("Drain Rate") },
-                    leadingIcon = { Icon(Icons.Default.BatteryStd, null) }
-                )
+                val modes = listOf(BatteryGraphMode.SPEED, BatteryGraphMode.DRAIN)
+                modes.forEachIndexed { index, mode ->
+                    ToggleButton(
+                        checked = graphMode == mode,
+                        onCheckedChange = { graphMode = mode },
+                        modifier = Modifier
+                            .weight(1f)
+                            .semantics { role = Role.RadioButton },
+                        shapes = when (index) {
+                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                            modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if (mode == BatteryGraphMode.SPEED) Icons.Default.Speed else Icons.Default.BatteryStd,
+                            contentDescription = null,
+                            modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+                        )
+                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                        Text(
+                            text = if (mode == BatteryGraphMode.SPEED) stringResource(R.string.graph_mode_speed_short) else stringResource(R.string.graph_mode_drain)
+                        )
+                    }
+                }
             }
 
             // Graph Card
@@ -146,8 +163,15 @@ fun BatteryHistoryScreen(
                 )
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    val filterText = when (currentFilter) {
+                        HistoryFilter.LAST_24_HOURS -> stringResource(R.string.filter_last_24h_short)
+                        HistoryFilter.SINCE_UNPLUGGED -> stringResource(R.string.filter_since_unplugged)
+                    }
                     Text(
-                        text = if (graphMode == BatteryGraphMode.SPEED) "Current (mA) - All History" else "Drain Rate (%/hr) - All History",
+                        text = if (graphMode == BatteryGraphMode.SPEED) 
+                            stringResource(R.string.graph_title_current, filterText)
+                        else 
+                            stringResource(R.string.graph_title_drain, filterText),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -159,6 +183,32 @@ fun BatteryHistoryScreen(
                     )
                 }
             }
+
+            // Time Filter
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+            ) {
+                val filters = listOf(HistoryFilter.LAST_24_HOURS, HistoryFilter.SINCE_UNPLUGGED)
+                filters.forEachIndexed { index, filterOption ->
+                    ToggleButton(
+                        checked = currentFilter == filterOption,
+                        onCheckedChange = { viewModel.setFilter(filterOption) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .semantics { role = Role.RadioButton },
+                        shapes = when (index) {
+                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                            filters.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                        }
+                    ) {
+                        Text(
+                            text = if (filterOption == HistoryFilter.LAST_24_HOURS) stringResource(R.string.filter_last_24h) else stringResource(R.string.filter_since_unplugged)
+                        )
+                    }
+                }
+            }
             
             // Stats Card
             BatteryHistoryStatsCard(historyData)
@@ -166,13 +216,98 @@ fun BatteryHistoryScreen(
             // Legend
             if (graphMode == BatteryGraphMode.DRAIN) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    LegendItem(color = MaterialTheme.colorScheme.primary, label = "Active Drain")
-                    LegendItem(color = MaterialTheme.colorScheme.tertiary, label = "Idle Drain")
+                    LegendItem(color = MaterialTheme.colorScheme.primary, label = stringResource(R.string.legend_active_drain))
+                    LegendItem(color = MaterialTheme.colorScheme.tertiary, label = stringResource(R.string.legend_idle_drain))
                 }
             }
             
             // Extra spacer for FAB
             Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ClearHistoryDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(0.9f).heightIn(min = 200.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = RoundedCornerShape(24.dp),
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Header
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.clear_history_title),
+                                modifier = Modifier.size(28.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.clear_history_title),
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    // Content
+                    Text(
+                        text = stringResource(R.string.clear_history_confirmation),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Actions
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                         OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                        Button(
+                            onClick = onConfirm,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            )
+                        ) {
+                            Text(stringResource(R.string.delete))
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -198,7 +333,7 @@ fun BatteryHistoryGraph(
 ) {
     if (data.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No data available yet", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.no_data_available), style = MaterialTheme.typography.bodyMedium)
         }
         return
     }
@@ -216,81 +351,83 @@ fun BatteryHistoryGraph(
         Triple(0f, max, "%/hr")
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Canvas(modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp)) {
-            val width = size.width
-            val height = size.height
-            val timeRange = (maxTime - minTime).coerceAtLeast(1L)
-            val valRange = (maxY - minY).coerceAtLeast(1f)
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            Canvas(modifier = Modifier.fillMaxSize().padding(vertical = 24.dp)) {
+                val width = size.width
+                val height = size.height
+                val timeRange = (maxTime - minTime).coerceAtLeast(1L)
+                val valRange = (maxY - minY).coerceAtLeast(1f)
 
-            if (mode == BatteryGraphMode.SPEED) {
-                // Draw Zero Line
-                val zeroY = height * (1 - (0f - minY) / valRange)
-                drawLine(
-                    color = Color.Gray.copy(alpha = 0.5f),
-                    start = Offset(0f, zeroY),
-                    end = Offset(width, zeroY),
-                    strokeWidth = 1.dp.toPx(),
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
-                )
+                if (mode == BatteryGraphMode.SPEED) {
+                    // Draw Zero Line
+                    val zeroY = height * (1 - (0f - minY) / valRange)
+                    drawLine(
+                        color = Color.Gray.copy(alpha = 0.5f),
+                        start = Offset(0f, zeroY),
+                        end = Offset(width, zeroY),
+                        strokeWidth = 1.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
+                    )
 
-                val path = Path()
-                data.forEachIndexed { index, entry ->
-                    val x = width * (entry.timestamp - minTime) / timeRange
-                    val y = height * (1 - (entry.currentMa - minY) / valRange)
-                    if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
-                }
-                
-                drawPath(
-                    path = path,
-                    color = primaryColor,
-                    style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                )
-            } else {
-                // DRAIN MODE
-                val activePath = Path()
-                val idlePath = Path()
-                
-                data.forEachIndexed { index, entry ->
-                    val x = width * (entry.timestamp - minTime) / timeRange
+                    val path = Path()
+                    data.forEachIndexed { index, entry ->
+                        val x = width * (entry.timestamp - minTime) / timeRange
+                        val y = height * (1 - (entry.currentMa - minY) / valRange)
+                        if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                    }
                     
-                    val activeY = height * (1 - entry.activeDrainRate / valRange)
-                    if (index == 0) activePath.moveTo(x, activeY) else activePath.lineTo(x, activeY)
+                    drawPath(
+                        path = path,
+                        color = primaryColor,
+                        style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                    )
+                } else {
+                    // DRAIN MODE
+                    val activePath = Path()
+                    val idlePath = Path()
                     
-                    val idleY = height * (1 - entry.idleDrainRate / valRange)
-                    if (index == 0) idlePath.moveTo(x, idleY) else idlePath.lineTo(x, idleY)
+                    data.forEachIndexed { index, entry ->
+                        val x = width * (entry.timestamp - minTime) / timeRange
+                        
+                        val activeY = height * (1 - entry.activeDrainRate / valRange)
+                        if (index == 0) activePath.moveTo(x, activeY) else activePath.lineTo(x, activeY)
+                        
+                        val idleY = height * (1 - entry.idleDrainRate / valRange)
+                        if (index == 0) idlePath.moveTo(x, idleY) else idlePath.lineTo(x, idleY)
+                    }
+                    
+                    drawPath(
+                        path = activePath,
+                        color = primaryColor,
+                        style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                    )
+                    drawPath(
+                        path = idlePath,
+                        color = secondaryColor,
+                        style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                    )
                 }
-                
-                drawPath(
-                    path = activePath,
-                    color = primaryColor,
-                    style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                )
-                drawPath(
-                    path = idlePath,
-                    color = secondaryColor,
-                    style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                )
             }
-        }
 
-        // Labels
-        Text(
-            text = "${"%.0f".format(maxY)} $labelSuffix",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.align(Alignment.TopStart)
-        )
-        Text(
-            text = "${"%.0f".format(minY)} $labelSuffix",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.align(Alignment.BottomStart).padding(bottom = 20.dp)
-        )
+            // Labels
+            Text(
+                text = "${"%.0f".format(maxY)} $labelSuffix",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.TopStart)
+            )
+            Text(
+                text = "${"%.0f".format(minY)} $labelSuffix",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.BottomStart)
+            )
+        }
         
         // Time Labels
         Row(
-            modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
@@ -346,8 +483,8 @@ fun BatteryHistoryStatsCard(data: List<BatteryGraphEntry>) {
             }
             
             if (avgDischarge > 0) {
-                StatRow(label = stringResource(R.string.stats_avg_discharge_speed), value = "%.0f mA".format(avgDischarge))
-                StatRow(label = stringResource(R.string.stats_max_discharge_speed), value = "%.0f mA".format(maxDischarge))
+                StatRow(label = stringResource(R.string.stats_avg_discharge_speed), value = "-%.0f mA".format(avgDischarge))
+                StatRow(label = stringResource(R.string.stats_max_discharge_speed), value = "-%.0f mA".format(maxDischarge))
             }
             
             StatRow(label = stringResource(R.string.stats_avg_active_drain), value = "%.2f %%/hr".format(avgActiveDrain))

@@ -433,4 +433,20 @@
     <string name="thermal_service_channel_name">Thermal Service Channel</string>
     <string name="thermal_service_notification_title">Thermal Service</string>
     <string name="thermal_service_notification_text">Monitoring thermal settings in the background.</string>
+
+    <!-- Battery History Screen -->
+    <string name="clear_history_title">Clear History</string>
+    <string name="clear_history_confirmation">Are you sure you want to delete all battery history?</string>
+    <string name="delete">Delete</string>
+    <string name="graph_mode_speed">Charge/Discharge Speed</string>
+    <string name="graph_mode_drain">Drain Rate</string>
+    <string name="graph_mode_speed_short">C/D Speed</string>
+    <string name="graph_title_current">Current (mA) - %s</string>
+    <string name="graph_title_drain">Drain Rate (%%/hr) - %s</string>
+    <string name="filter_last_24h">Last 24 Hours</string>
+    <string name="filter_last_24h_short">Last 24h</string>
+    <string name="filter_since_unplugged">Since Unplugged</string>
+    <string name="legend_active_drain">Active Drain</string>
+    <string name="legend_idle_drain">Idle Drain</string>
+    <string name="no_data_available">No data available yet</string>
 </resources>

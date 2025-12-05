@@ -432,4 +432,20 @@
     <string name="thermal_service_channel_name">Saluran Layanan Termal</string>
     <string name="thermal_service_notification_title">Layanan Termal</string>
     <string name="thermal_service_notification_text">Memantau pengaturan termal di latar belakang.</string>
+
+    <!-- Battery History Screen -->
+    <string name="clear_history_title">Hapus Riwayat</string>
+    <string name="clear_history_confirmation">Apakah Anda yakin ingin menghapus semua riwayat baterai?</string>
+    <string name="delete">Hapus</string>
+    <string name="graph_mode_speed">Kecepatan Isi/Kuras</string>
+    <string name="graph_mode_drain">Laju Pengurasan</string>
+    <string name="graph_mode_speed_short">Kec. Isi/Kuras</string>
+    <string name="graph_title_current">Arus (mA) - %s</string>
+    <string name="graph_title_drain">Laju Pengurasan (%%/hr) - %s</string>
+    <string name="filter_last_24h">24 Jam Terakhir</string>
+    <string name="filter_last_24h_short">24j Terakhir</string>
+    <string name="filter_since_unplugged">Sejak Dicabut</string>
+    <string name="legend_active_drain">Drain Aktif</string>
+    <string name="legend_idle_drain">Drain Idle</string>
+    <string name="no_data_available">Data belum tersedia</string>
 </resources>
