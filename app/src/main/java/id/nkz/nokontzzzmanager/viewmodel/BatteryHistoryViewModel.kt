@@ -24,11 +24,12 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.core.graphics.scale
 
 @HiltViewModel
 class BatteryHistoryViewModel @Inject constructor(
     private val repository: BatteryGraphRepository,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _filter = MutableStateFlow(HistoryFilter.LAST_24_HOURS)
@@ -110,7 +111,7 @@ class BatteryHistoryViewModel @Inject constructor(
                     val originalDrawable = pm.getApplicationIcon(appInfo)
                     val originalBitmap = originalDrawable.toBitmap()
                     val resizedBitmap = if (originalBitmap.width > iconSizePx || originalBitmap.height > iconSizePx) {
-                        Bitmap.createScaledBitmap(originalBitmap, iconSizePx, iconSizePx, true)
+                        originalBitmap.scale(iconSizePx, iconSizePx)
                     } else {
                         originalBitmap
                     }
