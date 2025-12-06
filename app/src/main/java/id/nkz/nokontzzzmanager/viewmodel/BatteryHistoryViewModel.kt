@@ -48,6 +48,9 @@ class BatteryHistoryViewModel @Inject constructor(
                     entries
                 }
             }
+            HistoryFilter.PER_CYCLE -> {
+                entries
+            }
         }
     }.stateIn(
         scope = viewModelScope,
@@ -68,5 +71,6 @@ class BatteryHistoryViewModel @Inject constructor(
 
 enum class HistoryFilter {
     LAST_24_HOURS,
-    SINCE_UNPLUGGED
+    SINCE_UNPLUGGED,
+    PER_CYCLE
 }

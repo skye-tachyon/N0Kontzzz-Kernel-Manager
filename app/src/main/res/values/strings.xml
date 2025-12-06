@@ -446,7 +446,10 @@
     <string name="filter_last_24h">Last 24 Hours</string>
     <string name="filter_last_24h_short">Last 24h</string>
     <string name="filter_since_unplugged">Since Unplugged</string>
+    <string name="filter_per_cycle">Per Cycle</string>
     <string name="legend_active_drain">Active Drain</string>
     <string name="legend_idle_drain">Idle Drain</string>
+    <string name="legend_charge_speed">Charge Speed</string>
+    <string name="legend_discharge_speed">Discharge Speed</string>
     <string name="no_data_available">No data available yet</string>
 </resources>

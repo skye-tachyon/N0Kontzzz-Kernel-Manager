@@ -445,7 +445,10 @@
     <string name="filter_last_24h">24 Jam Terakhir</string>
     <string name="filter_last_24h_short">24j Terakhir</string>
     <string name="filter_since_unplugged">Sejak Dicabut</string>
+    <string name="filter_per_cycle">Per Siklus</string>
     <string name="legend_active_drain">Drain Aktif</string>
     <string name="legend_idle_drain">Drain Idle</string>
+    <string name="legend_charge_speed">Kec. Isi</string>
+    <string name="legend_discharge_speed">Kec. Kuras</string>
     <string name="no_data_available">Data belum tersedia</string>
 </resources>

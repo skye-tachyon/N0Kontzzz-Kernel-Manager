@@ -59,6 +59,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -162,6 +163,7 @@ fun BatteryHistoryScreen(
                     val filterText = when (currentFilter) {
                         HistoryFilter.LAST_24_HOURS -> stringResource(R.string.filter_last_24h_short)
                         HistoryFilter.SINCE_UNPLUGGED -> stringResource(R.string.filter_since_unplugged)
+                        HistoryFilter.PER_CYCLE -> stringResource(R.string.filter_per_cycle)
                     }
                     Text(
                         text = if (graphMode == BatteryGraphMode.SPEED) 
@@ -171,9 +173,12 @@ fun BatteryHistoryScreen(
                         style = MaterialTheme.typography.titleMedium
                     )
 
-                    if (graphMode == BatteryGraphMode.DRAIN) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        if (graphMode == BatteryGraphMode.SPEED) {
+                            LegendItem(color = MaterialTheme.colorScheme.primary, label = stringResource(R.string.legend_charge_speed))
+                            LegendItem(color = MaterialTheme.colorScheme.tertiary, label = stringResource(R.string.legend_discharge_speed))
+                        } else {
                             LegendItem(color = MaterialTheme.colorScheme.primary, label = stringResource(R.string.legend_active_drain))
                             LegendItem(color = MaterialTheme.colorScheme.tertiary, label = stringResource(R.string.legend_idle_drain))
                         }
@@ -194,7 +199,7 @@ fun BatteryHistoryScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
             ) {
-                val filters = listOf(HistoryFilter.LAST_24_HOURS, HistoryFilter.SINCE_UNPLUGGED)
+                val filters = listOf(HistoryFilter.LAST_24_HOURS, HistoryFilter.SINCE_UNPLUGGED, HistoryFilter.PER_CYCLE)
                 filters.forEachIndexed { index, filterOption ->
                     val isSelected = currentFilter == filterOption
                     ToggleButton(
@@ -210,7 +215,13 @@ fun BatteryHistoryScreen(
                         }
                     ) {
                         Text(
-                            text = if (filterOption == HistoryFilter.LAST_24_HOURS) stringResource(R.string.filter_last_24h) else stringResource(R.string.filter_since_unplugged)
+                            text = when (filterOption) {
+                                HistoryFilter.LAST_24_HOURS -> stringResource(R.string.filter_last_24h)
+                                HistoryFilter.SINCE_UNPLUGGED -> stringResource(R.string.filter_since_unplugged)
+                                HistoryFilter.PER_CYCLE -> stringResource(R.string.filter_per_cycle)
+                            },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -368,18 +379,34 @@ fun BatteryHistoryGraph(
                         pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
                     )
 
-                    val path = Path()
+                    val chargePath = Path()
+                    val dischargePath = Path()
+
                     data.forEachIndexed { index, entry ->
                         val x = width * (entry.timestamp - minTime) / timeRange
-                        val y = height * (1 - (entry.currentMa - minY) / valRange)
-                        if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                        
+                        // Charge Path (Positive current, else 0)
+                        val chargeVal = entry.currentMa.coerceAtLeast(0f)
+                        val chargeY = height * (1 - (chargeVal - minY) / valRange)
+                        if (index == 0) chargePath.moveTo(x, chargeY) else chargePath.lineTo(x, chargeY)
+
+                        // Discharge Path (Negative current, else 0)
+                        val dischargeVal = entry.currentMa.coerceAtMost(0f)
+                        val dischargeY = height * (1 - (dischargeVal - minY) / valRange)
+                        if (index == 0) dischargePath.moveTo(x, dischargeY) else dischargePath.lineTo(x, dischargeY)
                     }
-                    
+
                     drawPath(
-                        path = path,
+                        path = chargePath,
                         color = primaryColor,
                         style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
                     )
+                    drawPath(
+                        path = dischargePath,
+                        color = secondaryColor,
+                        style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                    )
+
                 } else {
                     // DRAIN MODE
                     val activePath = Path()
