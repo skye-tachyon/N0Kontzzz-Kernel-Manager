@@ -103,7 +103,7 @@ fun BatteryHistoryScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                viewModel.checkUsagePermission()
+                viewModel.loadAppUsageStats()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -115,7 +115,7 @@ fun BatteryHistoryScreen(
     LaunchedEffect(Unit) {
         mainActivity?.batteryHistoryFabVisible?.value = true
         mainActivity?.batteryHistoryFabAction?.value = { showClearDialog = true }
-        viewModel.checkUsagePermission()
+        viewModel.loadAppUsageStats()
     }
 
     DisposableEffect(Unit) {

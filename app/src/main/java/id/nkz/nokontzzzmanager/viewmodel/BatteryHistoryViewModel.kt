@@ -57,12 +57,9 @@ class BatteryHistoryViewModel @Inject constructor(
             context.packageName
         )
         _hasUsagePermission.value = mode == AppOpsManager.MODE_ALLOWED
-        if (_hasUsagePermission.value) {
-            loadAppUsageStats()
-        }
     }
 
-    private fun loadAppUsageStats() {
+    fun loadAppUsageStats() {
         viewModelScope.launch(Dispatchers.IO) {
             checkUsagePermission()
             if (!_hasUsagePermission.value) return@launch
