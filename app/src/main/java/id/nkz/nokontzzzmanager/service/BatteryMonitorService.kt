@@ -32,12 +32,16 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import id.nkz.nokontzzzmanager.data.repository.BatteryGraphRepository
 import id.nkz.nokontzzzmanager.data.database.BatteryGraphEntry
+import id.nkz.nokontzzzmanager.utils.PreferenceManager
 
 @AndroidEntryPoint
 class BatteryMonitorService : Service() {
 
     @Inject
     lateinit var batteryGraphRepository: BatteryGraphRepository
+
+    @Inject
+    lateinit var preferenceManager: PreferenceManager
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private lateinit var notificationManager: NotificationManager
@@ -62,6 +66,8 @@ class BatteryMonitorService : Service() {
     private var lastSamplePercent: Double = Double.NaN
     private var onPercentDrop: Double = 0.0
     private var offPercentDrop: Double = 0.0
+
+    private var hasResetForThisChargeCycle = false
 
     private var isRunning = false
 
@@ -161,6 +167,10 @@ class BatteryMonitorService : Service() {
                 val stats = collectSystemStats()
                 updateNotification(stats)
             } catch (_: Exception) { }
+        } else if (intent?.action == ACTION_BOOT_START) {
+            if (preferenceManager.isAutoResetOnReboot()) {
+                fullReset()
+            }
         }
         return START_STICKY
     }
@@ -192,6 +202,8 @@ class BatteryMonitorService : Service() {
         val temp = (intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) ?: 0) / 10f
 
         val charging = status == BatteryManager.BATTERY_STATUS_CHARGING || plugged > 0
+
+        checkAutoResetAtLevel(level, charging)
 
         // Prefer sysfs for current/voltage; fallback to BatteryManager
         val currentUaSys = readFirstLong(listOf(
@@ -340,6 +352,7 @@ class BatteryMonitorService : Service() {
                         batteryLevel = level,
                         currentMa = currentMa,
                         isCharging = charging,
+                        isScreenOn = interactive,
                         activeDrainRate = activeRate.toFloat(),
                         idleDrainRate = idleRate.toFloat(),
                         temperature = temp
@@ -451,6 +464,10 @@ class BatteryMonitorService : Service() {
     }
 
     private fun onPowerConnected() {
+        if (preferenceManager.isAutoResetOnCharging()) {
+            fullReset()
+        }
+
         screenOnAccumMs = 0L
         screenOnStartAtElapsed = null
         windowStartElapsed = -1L
@@ -526,6 +543,30 @@ class BatteryMonitorService : Service() {
         val level = sticky?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         lastSamplePercent = computeCurrentBatteryPercent(level, charge)
         persistState()
+    }
+
+    private fun fullReset() {
+        scope.launch {
+            batteryGraphRepository.deleteAllEntries()
+        }
+        manualReset()
+        try {
+            updateNotification(collectSystemStats())
+        } catch (_: Exception) {}
+    }
+
+    private fun checkAutoResetAtLevel(level: Int, isCharging: Boolean) {
+        if (isCharging) {
+             if (preferenceManager.isAutoResetAtLevel()) {
+                 val target = preferenceManager.getAutoResetTargetLevel()
+                 if (level >= target && !hasResetForThisChargeCycle) {
+                     fullReset()
+                     hasResetForThisChargeCycle = true
+                 }
+             }
+        } else {
+             hasResetForThisChargeCycle = false
+        }
     }
 
     private fun formatDrainFrom(
@@ -711,8 +752,12 @@ class BatteryMonitorService : Service() {
     }
 
     companion object {
-        fun start(context: Context) {
+        private const val ACTION_RESET = "id.nkz.nokontzzzmanager.action.RESET_BATTERY_MONITOR"
+        private const val ACTION_BOOT_START = "id.nkz.nokontzzzmanager.action.BOOT_START_BATTERY_MONITOR"
+
+        fun start(context: Context, isBoot: Boolean = false) {
             val intent = Intent(context, BatteryMonitorService::class.java)
+            if (isBoot) intent.action = ACTION_BOOT_START
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 context.startForegroundService(intent)
             else context.startService(intent)
@@ -721,8 +766,6 @@ class BatteryMonitorService : Service() {
         fun stop(context: Context) {
             context.stopService(Intent(context, BatteryMonitorService::class.java))
         }
-
-        private const val ACTION_RESET = "id.nkz.nokontzzzmanager.action.RESET_BATTERY_MONITOR"
 
         fun reset(context: Context) {
             val intent = Intent(context, BatteryMonitorService::class.java).apply { action = ACTION_RESET }

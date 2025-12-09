@@ -10,7 +10,7 @@ class StartBatteryMonitorWorker(
 ) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
         return try {
-            BatteryMonitorService.start(applicationContext)
+            BatteryMonitorService.start(applicationContext, isBoot = true)
             Result.success()
         } catch (t: Throwable) {
             Result.retry()

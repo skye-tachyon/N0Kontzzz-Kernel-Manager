@@ -10,6 +10,7 @@ data class BatteryGraphEntry(
     val batteryLevel: Int,
     val currentMa: Float, // Negative = discharging, Positive = charging
     val isCharging: Boolean,
+    val isScreenOn: Boolean = false,
     val activeDrainRate: Float, // %/hr
     val idleDrainRate: Float, // %/hr
     val temperature: Float

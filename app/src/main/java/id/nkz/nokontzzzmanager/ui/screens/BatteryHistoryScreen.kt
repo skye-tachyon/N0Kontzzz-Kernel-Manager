@@ -529,6 +529,43 @@ fun BatteryHistoryStatsCard(
     val avgActiveDrain = if (data.isNotEmpty()) data.map { it.activeDrainRate.toDouble() }.average() else 0.0
     val avgIdleDrain = if (data.isNotEmpty()) data.map { it.idleDrainRate.toDouble() }.average() else 0.0
 
+    // Calculate time and consumption stats
+    var totalDischargeTimeMs = 0L
+    var screenOnTimeMs = 0L
+    var screenOffTimeMs = 0L
+    
+    var totalDischargeMah = 0.0
+    var screenOnMah = 0.0
+    var screenOffMah = 0.0
+
+    // Sort data by timestamp just in case
+    val sortedData = data.sortedBy { it.timestamp }
+    for (i in 0 until sortedData.size - 1) {
+        val current = sortedData[i]
+        val next = sortedData[i + 1]
+        
+        // Skip if gap is too large (e.g. service killed), > 5 mins
+        val dt = next.timestamp - current.timestamp
+        if (dt > 5 * 60 * 1000) continue
+        
+        // Only consider discharging periods for these stats
+        if (current.currentMa < 0) {
+            val avgCurrentMa = (kotlin.math.abs(current.currentMa) + kotlin.math.abs(next.currentMa)) / 2.0
+            val mah = (avgCurrentMa * dt) / 3_600_000.0
+            
+            totalDischargeTimeMs += dt
+            totalDischargeMah += mah
+            
+            if (current.isScreenOn) {
+                screenOnTimeMs += dt
+                screenOnMah += mah
+            } else {
+                screenOffTimeMs += dt
+                screenOffMah += mah
+            }
+        }
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = shape,
@@ -547,6 +584,21 @@ fun BatteryHistoryStatsCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             
+            if (totalDischargeTimeMs > 0) {
+                // Helper to format: "2h 30m • 45% (1200 mAh)"
+                // Note: % here is share of total observed drain
+                fun formatUsage(timeMs: Long, mah: Double): String {
+                    val pct = if (totalDischargeMah > 0) (mah / totalDischargeMah * 100).toInt() else 0
+                    val duration = formatDuration(timeMs)
+                    return "$duration • $pct% (${mah.toInt()} mAh)"
+                }
+
+                StatRow(label = stringResource(R.string.stats_total_active_time), value = formatUsage(totalDischargeTimeMs, totalDischargeMah))
+                StatRow(label = stringResource(R.string.stats_screen_on_time), value = formatUsage(screenOnTimeMs, screenOnMah))
+                StatRow(label = stringResource(R.string.stats_screen_off_time), value = formatUsage(screenOffTimeMs, screenOffMah))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             if (avgCharge > 0) {
                 StatRow(label = stringResource(R.string.stats_avg_charge_speed), value = "%.0f mA".format(avgCharge))
                 StatRow(label = stringResource(R.string.stats_max_charge_speed), value = "%.0f mA".format(maxCharge))
@@ -561,6 +613,13 @@ fun BatteryHistoryStatsCard(
             StatRow(label = stringResource(R.string.stats_avg_idle_drain), value = "%.2f %%/hr".format(avgIdleDrain))
         }
     }
+}
+
+private fun formatDuration(ms: Long): String {
+    val totalSec = ms / 1000
+    val h = totalSec / 3600
+    val m = (totalSec % 3600) / 60
+    return if (h > 0) "${h}h ${m}m" else "${m}m"
 }
 
 @Composable

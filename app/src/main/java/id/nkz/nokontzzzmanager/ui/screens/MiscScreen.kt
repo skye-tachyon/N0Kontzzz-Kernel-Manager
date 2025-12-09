@@ -24,6 +24,7 @@ import androidx.navigation.NavController
 import id.nkz.nokontzzzmanager.ui.dialog.TcpCongestionDialog
 import id.nkz.nokontzzzmanager.viewmodel.MiscViewModel
 import id.nkz.nokontzzzmanager.ui.dialog.IoSchedulerDialog
+import id.nkz.nokontzzzmanager.ui.dialog.BatteryHistoryConfigDialog
 
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -76,6 +77,27 @@ fun MiscScreen(
     val availableTcpAlgorithms by viewModel.availableTcpCongestionAlgorithms.collectAsStateWithLifecycle()
     val ioScheduler by viewModel.ioScheduler.collectAsStateWithLifecycle()
     val availableIoSchedulers by viewModel.availableIoSchedulers.collectAsStateWithLifecycle()
+
+    val autoResetOnReboot by viewModel.autoResetOnReboot.collectAsStateWithLifecycle()
+    val autoResetOnCharging by viewModel.autoResetOnCharging.collectAsStateWithLifecycle()
+    val autoResetAtLevel by viewModel.autoResetAtLevel.collectAsStateWithLifecycle()
+    val autoResetTargetLevel by viewModel.autoResetTargetLevel.collectAsStateWithLifecycle()
+
+    var showAutoResetDialog by remember { mutableStateOf(false) }
+
+    if (showAutoResetDialog) {
+        BatteryHistoryConfigDialog(
+            onDismiss = { showAutoResetDialog = false },
+            resetOnReboot = autoResetOnReboot,
+            onResetOnRebootChange = viewModel::setAutoResetOnReboot,
+            resetOnCharging = autoResetOnCharging,
+            onResetOnChargingChange = viewModel::setAutoResetOnCharging,
+            resetAtLevel = autoResetAtLevel,
+            onResetAtLevelChange = viewModel::setAutoResetAtLevel,
+            targetLevel = autoResetTargetLevel,
+            onTargetLevelChange = viewModel::setAutoResetTargetLevel
+        )
+    }
 
     val context = LocalContext.current
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -156,7 +178,8 @@ fun MiscScreen(
         // Battery History
         item {
             BatteryHistoryCard(
-                onClick = { navController?.navigate("battery_history") }
+                onClick = { navController?.navigate("battery_history") },
+                onSettingsClick = { showAutoResetDialog = true }
             )
         }
 
@@ -695,7 +718,8 @@ fun BypassChargingCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BatteryHistoryCard(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -727,11 +751,23 @@ fun BatteryHistoryCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "View History",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Auto-Reset Settings",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "View History",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

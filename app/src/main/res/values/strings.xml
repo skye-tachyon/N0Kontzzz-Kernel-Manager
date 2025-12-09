@@ -214,6 +214,10 @@
     <string name="stats_max_discharge_speed">Max Discharge Speed</string>
     <string name="stats_avg_active_drain">Avg Active Drain</string>
     <string name="stats_avg_idle_drain">Avg Idle Drain</string>
+    <string name="stats_total_active_time">Total Active</string>
+    <string name="stats_screen_on_time">Screen On</string>
+    <string name="stats_screen_off_time">Screen Off</string>
+    <string name="stats_usage_format">%s • %d%% (%d mAh)</string>
 
     <!-- SettingsScreen -->
     <string name="coming_soon">Coming Soon</string>

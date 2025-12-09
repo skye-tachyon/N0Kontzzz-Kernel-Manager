@@ -47,6 +47,18 @@ class MiscViewModel @Inject constructor(
     private val _batteryMonitorEnabled = MutableStateFlow(false)
     val batteryMonitorEnabled: StateFlow<Boolean> = _batteryMonitorEnabled.asStateFlow()
 
+    private val _autoResetOnReboot = MutableStateFlow(false)
+    val autoResetOnReboot: StateFlow<Boolean> = _autoResetOnReboot.asStateFlow()
+
+    private val _autoResetOnCharging = MutableStateFlow(false)
+    val autoResetOnCharging: StateFlow<Boolean> = _autoResetOnCharging.asStateFlow()
+
+    private val _autoResetAtLevel = MutableStateFlow(false)
+    val autoResetAtLevel: StateFlow<Boolean> = _autoResetAtLevel.asStateFlow()
+
+    private val _autoResetTargetLevel = MutableStateFlow(90)
+    val autoResetTargetLevel: StateFlow<Int> = _autoResetTargetLevel.asStateFlow()
+
     private val isDataLoaded = java.util.concurrent.atomic.AtomicBoolean(false)
 
     init {
@@ -74,6 +86,10 @@ class MiscViewModel @Inject constructor(
 
         // Load Battery Monitor preference
         _batteryMonitorEnabled.value = preferenceManager.isBatteryMonitorEnabled()
+        _autoResetOnReboot.value = preferenceManager.isAutoResetOnReboot()
+        _autoResetOnCharging.value = preferenceManager.isAutoResetOnCharging()
+        _autoResetAtLevel.value = preferenceManager.isAutoResetAtLevel()
+        _autoResetTargetLevel.value = preferenceManager.getAutoResetTargetLevel()
     }
 
     fun toggleKgslSkipZeroing(enabled: Boolean) {
@@ -162,5 +178,25 @@ class MiscViewModel @Inject constructor(
     fun resetBatteryMonitor() {
         val ctx = getApplication<Application>()
         BatteryMonitorService.reset(ctx)
+    }
+
+    fun setAutoResetOnReboot(enabled: Boolean) {
+        _autoResetOnReboot.value = enabled
+        preferenceManager.setAutoResetOnReboot(enabled)
+    }
+
+    fun setAutoResetOnCharging(enabled: Boolean) {
+        _autoResetOnCharging.value = enabled
+        preferenceManager.setAutoResetOnCharging(enabled)
+    }
+
+    fun setAutoResetAtLevel(enabled: Boolean) {
+        _autoResetAtLevel.value = enabled
+        preferenceManager.setAutoResetAtLevel(enabled)
+    }
+
+    fun setAutoResetTargetLevel(level: Int) {
+        _autoResetTargetLevel.value = level
+        preferenceManager.setAutoResetTargetLevel(level)
     }
 }

@@ -98,7 +98,7 @@ class BootReceiver : BroadcastReceiver() {
 
     private fun tryStartFgs(context: Context): Boolean {
         return try {
-            BatteryMonitorService.start(context)
+            BatteryMonitorService.start(context, isBoot = true)
             Log.d(TAG, "BatteryMonitorService auto-started")
             true
         } catch (t: Throwable) {

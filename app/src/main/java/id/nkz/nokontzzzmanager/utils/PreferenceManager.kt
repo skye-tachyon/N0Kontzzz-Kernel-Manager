@@ -17,6 +17,10 @@ class PreferenceManager @Inject constructor(
         private const val KEY_KGSL_SKIP_ZEROING = "kgsl_skip_zeroing"
         private const val KEY_BYPASS_CHARGING = "bypass_charging"
         private const val KEY_BATTERY_MONITOR_ENABLED = "battery_monitor_enabled"
+        private const val KEY_AUTO_RESET_ON_REBOOT = "auto_reset_on_reboot"
+        private const val KEY_AUTO_RESET_ON_CHARGING = "auto_reset_on_charging"
+        private const val KEY_AUTO_RESET_AT_LEVEL = "auto_reset_at_level"
+        private const val KEY_AUTO_RESET_TARGET_LEVEL = "auto_reset_target_level"
     }
 
     private fun credentialPrefs(): SharedPreferences? {
@@ -83,5 +87,49 @@ class PreferenceManager @Inject constructor(
         if (primary == true) return true
         val fallback = deviceProtectedPrefs()?.getBoolean(KEY_BATTERY_MONITOR_ENABLED, false)
         return fallback ?: false
+    }
+
+    fun setAutoResetOnReboot(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_AUTO_RESET_ON_REBOOT, enabled) }
+        deviceProtectedPrefs()?.edit { putBoolean(KEY_AUTO_RESET_ON_REBOOT, enabled) }
+    }
+
+    fun isAutoResetOnReboot(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_AUTO_RESET_ON_REBOOT, false)
+            ?: deviceProtectedPrefs()?.getBoolean(KEY_AUTO_RESET_ON_REBOOT, false)
+            ?: false
+    }
+
+    fun setAutoResetOnCharging(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_AUTO_RESET_ON_CHARGING, enabled) }
+        deviceProtectedPrefs()?.edit { putBoolean(KEY_AUTO_RESET_ON_CHARGING, enabled) }
+    }
+
+    fun isAutoResetOnCharging(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_AUTO_RESET_ON_CHARGING, false)
+            ?: deviceProtectedPrefs()?.getBoolean(KEY_AUTO_RESET_ON_CHARGING, false)
+            ?: false
+    }
+
+    fun setAutoResetAtLevel(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_AUTO_RESET_AT_LEVEL, enabled) }
+        deviceProtectedPrefs()?.edit { putBoolean(KEY_AUTO_RESET_AT_LEVEL, enabled) }
+    }
+
+    fun isAutoResetAtLevel(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_AUTO_RESET_AT_LEVEL, false)
+            ?: deviceProtectedPrefs()?.getBoolean(KEY_AUTO_RESET_AT_LEVEL, false)
+            ?: false
+    }
+
+    fun setAutoResetTargetLevel(level: Int) {
+        credentialPrefs()?.edit { putInt(KEY_AUTO_RESET_TARGET_LEVEL, level) }
+        deviceProtectedPrefs()?.edit { putInt(KEY_AUTO_RESET_TARGET_LEVEL, level) }
+    }
+
+    fun getAutoResetTargetLevel(): Int {
+        return credentialPrefs()?.getInt(KEY_AUTO_RESET_TARGET_LEVEL, 90)
+            ?: deviceProtectedPrefs()?.getInt(KEY_AUTO_RESET_TARGET_LEVEL, 90)
+            ?: 90
     }
 }
