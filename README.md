@@ -1,5 +1,7 @@
 <h1 align="center" style="font-size: 48px;">N0Kontzzz Kernel Manager</h1>
 
+![NKM Logo](nkm-logo.png)
+
 ![Platform](https://img.shields.io/badge/platform-Android-green?style=for-the-badge&logo=android)
 ![Language](https://img.shields.io/badge/language-Kotlin-purple?style=for-the-badge&logo=kotlin)
 ![UI](https://img.shields.io/badge/Jetpack-Compose-blue?style=for-the-badge&logo=jetpackcompose)
