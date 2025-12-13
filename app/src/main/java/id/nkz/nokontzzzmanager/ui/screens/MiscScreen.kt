@@ -428,6 +428,8 @@ fun BatteryMonitorResetCard(
     onEnsurePermission: () -> Unit,
 ) {
     val context = LocalContext.current
+    val toastMessage = stringResource(R.string.battery_stats_reset_toast)
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
@@ -437,7 +439,7 @@ fun BatteryMonitorResetCard(
         onClick = {
             onEnsurePermission()
             onReset()
-            Toast.makeText(context, context.getString(R.string.battery_stats_reset_toast), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
         }
     ) {
         Column(
