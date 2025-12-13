@@ -28,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -59,14 +62,21 @@ fun AppProfilesScreen(
     var showPermissionDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-    
-    LaunchedEffect(Unit) {
-        if (!viewModel.hasUsageStatsPermission()) {
-            showPermissionDialog = true
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val hasPermission = viewModel.hasUsageStatsPermission()
+                showPermissionDialog = !hasPermission
+                if (hasPermission) {
+                    viewModel.toggleService(true)
+                }
+            }
         }
-        // Ensure service is running if permissions are granted
-        if (viewModel.hasUsageStatsPermission()) {
-            viewModel.toggleService(true)
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
