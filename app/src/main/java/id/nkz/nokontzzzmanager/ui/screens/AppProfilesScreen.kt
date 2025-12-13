@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -298,15 +299,21 @@ fun AppPickerSheet(
             } else {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    items(filteredApps) { app ->
+                    itemsIndexed(filteredApps) { index, app ->
+                        val shape = when {
+                            filteredApps.size == 1 -> RoundedCornerShape(24.dp) // Single item
+                            index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp) // First item
+                            index == filteredApps.lastIndex -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp) // Last item
+                            else -> RoundedCornerShape(8.dp) // Middle items
+                        }
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onAppSelected(app) },
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = shape
                         ) {
                             Row(
                                 modifier = Modifier
