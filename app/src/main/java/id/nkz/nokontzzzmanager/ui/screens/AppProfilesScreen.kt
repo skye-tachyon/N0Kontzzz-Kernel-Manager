@@ -13,6 +13,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -368,7 +377,7 @@ fun AppPickerSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppProfileConfigDialog(
     profile: AppProfileEntity,
@@ -468,18 +477,30 @@ fun AppProfileConfigDialog(
 
                         // Performance Mode
                         Text(stringResource(R.string.app_profiles_performance_mode), style = MaterialTheme.typography.titleSmall)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = performanceMode == "Balanced",
-                                onClick = { performanceMode = "Balanced" }
-                            )
-                            Text(stringResource(R.string.app_profiles_balanced))
-                            Spacer(modifier = Modifier.width(16.dp))
-                            RadioButton(
-                                selected = performanceMode == "Performance",
-                                onClick = { performanceMode = "Performance" }
-                            )
-                            Text(stringResource(R.string.app_profiles_performance))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                        ) {
+                            val options = listOf("Balanced", "Performance")
+                            options.forEachIndexed { index, option ->
+                                val isSelected = performanceMode == option
+                                ToggleButton(
+                                    checked = isSelected,
+                                    onCheckedChange = { performanceMode = option },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .semantics { role = Role.RadioButton },
+                                    shapes = when (index) {
+                                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                    }
+                                ) {
+                                    Text(
+                                        text = if (option == "Balanced") stringResource(R.string.app_profiles_balanced) else stringResource(R.string.app_profiles_performance)
+                                    )
+                                }
+                            }
                         }
 
                         // KGSL
