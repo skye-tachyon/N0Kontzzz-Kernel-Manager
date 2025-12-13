@@ -55,6 +55,7 @@ fun AppProfilesScreen(
     val filteredApps by viewModel.filteredApps.collectAsStateWithLifecycle()
     val isLoadingApps by viewModel.isLoadingApps.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val isKgslFeatureAvailable by viewModel.isKgslFeatureAvailable.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState()
     
     var showAddDialog by remember { mutableStateOf(false) }
@@ -182,6 +183,7 @@ fun AppProfilesScreen(
         if (profileToEdit != null) {
             AppProfileConfigDialog(
                 profile = profileToEdit!!,
+                isKgslFeatureAvailable = isKgslFeatureAvailable == true,
                 onDismiss = { profileToEdit = null },
                 onSave = { updatedProfile ->
                     viewModel.updateProfile(updatedProfile)
@@ -397,6 +399,7 @@ fun AppPickerSheet(
 @Composable
 fun AppProfileConfigDialog(
     profile: AppProfileEntity,
+    isKgslFeatureAvailable: Boolean,
     onDismiss: () -> Unit,
     onSave: (AppProfileEntity) -> Unit
 ) {
@@ -533,11 +536,15 @@ fun AppProfileConfigDialog(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(stringResource(R.string.app_profiles_kgsl_skip_zeroing))
+                            Text(
+                                stringResource(R.string.app_profiles_kgsl_skip_zeroing),
+                                color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            )
                             Switch(
-                                checked = kgslSkipZeroing,
+                                checked = kgslSkipZeroing && isKgslFeatureAvailable,
                                 onCheckedChange = { kgslSkipZeroing = it },
-                                thumbContent = if (kgslSkipZeroing) {
+                                enabled = isKgslFeatureAvailable,
+                                thumbContent = if (kgslSkipZeroing && isKgslFeatureAvailable) {
                                     {
                                         Icon(
                                             imageVector = Icons.Default.Check,

@@ -21,15 +21,26 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+import id.nkz.nokontzzzmanager.data.repository.SystemRepository
+
 @HiltViewModel
 class AppProfilesViewModel @Inject constructor(
     private val application: Application,
     private val appProfileRepository: AppProfileRepository,
-    private val preferenceManager: PreferenceManager
+    private val preferenceManager: PreferenceManager,
+    private val systemRepository: SystemRepository
 ) : AndroidViewModel(application) {
 
     val profiles = appProfileRepository.getAllProfiles()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _isKgslFeatureAvailable = MutableStateFlow<Boolean?>(null)
+    val isKgslFeatureAvailable: StateFlow<Boolean?> = _isKgslFeatureAvailable.asStateFlow()
+    
+    init {
+        // Check if KGSL feature is available
+        _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
+    }
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
