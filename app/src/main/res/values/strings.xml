@@ -24,7 +24,7 @@
     <string name="github_link">https://github.com/bimoalfarrabi/kernel_xiaomi_sm8250_n0kontzz</string>
     <string name="telegram_link">https://t.me/n0kontzzz</string>
     <string name="reboot_system">Reboot System</string>
-    <string name="reboot_systemui">Reboot System Ui</string>
+    <string name="reboot_systemui">Reboot SystemUI</string>
     <string name="reboot_bootloader">Reboot Bootloader</string>
     <string name="reboot_recovery">Reboot Recovery</string>
     <string name="power_off">Power Off</string>
@@ -46,7 +46,7 @@
     <string name="cpu_governor_label">Governor:</string>
     <string name="cpu_cores_title" translatable="false">CPU Cores</string>
     <string name="cpu_cores_label">Cores:</string>
-    <string name="core_suffix">Cores</string> 
+    <string name="core_suffix">Cores</string>
     <string name="temperature_label">Temp:</string>
     <string name="temperature_c_format">%.1f °C</string>
     <string name="avg_load_label">Avg. Load:</string>
@@ -79,7 +79,6 @@
     <string name="widget_battery_off">Battery OFF</string>
     <string name="battery_performance_widget_description">Control battery notification and performance mode</string>
 
-    
     <string name="battery_toggle">Toggle Battery Stats</string>
     <string name="performance_cycle">Cycle Performance Mode</string>
     <string name="performance_mode_balanced">Mode: Balanced</string>
@@ -310,7 +309,7 @@
     <string name="dpi">DPI</string>
 
     <!-- MergedSystemCard Batch 7 -->
-    <string name="internal_storage">Penyimpanan Internal</string>
+    <string name="internal_storage">Internal Storage</string>
     <string name="storage_usage_template">%1$s / %2$s</string>
     <string name="used_template">Used: %s</string>
     <string name="free_template">Free: %s</string>
@@ -416,7 +415,7 @@
     <string name="set_min_free_memory">Set Min Free Memory</string>
 
     <!-- SwappinessCard Batch 3 -->
-    <string name="ram_control">Kontrol RAM</string>
+    <string name="ram_control">RAM Control</string>
     <string name="zram_active_template">ZRAM: %dMB Active</string>
     <string name="zram_disabled">ZRAM: Disabled</string>
     <string name="zram_state">ZRAM State</string>
@@ -509,4 +508,8 @@
     <string name="open_settings">Open Settings</string>
     <string name="exit_app_dialog">Exit App</string>
     <string name="later">Later</string>
+
+    <!-- Source Code Chip -->
+    <string name="source_code">Source Code</string>
+    <string name="source_code_link" translatable="false">https://github.com/bimoalfarrabi/N0Kontzzz-Kernel-Manager.git</string>
 </resources>

@@ -508,4 +508,7 @@
     <string name="open_settings">Buka Pengaturan</string>
     <string name="exit_app_dialog">Keluar Aplikasi</string>
     <string name="later">Nanti</string>
+
+    <!-- Source Code Chip -->
+    <string name="source_code">Kode Sumber</string>
 </resources>
