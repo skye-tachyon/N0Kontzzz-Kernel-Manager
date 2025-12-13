@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
@@ -84,7 +85,12 @@ fun AppProfilesScreen(
     ) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding)
+                .padding(
+                    bottom = padding.calculateBottomPadding(),
+                    start = padding.calculateStartPadding(LocalLayoutDirection.current),
+                    end = padding.calculateEndPadding(LocalLayoutDirection.current),
+                    top = 0.dp // Set top padding to 0.dp
+                )
                 .fillMaxSize()
         ) {
             if (showPermissionDialog) {
