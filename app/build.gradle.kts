@@ -15,8 +15,8 @@ android {
         applicationId = "id.nkz.nokontzzzmanager"
         minSdk = 26
         targetSdk = 36
-        versionCode = 40
-        versionName = "1.2.1"
+        versionCode = 44
+        versionName = "1.3.0"
     }
     buildTypes {
         release {
@@ -90,6 +90,7 @@ dependencies {
     // Utility
     implementation(libs.libsu)
     implementation(libs.coil.compose)
+    implementation(libs.accompanist.drawablepainter)
     implementation(libs.guava) {
         exclude(group = "com.google.guava", module = "listenablefuture")
     }

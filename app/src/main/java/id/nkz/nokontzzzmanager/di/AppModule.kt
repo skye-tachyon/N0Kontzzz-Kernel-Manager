@@ -71,4 +71,16 @@ object AppModule {
     fun provideBatteryGraphRepository(dao: id.nkz.nokontzzzmanager.data.database.BatteryGraphDao): id.nkz.nokontzzzmanager.data.repository.BatteryGraphRepository {
         return id.nkz.nokontzzzmanager.data.repository.BatteryGraphRepository(dao)
     }
+
+    @Provides
+    @Singleton
+    fun provideAppProfileDao(database: id.nkz.nokontzzzmanager.data.database.BatteryHistoryDatabase): id.nkz.nokontzzzmanager.data.database.AppProfileDao {
+        return database.appProfileDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppProfileRepository(dao: id.nkz.nokontzzzmanager.data.database.AppProfileDao): id.nkz.nokontzzzmanager.data.repository.AppProfileRepository {
+        return id.nkz.nokontzzzmanager.data.repository.AppProfileRepository(dao)
+    }
 }

@@ -208,6 +208,24 @@ fun MiscScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
+        // Group 3: Automation
+        item {
+            Text("Automation", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        
+        // App Profiles
+        item {
+            AppProfilesCard(
+                onClick = { navController?.navigate("app_profiles") }
+            )
+        }
+
+        // Spacer between groups
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         // Group 2: Network & Storage
         item {
             Text(stringResource(id = R.string.network_storage), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
@@ -353,6 +371,51 @@ fun KgslSkipZeroingCard(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppProfilesCard(
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Per-App Profiles",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Set custom performance, KGSL, and charging settings for specific apps",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Open App Profiles",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

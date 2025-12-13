@@ -160,6 +160,7 @@ class MainActivity : ComponentActivity() {
                 val title = when (currentRoute) {
                     "settings" -> stringResource(id = R.string.settings)
                     "battery_history" -> stringResource(id = R.string.battery_history_title) // Define title for Battery History screen
+                    "app_profiles" -> "App Profiles"
                     else -> stringResource(id = R.string.n0kz_kernel_manager) // Default title for home, tuning, misc
                 }
 
@@ -337,6 +338,23 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             SettingsScreen(navController = navController)
+                        }
+                        composable(
+                            "app_profiles",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                            AppProfilesScreen(navController = navController)
                         }
                     }
                 }
