@@ -36,6 +36,15 @@
 - **Efficient Architecture**  
   Built on a lightweight MVVM architecture to ensure optimal performance and minimal resource usage on rooted devices.
 
+- **Per-App Profiles**  
+  Configure and automatically apply specific system profiles (Performance/Balanced), GPU tweaks, and charging behaviors for individual applications.
+
+- **Bypass Charging**  
+  Directly power the device from the AC adapter while pausing battery charging. This effectively minimizes heat buildup during intensive workloads and extends overall battery health. *Note: This feature requires kernel support.*
+
+- **KGSL Skip Pool Zeroing**  
+  Optimizes Adreno GPU memory management by skipping the zero-initialization of memory pages, resulting in reduced overhead and improved graphical performance. *Note: This feature requires kernel support.*
+
 ---
 
 ## Requirements
@@ -47,8 +56,26 @@
 
 ## Permissions
 
-- **Root Access**: Required for core functionality via libsu.
-- **Privacy Focused**: No internet access or telemetry required. The application operates entirely offline to ensure data privacy.
+- **Root Access (`android.permission.ACCESS_SUPERUSER`)**  
+  Fundamental for executing kernel-level operations such as CPU frequency scaling and thermal management via `libsu`.
+
+- **Usage Access (`android.permission.PACKAGE_USAGE_STATS`)**  
+  Required for the **Per-App Profiles** feature to detect which application is currently in the foreground and apply the corresponding system profile.
+
+- **Storage Access (`android.permission.MANAGE_EXTERNAL_STORAGE`)**  
+  Used to backup and restore application configurations, profiles, and logs.
+
+- **Query All Packages (`android.permission.QUERY_ALL_PACKAGES`)**  
+  Necessary for listing installed applications when creating new per-app profiles.
+
+- **Battery Optimization (`android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`)**  
+  Ensures the background monitoring service remains active to reliably apply profiles and track battery statistics without being killed by the system.
+
+- **System Alert Window (`android.permission.SYSTEM_ALERT_WINDOW`)**  
+  (Optional) Used for displaying overlays or critical alerts if enabled.
+
+- **Privacy Focused**  
+  No internet access permission is requested. The application operates entirely offline to ensure data privacy.
 
 ---
 
