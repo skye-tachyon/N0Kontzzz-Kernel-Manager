@@ -354,19 +354,23 @@ class BatteryMonitorService : Service() {
         val nowMs = System.currentTimeMillis()
         if (nowMs - lastHistorySaveTime >= 60_000L) {
             lastHistorySaveTime = nowMs
-            scope.launch {
-                batteryGraphRepository.insertEntry(
-                    BatteryGraphEntry(
-                        timestamp = nowMs,
-                        batteryLevel = level,
-                        currentMa = currentMa,
-                        isCharging = charging,
-                        isScreenOn = interactive,
-                        activeDrainRate = activeRate.toFloat(),
-                        idleDrainRate = idleRate.toFloat(),
-                        temperature = temp
-                    )
-                )
+            if (isUserUnlocked(this)) {
+                scope.launch {
+                    try {
+                        batteryGraphRepository.insertEntry(
+                            BatteryGraphEntry(
+                                timestamp = nowMs,
+                                batteryLevel = level,
+                                currentMa = currentMa,
+                                isCharging = charging,
+                                isScreenOn = interactive,
+                                activeDrainRate = activeRate.toFloat(),
+                                idleDrainRate = idleRate.toFloat(),
+                                temperature = temp
+                            )
+                        )
+                    } catch (_: Exception) { }
+                }
             }
         }
 
@@ -555,13 +559,26 @@ class BatteryMonitorService : Service() {
     }
 
     private fun fullReset() {
-        scope.launch {
-            batteryGraphRepository.deleteAllEntries()
+        if (isUserUnlocked(this)) {
+            scope.launch {
+                try {
+                    batteryGraphRepository.deleteAllEntries()
+                } catch (_: Exception) { }
+            }
         }
         manualReset()
         try {
             updateNotification(collectSystemStats())
         } catch (_: Exception) {}
+    }
+
+    private fun isUserUnlocked(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val um = context.getSystemService(Context.USER_SERVICE) as android.os.UserManager
+            um.isUserUnlocked
+        } else {
+            true
+        }
     }
 
     private fun checkAutoResetAtLevel(level: Int, isCharging: Boolean) {
