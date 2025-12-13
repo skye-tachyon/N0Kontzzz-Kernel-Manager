@@ -46,7 +46,7 @@
     <string name="cpu_governor_label">Governor:</string>
     <string name="cpu_cores_title" translatable="false">CPU Cores</string>
     <string name="cpu_cores_label">Cores:</string>
-    <string name="core_suffix">Cores</string> <!-- atau "Inti" -->
+    <string name="core_suffix">Cores</string> 
     <string name="temperature_label">Temp:</string>
     <string name="temperature_c_format">%.1f °C</string>
     <string name="avg_load_label">Avg. Load:</string>
@@ -182,7 +182,7 @@
     <string name="min_frequency">Min Frequency</string>
     <string name="loading_ellipsis">Loading…</string>
     <string name="max_frequency">Max Frequency</string>
-    <string name="cores_online">%d/%d Online</string>
+    <string name="cores_online">%1$d/%2$d Online</string>
 
     <!-- IoSchedulerDialog -->
     <string name="io_scheduler">I/O Scheduler</string>
@@ -225,7 +225,7 @@
     <string name="stats_total_active_time">Total Active</string>
     <string name="stats_screen_on_time">Screen On</string>
     <string name="stats_screen_off_time">Screen Off</string>
-    <string name="stats_usage_format">%s • %d%% (%d mAh)</string>
+    <string name="stats_usage_format">%1$s • %2$d%% (%3$d mAh)</string>
 
     <!-- SettingsScreen -->
     <string name="coming_soon">Coming Soon</string>
@@ -249,16 +249,16 @@
     <string name="storage_kb">%.1f KB</string>
     <string name="storage_b">%d B</string>
     <string name="battery_status">Battery Status</string>
-    <string name="battery_status_template">%d%% • %.1f°C • %s</string>
+    <string name="battery_status_template">%1$d%% • %2$.1f°C • %3$s</string>
     <string name="charging">Charging</string>
     <string name="discharging">Discharging</string>
 
     <!-- MergedSystemCard Batch 2 -->
     <string name="memory_status">Memory Status</string>
-    <string name="memory_status_template">%d%% Used • %dGB</string>
-    <string name="memory_status_template_with_zram">%d%% Used • %dGB + %dGB ZRAM</string>
+    <string name="memory_status_template">%1$d%% Used • %2$dGB</string>
+    <string name="memory_status_template_with_zram">%1$d%% Used • %2$dGB + %3$dGB ZRAM</string>
     <string name="storage_status">Storage Status</string>
-    <string name="storage_status_template">%d%% Used • %s Total</string>
+    <string name="storage_status_template">%1$d%% Used • %2$s Total</string>
 
     <!-- MergedSystemCard Batch 3 -->
     <string name="charge_level">Charge Level</string>
@@ -311,7 +311,7 @@
 
     <!-- MergedSystemCard Batch 7 -->
     <string name="internal_storage">Internal Storage</string>
-    <string name="storage_usage_template">%s / %s</string>
+    <string name="storage_usage_template">%1$s / %2$s</string>
     <string name="used_template">Used: %s</string>
     <string name="free_template">Free: %s</string>
     <string name="used_storage">Used Storage</string>
@@ -345,7 +345,7 @@
     <string name="original_project_repo">Original project repository</string>
     <string name="rvkernel_manager_repo">RvKernel Manager Repository</string>
     <string name="feature_and_code_reference">Feature and code reference from this repository</string>
-    <string name="developer_profile_picture">%s\'s profile picture</string>
+    <string name="developer_profile_picture">%1$s profile picture</string>
 
     <!-- AboutCard Batch 2 -->
     <string name="follow_us">Follow us:</string>
@@ -467,6 +467,29 @@
     <string name="app_usage_title">App Usage</string>
     <string name="grant_usage_permission">Grant Usage Access</string>
     <string name="usage_permission_desc">To see app usage details, please grant usage access permission.</string>
-    <string name="usage_time_format">%dh %dm</string>
+    <string name="usage_time_format">%1$dh %2$dm</string>
     <string name="usage_time_format_min">%dm</string>
+
+    <!-- App Profiles Screen -->
+    <string name="app_profiles_add_profile">Add App Profile</string>
+    <string name="app_profiles_permission_required">Usage Stats permission required for App Profiles to work. Tap to enable.</string>
+    <string name="app_profiles_no_profiles">No profiles configured. Tap + to add one.</string>
+    <string name="app_profiles_delete">Delete</string>
+    <string name="app_profiles_select_app">Select App</string>
+    <string name="app_profiles_search_apps">Search apps…</string>
+    <string name="app_profiles_clear_search">Clear search</string>
+    <string name="app_profiles_no_apps_found">No apps found</string>
+    <string name="app_profiles_close">Close</string>
+    <string name="app_profiles_enable_profile">Enable Profile</string>
+    <string name="app_profiles_performance_mode">Performance Mode</string>
+    <string name="app_profiles_balanced">Balanced</string>
+    <string name="app_profiles_performance">Performance</string>
+    <string name="app_profiles_kgsl_skip_zeroing">KGSL Skip Pool Zeroing</string>
+    <string name="app_profiles_bypass_charging">Bypass Charging</string>
+    <string name="app_profiles_cancel">Cancel</string>
+    <string name="app_profiles_save">Save</string>
+    <string name="app_profiles_kgsl_prefix"> • KGSL: </string>
+    <string name="app_profiles_bypass_prefix"> • Bypass: </string>
+    <string name="app_profiles_on">On</string>
+    <string name="app_profiles_off">Off</string>
 </resources>

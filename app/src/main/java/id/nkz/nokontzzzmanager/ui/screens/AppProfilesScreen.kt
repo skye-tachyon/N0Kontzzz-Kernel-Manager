@@ -20,11 +20,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.database.AppProfileEntity
 import id.nkz.nokontzzzmanager.viewmodel.AppInfo
 import id.nkz.nokontzzzmanager.viewmodel.AppProfilesViewModel
@@ -66,7 +68,7 @@ fun AppProfilesScreen(
                 },
                 modifier = Modifier.size(72.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add App Profile")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.app_profiles_add_profile))
             }
         }
     ) { padding ->
@@ -90,9 +92,8 @@ fun AppProfilesScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
-                        Text(
-                            "Usage Stats permission required for App Profiles to work. Tap to enable.",
-                            color = MaterialTheme.colorScheme.onErrorContainer,
+                                                    Text(
+                                                        stringResource(R.string.app_profiles_permission_required),                            color = MaterialTheme.colorScheme.onErrorContainer,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -101,7 +102,7 @@ fun AppProfilesScreen(
 
             if (profiles.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No profiles configured. Tap + to add one.")
+                    Text(stringResource(R.string.app_profiles_no_profiles))
                 }
             } else {
                 LazyColumn(
@@ -198,14 +199,14 @@ fun AppProfileItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = profile.appName, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    text = "${profile.performanceMode} • KGSL: ${if(profile.kgslSkipZeroing) "On" else "Off"} • Bypass: ${if(profile.bypassCharging) "On" else "Off"}",
+                    text = "${profile.performanceMode}${stringResource(R.string.app_profiles_kgsl_prefix)}${if(profile.kgslSkipZeroing) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}${stringResource(R.string.app_profiles_bypass_prefix)}${if(profile.bypassCharging) stringResource(R.string.app_profiles_on) else stringResource(R.string.app_profiles_off)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
             IconButton(onClick = { onDelete(profile) }) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.app_profiles_delete))
             }
         }
     }
@@ -249,7 +250,7 @@ fun AppPickerSheet(
                 )
             }
             Text(
-                text = "Select App",
+                text = stringResource(R.string.app_profiles_select_app),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -262,12 +263,12 @@ fun AppPickerSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
-            placeholder = { Text("Search apps...") },
+            placeholder = { Text(stringResource(R.string.app_profiles_search_apps)) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             trailingIcon = if (searchQuery.isNotEmpty()) {
                 {
                     IconButton(onClick = { onSearchQueryChanged("") }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                        Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.app_profiles_clear_search))
                     }
                 }
             } else null,
@@ -292,7 +293,7 @@ fun AppPickerSheet(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("No apps found", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.app_profiles_no_apps_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
                 LazyColumn(
@@ -346,7 +347,7 @@ fun AppPickerSheet(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp)
         ) {
-            Text("Close")
+            Text(stringResource(R.string.app_profiles_close))
         }
     }
 }
@@ -421,7 +422,7 @@ fun AppProfileConfigDialog(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Enable Profile")
+                            Text(stringResource(R.string.app_profiles_enable_profile))
                             Switch(
                                 checked = isEnabled,
                                 onCheckedChange = { isEnabled = it },
@@ -450,19 +451,19 @@ fun AppProfileConfigDialog(
                         HorizontalDivider()
 
                         // Performance Mode
-                        Text("Performance Mode", style = MaterialTheme.typography.titleSmall)
+                        Text(stringResource(R.string.app_profiles_performance_mode), style = MaterialTheme.typography.titleSmall)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             RadioButton(
                                 selected = performanceMode == "Balanced",
                                 onClick = { performanceMode = "Balanced" }
                             )
-                            Text("Balanced")
+                            Text(stringResource(R.string.app_profiles_balanced))
                             Spacer(modifier = Modifier.width(16.dp))
                             RadioButton(
                                 selected = performanceMode == "Performance",
                                 onClick = { performanceMode = "Performance" }
                             )
-                            Text("Performance")
+                            Text(stringResource(R.string.app_profiles_performance))
                         }
 
                         // KGSL
@@ -471,7 +472,7 @@ fun AppProfileConfigDialog(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("KGSL Skip Pool Zeroing")
+                            Text(stringResource(R.string.app_profiles_kgsl_skip_zeroing))
                             Switch(
                                 checked = kgslSkipZeroing,
                                 onCheckedChange = { kgslSkipZeroing = it },
@@ -503,7 +504,7 @@ fun AppProfileConfigDialog(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Bypass Charging")
+                            Text(stringResource(R.string.app_profiles_bypass_charging))
                             Switch(
                                 checked = bypassCharging,
                                 onCheckedChange = { bypassCharging = it },
@@ -541,7 +542,7 @@ fun AppProfileConfigDialog(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.app_profiles_cancel))
                         }
                         Button(
                             onClick = {
@@ -557,7 +558,7 @@ fun AppProfileConfigDialog(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text("Save")
+                            Text(stringResource(R.string.app_profiles_save))
                         }
                     }
                 }

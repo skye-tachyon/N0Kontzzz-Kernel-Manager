@@ -93,7 +93,7 @@
 
     <!-- HomeScreen -->
     <string name="home_reboot_system_desc">Mulai Ulang Sistem</string>
-    <string name="home_reboot_systemui_desc">Mulai Ulang SystemUI</string>
+    <string name="home_reboot_systemui_desc">Mulai Ulang System UI</string>
     <string name="home_reboot_bootloader_desc">Mulai Ulang Bootloader</string>
     <string name="home_reboot_recovery_desc">Mulai Ulang Recovery</string>
     <string name="home_power_off_desc">Matikan Daya</string>
@@ -181,7 +181,7 @@
     <string name="min_frequency">Frekuensi Minimum</string>
     <string name="loading_ellipsis">Memuat…</string>
     <string name="max_frequency">Frekuensi Maksimum</string>
-    <string name="cores_online">%d/%d Aktif</string>
+    <string name="cores_online">%1$d/%2$d Aktif</string>
 
     <!-- IoSchedulerDialog -->
     <string name="io_scheduler">I/O Scheduler</string>
@@ -224,7 +224,7 @@
     <string name="stats_total_active_time">Total Aktif</string>
     <string name="stats_screen_on_time">Layar Hidup</string>
     <string name="stats_screen_off_time">Layar Mati</string>
-    <string name="stats_usage_format">%s • %d%% (%d mAh)</string>
+    <string name="stats_usage_format">%1$s • %2$d%% (%3$d mAh)</string>
 
     <!-- SettingsScreen -->
     <string name="coming_soon">Segera Hadir</string>
@@ -248,16 +248,16 @@
     <string name="storage_kb">%.1f KB</string>
     <string name="storage_b">%d B</string>
     <string name="battery_status">Status Baterai</string>
-    <string name="battery_status_template">%d%% • %.1f°C • %s</string>
+    <string name="battery_status_template">%1$d%% • %2$.1f°C • %3$s</string>
     <string name="charging">Mengisi Daya</string>
     <string name="discharging">Menggunakan Daya</string>
 
     <!-- MergedSystemCard Batch 2 -->
     <string name="memory_status">Status Memori</string>
-    <string name="memory_status_template">%d%% Digunakan • %dGB</string>
-    <string name="memory_status_template_with_zram">%d%% Digunakan • %dGB + %dGB ZRAM</string>
+    <string name="memory_status_template">%1$d%% Digunakan • %2$dGB</string>
+    <string name="memory_status_template_with_zram">%1$d%% Digunakan • %2$dGB + %3$dGB ZRAM</string>
     <string name="storage_status">Status Penyimpanan</string>
-    <string name="storage_status_template">%d%% Digunakan • %s Total</string>
+    <string name="storage_status_template">%1$d%% Digunakan • %2$s Total</string>
 
     <!-- MergedSystemCard Batch 3 -->
     <string name="charge_level">Tingkat Pengisian</string>
@@ -310,7 +310,7 @@
 
     <!-- MergedSystemCard Batch 7 -->
     <string name="internal_storage">Penyimpanan Internal</string>
-    <string name="storage_usage_template">%s / %s</string>
+    <string name="storage_usage_template">%1$s / %2$s</string>
     <string name="used_template">Terpakai: %s</string>
     <string name="free_template">Kosong: %s</string>
     <string name="used_storage">Penyimpanan Terpakai</string>
@@ -344,7 +344,7 @@
     <string name="original_project_repo">Repositori Proyek Asli</string>
     <string name="rvkernel_manager_repo">Repositori RvKernel Manager</string>
     <string name="feature_and_code_reference">Fitur dan referensi kode dari repositori ini</string>
-    <string name="developer_profile_picture">Foto profil milik %s</string>
+    <string name="developer_profile_picture">Foto profil milik %1$s</string>
 
     <!-- AboutCard Batch 2 -->
     <string name="follow_us">Ikuti kami:</string>
@@ -434,7 +434,7 @@
     <string name="swappiness_explanation">Mengontrol seberapa agresif kernel memindahkan data dari RAM ke penyimpanan. Nilai rendah (0–10) membuat sistem lebih fokus menggunakan RAM, nilai tinggi (60–100) menggunakan swap lebih sering untuk menghemat RAM.</string>
     <string name="zram_explanation">Menentukan ukuran RAM terkompresi untuk meningkatkan kapasitas memori virtual. ZRAM mengompresi data di RAM untuk menyimpan lebih banyak aplikasi tanpa menggunakan penyimpanan yang lebih lambat. (Status ZRAM dikendalikan oleh kernel Anda dan tidak dapat diubah)</string>
     <string name="dirty_ratio_explanation">Menetapkan persentase RAM yang digunakan untuk cache tulis sebelum memaksa penulisan ke penyimpanan. Nilai lebih tinggi = performa lebih baik tetapi risiko kehilangan data saat crash.</string>
-    <string name="dirty_background_ratio_explanation">Menentukan kapan kernel mulai secara bertahap menulis cache ke penyimpanan di latar belakang. Membantu menjaga performa stabil dengan mengurangi lag saat penulisan besar.</string>
+    <string name="dirty_background_ratio_explanation">Menentukan kapan kernel mulai secara bertahap menulis cache ke penyimpanan di latar belakang. Membantu menjaga performa stabil dengan mengurangi mengurangi lag saat penulisan besar.</string>
     <string name="min_free_memory_explanation">Menentukan jumlah minimum RAM yang harus selalu bebas. Nilai lebih tinggi membuat sistem lebih responsif tetapi mengurangi RAM yang tersedia untuk aplikasi.</string>
     <string name="dirty_expire_explanation">Menentukan berapa lama data cache dapat bertahan sebelum dipaksa menulis ke penyimpanan. Nilai lebih rendah = data lebih aman tetapi performa berkurang.</string>
     <string name="dirty_writeback_explanation">Menetapkan interval waktu bagi kernel untuk memeriksa dan menulis cache yang sudah kedaluwarsa. Mempengaruhi seberapa sering sistem melakukan pembersihan cache otomatis.</string>
@@ -466,6 +466,29 @@
     <string name="app_usage_title">Penggunaan Aplikasi</string>
     <string name="grant_usage_permission">Izinkan Akses Penggunaan</string>
     <string name="usage_permission_desc">Untuk melihat detail penggunaan aplikasi, mohon berikan izin akses penggunaan.</string>
-    <string name="usage_time_format">%dj %dm</string>
+    <string name="usage_time_format">%1$dj %2$dm</string>
     <string name="usage_time_format_min">%dm</string>
+
+    <!-- App Profiles Screen -->
+    <string name="app_profiles_add_profile">Tambah Profil Aplikasi</string>
+    <string name="app_profiles_permission_required">Izin Statistik Penggunaan diperlukan agar Profil Aplikasi berfungsi. Ketuk untuk mengaktifkan.</string>
+    <string name="app_profiles_no_profiles">Tidak ada profil yang dikonfigurasi. Ketuk + untuk menambahkan satu.</string>
+    <string name="app_profiles_delete">Hapus</string>
+    <string name="app_profiles_select_app">Pilih Aplikasi</string>
+    <string name="app_profiles_search_apps">Cari aplikasi…</string>
+    <string name="app_profiles_clear_search">Bersihkan pencarian</string>
+    <string name="app_profiles_no_apps_found">Tidak ada aplikasi ditemukan</string>
+    <string name="app_profiles_close">Tutup</string>
+    <string name="app_profiles_enable_profile">Aktifkan Profil</string>
+    <string name="app_profiles_performance_mode">Mode Performa</string>
+    <string name="app_profiles_balanced">Seimbang</string>
+    <string name="app_profiles_performance">Performa</string>
+    <string name="app_profiles_kgsl_skip_zeroing">KGSL Lewati Pool Zeroing</string>
+    <string name="app_profiles_bypass_charging">Bypass Charging</string>
+    <string name="app_profiles_cancel">Batal</string>
+    <string name="app_profiles_save">Simpan</string>
+    <string name="app_profiles_kgsl_prefix"> • KGSL: </string>
+    <string name="app_profiles_bypass_prefix"> • Bypass: </string>
+    <string name="app_profiles_on">Aktif</string>
+    <string name="app_profiles_off">Nonaktif</string>
 </resources>
