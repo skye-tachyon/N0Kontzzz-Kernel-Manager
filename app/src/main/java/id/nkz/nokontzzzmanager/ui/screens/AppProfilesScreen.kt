@@ -108,13 +108,20 @@ fun AppProfilesScreen(
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    items(profiles) { profile ->
+                    itemsIndexed(profiles) { index, profile ->
+                        val shape = when {
+                            profiles.size == 1 -> RoundedCornerShape(24.dp) // Single item
+                            index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp) // First item
+                            index == profiles.lastIndex -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp) // Last item
+                            else -> RoundedCornerShape(8.dp) // Middle items
+                        }
                         AppProfileItem(
                             profile = profile,
                             onEdit = { profileToEdit = it },
-                            onDelete = { viewModel.deleteProfile(it) }
+                            onDelete = { viewModel.deleteProfile(it) },
+                            cardShape = shape
                         )
                     }
                 }
@@ -164,7 +171,8 @@ fun AppProfilesScreen(
 fun AppProfileItem(
     profile: AppProfileEntity,
     onEdit: (AppProfileEntity) -> Unit,
-    onDelete: (AppProfileEntity) -> Unit
+    onDelete: (AppProfileEntity) -> Unit,
+    cardShape: RoundedCornerShape = RoundedCornerShape(12.dp)
 ) {
     val context = LocalContext.current
     // Load icon helper
@@ -180,7 +188,8 @@ fun AppProfileItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onEdit(profile) },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = cardShape
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
