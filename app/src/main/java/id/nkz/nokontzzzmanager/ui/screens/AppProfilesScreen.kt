@@ -1,8 +1,6 @@
 package id.nkz.nokontzzzmanager.ui.screens
 
-import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -11,8 +9,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.rememberAsyncImagePainter
 import id.nkz.nokontzzzmanager.data.database.AppProfileEntity
 import id.nkz.nokontzzzmanager.viewmodel.AppInfo
 import id.nkz.nokontzzzmanager.viewmodel.AppProfilesViewModel
@@ -36,8 +34,9 @@ fun AppProfilesScreen(
     viewModel: AppProfilesViewModel = hiltViewModel()
 ) {
     val profiles by viewModel.profiles.collectAsStateWithLifecycle()
-    val installedApps by viewModel.installedApps.collectAsStateWithLifecycle()
+    val filteredApps by viewModel.filteredApps.collectAsStateWithLifecycle()
     val isLoadingApps by viewModel.isLoadingApps.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     
     var showAddDialog by remember { mutableStateOf(false) }
     var profileToEdit by remember { mutableStateOf<AppProfileEntity?>(null) }
@@ -115,15 +114,18 @@ fun AppProfilesScreen(
 
     if (showAddDialog) {
         AppPickerSheet(
-            installedApps = installedApps,
+            filteredApps = filteredApps,
             isLoading = isLoadingApps,
-            onDismiss = { showAddDialog = false },
+            searchQuery = searchQuery,
+            onSearchQueryChanged = viewModel::onSearchQueryChanged,
+            onDismiss = { 
+                showAddDialog = false
+                viewModel.onSearchQueryChanged("") // Reset search when closed
+            },
             onAppSelected = { appInfo ->
                 viewModel.addProfile(appInfo)
                 showAddDialog = false
-                // Automatically open edit dialog after adding
-                // We need to fetch the newly added profile or just create a temp one
-                // For simplicity, we just add it with defaults. The user can edit it from the list.
+                viewModel.onSearchQueryChanged("") // Reset search
             }
         )
     }
@@ -194,8 +196,10 @@ fun AppProfileItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppPickerSheet(
-    installedApps: List<AppInfo>,
+    filteredApps: List<AppInfo>,
     isLoading: Boolean,
+    searchQuery: String,
+    onSearchQueryChanged: (String) -> Unit,
     onDismiss: () -> Unit,
     onAppSelected: (AppInfo) -> Unit
 ) {
@@ -203,38 +207,64 @@ fun AppPickerSheet(
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             Text("Select App", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 16.dp))
             
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChanged,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                placeholder = { Text("Search apps...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = if (searchQuery.isNotEmpty()) {
+                    {
+                        IconButton(onClick = { onSearchQueryChanged("") }) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                        }
+                    }
+                } else null,
+                singleLine = true
+            )
+            
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(installedApps) { app ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onAppSelected(app) }
-                                .padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                             // Icon for picker
-                            val context = LocalContext.current
-                            val icon = remember(app.packageName) {
-                                try {
-                                    context.packageManager.getApplicationIcon(app.packageName)
-                                } catch (e: Exception) {
-                                    null
+                if (filteredApps.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+                        Text("No apps found", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(filteredApps) { app ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onAppSelected(app) }
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                 // Icon for picker
+                                val context = LocalContext.current
+                                val icon = remember(app.packageName) {
+                                    try {
+                                        context.packageManager.getApplicationIcon(app.packageName)
+                                    } catch (e: Exception) {
+                                        null
+                                    }
+                                }
+                                if (icon != null) {
+                                    Image(
+                                        painter = rememberDrawablePainter(icon),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column {
+                                    Text(app.appName, style = MaterialTheme.typography.bodyLarge)
+                                    Text(app.packageName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
-                            if (icon != null) {
-                                Image(
-                                    painter = rememberDrawablePainter(icon),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(app.appName, style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }

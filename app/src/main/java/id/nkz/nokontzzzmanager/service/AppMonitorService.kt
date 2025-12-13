@@ -13,7 +13,6 @@ import id.nkz.nokontzzzmanager.data.repository.AppProfileRepository
 import id.nkz.nokontzzzmanager.data.repository.SystemRepository
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 import id.nkz.nokontzzzmanager.data.repository.TuningRepository

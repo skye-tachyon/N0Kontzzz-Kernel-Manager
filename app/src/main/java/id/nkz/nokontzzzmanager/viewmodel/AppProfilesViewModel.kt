@@ -4,8 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,8 +31,13 @@ class AppProfilesViewModel @Inject constructor(
     val profiles = appProfileRepository.getAllProfiles()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _installedApps = MutableStateFlow<List<AppInfo>>(emptyList())
-    val installedApps: StateFlow<List<AppInfo>> = _installedApps.asStateFlow()
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    private var allApps: List<AppInfo> = emptyList()
+
+    private val _filteredApps = MutableStateFlow<List<AppInfo>>(emptyList())
+    val filteredApps = _filteredApps.asStateFlow()
 
     private val _isLoadingApps = MutableStateFlow(false)
     val isLoadingApps: StateFlow<Boolean> = _isLoadingApps.asStateFlow()
@@ -50,7 +53,13 @@ class AppProfilesViewModel @Inject constructor(
                 val packages = pm.getInstalledPackages(0)
                 packages.mapNotNull { packageInfo ->
                     val appInfo = packageInfo.applicationInfo ?: return@mapNotNull null
-                    // val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0 // isSystem not used currently
+                    
+                    // Filter system apps, but keep updated system apps (e.g. Gmail, Chrome updates)
+                    // Basically exclude apps that are system and NOT updated system apps
+                    if ((appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0 && 
+                        (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0) {
+                        return@mapNotNull null
+                    }
                     
                     val label = appInfo.loadLabel(pm).toString()
 
@@ -60,8 +69,25 @@ class AppProfilesViewModel @Inject constructor(
                     )
                 }.sortedBy { it.appName.lowercase() }
             }
-            _installedApps.value = apps
+            allApps = apps
+            filterApps(_searchQuery.value)
             _isLoadingApps.value = false
+        }
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+        filterApps(query)
+    }
+
+    private fun filterApps(query: String) {
+        if (query.isBlank()) {
+            _filteredApps.value = allApps
+        } else {
+            _filteredApps.value = allApps.filter { 
+                it.appName.contains(query, ignoreCase = true) || 
+                it.packageName.contains(query, ignoreCase = true) 
+            }
         }
     }
 
