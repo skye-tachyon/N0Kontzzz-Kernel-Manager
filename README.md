@@ -98,6 +98,7 @@ Contributions are welcome. Please feel free to fork the repository, submit issue
 >
 > - **Performance Mode**: Utilize the `performance` governor for demanding computational tasks.
 > - **Balanced Profile**: The `schedutil` governor is recommended for an optimal balance between system responsiveness and power efficiency.
+> - **Powersave Mode**: Employ the `powersave` governor to maximize battery life, especially during periods of low activity.
 
 
 ---
