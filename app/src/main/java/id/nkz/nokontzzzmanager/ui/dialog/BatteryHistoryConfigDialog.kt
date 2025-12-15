@@ -110,117 +110,145 @@ fun BatteryHistoryConfigDialog(
                                 text = stringResource(R.string.battery_history_config_desc),
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                            // Spacer(modifier = Modifier.height(16.dp)) // Removed explicit Spacer
-
-                            // Reset on Reboot
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.battery_history_config_device_reboot),
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Switch(
-                                    checked = resetOnReboot,
-                                    onCheckedChange = onResetOnRebootChange, // Fixed typo here
-                                    thumbContent = if (resetOnReboot) {
-                                        {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                // Reset on Reboot
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.battery_history_config_device_reboot),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Switch(
+                                            checked = resetOnReboot,
+                                            onCheckedChange = onResetOnRebootChange,
+                                            thumbContent = if (resetOnReboot) {
+                                                {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                    )
+                                                }
+                                            } else {
+                                                {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Close,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+    
+                                // Reset on Charging
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.battery_history_config_charger_connected),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Switch(
+                                            checked = resetOnCharging,
+                                            onCheckedChange = onResetOnChargingChange,
+                                            thumbContent = if (resetOnCharging) {
+                                                {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                    )
+                                                }
+                                            } else {
+                                                {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Close,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+    
+                                // Reset at Level
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                                ) {
+                                    Column {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.battery_history_config_battery_level, targetLevel),
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            Switch(
+                                                checked = resetAtLevel,
+                                                onCheckedChange = onResetAtLevelChange,
+                                                thumbContent = if (resetAtLevel) {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Check,
+                                                            contentDescription = null,
+                                                            tint = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                        )
+                                                    }
+                                                } else {
+                                                    {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Close,
+                                                            contentDescription = null,
+                                                            tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                        )
+                                                    }
+                                                }
                                             )
                                         }
-                                    } else {
-                                        {
-                                            Icon(
-                                                imageVector = Icons.Default.Close,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.inverseOnSurface,
-                                                modifier = Modifier.size(SwitchDefaults.IconSize),
+    
+                                        if (resetAtLevel) {
+                                            Slider(
+                                                value = targetLevel.toFloat(),
+                                                onValueChange = { onTargetLevelChange(it.toInt()) },
+                                                valueRange = 50f..100f,
+                                                steps = 49,
+                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                             )
                                         }
                                     }
-                                )
-                            }
-
-                            // Reset on Charging
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.battery_history_config_charger_connected),
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Switch(
-                                    checked = resetOnCharging,
-                                    onCheckedChange = onResetOnChargingChange,
-                                    thumbContent = if (resetOnCharging) {
-                                        {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                                            )
-                                        }
-                                    } else {
-                                        {
-                                            Icon(
-                                                imageVector = Icons.Default.Close,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.inverseOnSurface,
-                                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                                            )
-                                        }
-                                    }
-                                )
-                            }
-
-                            // Reset at Level
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.battery_history_config_battery_level, targetLevel),
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Switch(
-                                    checked = resetAtLevel,
-                                    onCheckedChange = onResetAtLevelChange,
-                                    thumbContent = if (resetAtLevel) {
-                                        {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                                            )
-                                        }
-                                    } else {
-                                        {
-                                            Icon(
-                                                imageVector = Icons.Default.Close,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.inverseOnSurface,
-                                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                                            )
-                                        }
-                                    }
-                                )
-                            }
-
-                            if (resetAtLevel) {
-                                Slider(
-                                    value = targetLevel.toFloat(),
-                                    onValueChange = { onTargetLevelChange(it.toInt()) },
-                                    valueRange = 50f..100f,
-                                    steps = 49
-                                )
+                                }
                             }
                         }
 
