@@ -254,16 +254,22 @@ fun SettingsScreen(
                 .padding(vertical = 16.dp),
             contentAlignment = Alignment.Center
         ) {
-            val versionInfo = remember(context) {
+            val pInfo = remember(context) {
                 try {
-                    val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                    val versionName = pInfo.versionName
-                    val versionCode = androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(pInfo)
-                    context.getString(R.string.version_format, versionName, versionCode)
+                    context.packageManager.getPackageInfo(context.packageName, 0)
                 } catch (e: Exception) {
-                    context.getString(R.string.version_na)
+                    null
                 }
             }
+
+            val versionInfo = if (pInfo != null) {
+                val versionName = pInfo.versionName
+                val versionCode = androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(pInfo)
+                stringResource(R.string.version_format, versionName ?: "", versionCode)
+            } else {
+                stringResource(R.string.version_na)
+            }
+
             Text(
                 text = versionInfo,
                 style = MaterialTheme.typography.bodySmall,
