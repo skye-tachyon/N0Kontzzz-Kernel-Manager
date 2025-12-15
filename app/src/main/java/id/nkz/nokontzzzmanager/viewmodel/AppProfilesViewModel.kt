@@ -21,14 +21,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+import id.nkz.nokontzzzmanager.data.repository.TuningRepository
 import id.nkz.nokontzzzmanager.data.repository.SystemRepository
+import kotlinx.coroutines.flow.first
 
 @HiltViewModel
 class AppProfilesViewModel @Inject constructor(
     private val application: Application,
     private val appProfileRepository: AppProfileRepository,
     private val preferenceManager: PreferenceManager,
-    private val systemRepository: SystemRepository
+    private val systemRepository: SystemRepository,
+    private val tuningRepository: TuningRepository
 ) : AndroidViewModel(application) {
 
     val profiles = appProfileRepository.getAllProfiles()
@@ -36,10 +39,35 @@ class AppProfilesViewModel @Inject constructor(
 
     private val _isKgslFeatureAvailable = MutableStateFlow<Boolean?>(null)
     val isKgslFeatureAvailable: StateFlow<Boolean?> = _isKgslFeatureAvailable.asStateFlow()
+
+    private val _isPowersaveAvailable = MutableStateFlow<Boolean>(false)
+    val isPowersaveAvailable: StateFlow<Boolean> = _isPowersaveAvailable.asStateFlow()
     
     init {
         // Check if KGSL feature is available
         _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
+        
+        // Check if Powersave governor is available
+        viewModelScope.launch {
+            checkPowersaveAvailability()
+        }
+    }
+
+    private suspend fun checkPowersaveAvailability() {
+        val clusters = listOf("cpu0", "cpu4", "cpu7") // Typical clusters
+        var available = false
+        for (cluster in clusters) {
+            try {
+                val govs = tuningRepository.getAvailableCpuGovernors(cluster).first()
+                if (govs.contains("powersave")) {
+                    available = true
+                    break
+                }
+            } catch (e: Exception) {
+                // Ignore errors checking specific clusters
+            }
+        }
+        _isPowersaveAvailable.value = available
     }
 
     private val _searchQuery = MutableStateFlow("")

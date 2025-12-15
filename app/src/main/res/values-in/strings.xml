@@ -152,6 +152,7 @@
     <string name="quick_presets_desc">Preset cepat untuk mengoptimalkan performa sistem dan konsumsi daya</string>
     <string name="balanced_performance_desc">%s governor untuk performa seimbang</string>
     <string name="maximum_speed_desc">%s governor untuk kecepatan maksimum</string>
+    <string name="powersave_performance_desc">%s governor untuk penghematan daya maksimum</string>
     <string name="default_governor_desc">%s governor</string>
     <string name="common_selected">Terpilih</string>
     <string name="performance_mode_applied">Mode Performa Diterapkan</string>
@@ -482,6 +483,7 @@
     <string name="app_profiles_close">Tutup</string>
     <string name="app_profiles_enable_profile">Aktifkan Profil</string>
     <string name="app_profiles_performance_mode">Mode Performa</string>
+    <string name="app_profiles_powersave">Hemat Daya</string>
     <string name="app_profiles_balanced">Seimbang</string>
     <string name="app_profiles_performance">Performa</string>
     <string name="app_profiles_kgsl_skip_zeroing">KGSL Lewati Pool Zeroing</string>

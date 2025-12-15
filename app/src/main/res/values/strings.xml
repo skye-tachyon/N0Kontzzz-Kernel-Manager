@@ -152,6 +152,7 @@
     <string name="quick_presets_desc">Quick presets to optimize system performance and power consumption</string>
     <string name="balanced_performance_desc">%s governor for balanced performance</string>
     <string name="maximum_speed_desc">%s governor for maximum speed</string>
+    <string name="powersave_performance_desc">%s governor for maximum power saving</string>
     <string name="default_governor_desc">%s governor</string>
     <string name="common_selected">Selected</string>
     <string name="performance_mode_applied">Performance Mode Applied</string>
@@ -482,6 +483,7 @@
     <string name="app_profiles_close">Close</string>
     <string name="app_profiles_enable_profile">Enable Profile</string>
     <string name="app_profiles_performance_mode">Performance Mode</string>
+    <string name="app_profiles_powersave">Powersave</string>
     <string name="app_profiles_balanced">Balanced</string>
     <string name="app_profiles_performance">Performance</string>
     <string name="app_profiles_kgsl_skip_zeroing">KGSL Skip Pool Zeroing</string>

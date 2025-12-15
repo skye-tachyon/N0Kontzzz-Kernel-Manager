@@ -241,23 +241,37 @@ fun PerformanceModeCard(
 ) {
     // Collect the performance mode from the ViewModel to make it survive recompositions
     val performanceMode by viewModel.performanceMode.collectAsState()
-    
-    // Hardcoded performance modes
-    val performanceModes = remember {
-        listOf("Balanced", "Performance")
+    val availableGovernors by viewModel.generalAvailableCpuGovernors.collectAsState()
+
+    val isPowersaveAvailable = remember(availableGovernors) {
+        availableGovernors.contains("powersave")
     }
     
-    // Hardcoded governor mappings
-    val governorMappings = remember {
-        mapOf(
+    // Performance modes
+    val performanceModes = remember(isPowersaveAvailable) {
+        if (isPowersaveAvailable) {
+            listOf("Powersave", "Balanced", "Performance")
+        } else {
+            listOf("Balanced", "Performance")
+        }
+    }
+    
+    // Governor mappings
+    val governorMappings = remember(isPowersaveAvailable) {
+        val map = mutableMapOf(
             "Balanced" to "schedutil",
             "Performance" to "performance"
         )
+        if (isPowersaveAvailable) {
+            map["Powersave"] = "powersave"
+        }
+        map
     }
 
     // Custom color themes for each mode
     val balancedGreen = MaterialTheme.colorScheme.primary // Green for balanced
     val performanceRed = MaterialTheme.colorScheme.error // Red for performance
+    val powersaveBlue = MaterialTheme.colorScheme.tertiary // Blue/Tertiary for powersave
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -299,6 +313,25 @@ fun PerformanceModeCard(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 performanceModes.forEachIndexed { index, mode ->
+                    val isFirst = index == 0
+                    val isLast = index == performanceModes.lastIndex
+                    
+                    val shape = when {
+                        isFirst -> RoundedCornerShape(
+                            topStart = 12.dp,
+                            topEnd = 12.dp,
+                            bottomStart = 4.dp,
+                            bottomEnd = 4.dp
+                        )
+                        isLast -> RoundedCornerShape(
+                            topStart = 4.dp,
+                            topEnd = 4.dp,
+                            bottomStart = 12.dp,
+                            bottomEnd = 12.dp
+                        )
+                        else -> RoundedCornerShape(4.dp)
+                    }
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -308,26 +341,13 @@ fun PerformanceModeCard(
                             },
                         colors = CardDefaults.cardColors(
                             containerColor = when (mode) {
+                                "Powersave" -> if (performanceMode == mode) powersaveBlue.copy(alpha = 0.15f) else powersaveBlue.copy(alpha = 0.05f)
                                 "Balanced" -> if (performanceMode == mode) balancedGreen.copy(alpha = 0.15f) else balancedGreen.copy(alpha = 0.05f)
                                 "Performance" -> if (performanceMode == mode) performanceRed.copy(alpha = 0.15f) else performanceRed.copy(alpha = 0.05f)
                                 else -> MaterialTheme.colorScheme.surface
                             }
                         ),
-                        shape = when (mode) {
-                            "Balanced" -> RoundedCornerShape(
-                                topStart = 12.dp,
-                                topEnd = 12.dp,
-                                bottomStart = 4.dp,
-                                bottomEnd = 4.dp
-                            )
-                            "Performance" -> RoundedCornerShape(
-                                topStart = 4.dp,
-                                topEnd = 4.dp,
-                                bottomStart = 12.dp,
-                                bottomEnd = 12.dp
-                            )
-                            else -> RoundedCornerShape(12.dp)
-                        }
+                        shape = shape
                     ) {
                         Row(
                             modifier = Modifier
@@ -338,6 +358,7 @@ fun PerformanceModeCard(
                         ) {
                             Icon(
                                 imageVector = when (mode) {
+                                    "Powersave" -> Icons.Default.BatterySaver
                                     "Balanced" -> Icons.Default.Balance
                                     "Performance" -> Icons.Default.FlashOn
                                     else -> Icons.Default.Speed
@@ -345,6 +366,7 @@ fun PerformanceModeCard(
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
                                 tint = when (mode) {
+                                    "Powersave" -> powersaveBlue
                                     "Balanced" -> balancedGreen
                                     "Performance" -> performanceRed
                                     else -> MaterialTheme.colorScheme.primary
@@ -359,6 +381,7 @@ fun PerformanceModeCard(
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = if (performanceMode == mode) FontWeight.Bold else FontWeight.Medium,
                                     color = when (mode) {
+                                        "Powersave" -> if (performanceMode == mode) powersaveBlue else MaterialTheme.colorScheme.onSurface
                                         "Balanced" -> if (performanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurface
                                         "Performance" -> if (performanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurface
                                         else -> MaterialTheme.colorScheme.onSurface
@@ -366,6 +389,10 @@ fun PerformanceModeCard(
                                 )
                                 Text(
                                     text = when (mode) {
+                                        "Powersave" -> {
+                                            val gov = governorMappings[mode] ?: "powersave"
+                                            stringResource(id = R.string.powersave_performance_desc, gov)
+                                        }
                                         "Balanced" -> {
                                             val gov = governorMappings[mode] ?: "schedutil"
                                             stringResource(id = R.string.balanced_performance_desc, gov)
@@ -391,6 +418,7 @@ fun PerformanceModeCard(
                                     contentDescription = stringResource(id = R.string.common_selected),
                                     modifier = Modifier.size(20.dp),
                                     tint = when (mode) {
+                                        "Powersave" -> powersaveBlue
                                         "Balanced" -> balancedGreen
                                         "Performance" -> performanceRed
                                         else -> MaterialTheme.colorScheme.primary

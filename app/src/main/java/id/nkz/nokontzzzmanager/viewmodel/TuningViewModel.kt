@@ -154,7 +154,7 @@ class TuningViewModel @Inject constructor(
     private val isRamDataLoaded = AtomicBoolean(false)
     private val isThermalDataLoaded = AtomicBoolean(false)
 
-    private val _isLoading = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
     //</editor-fold>
 
@@ -181,37 +181,37 @@ class TuningViewModel @Inject constructor(
         }
     }
 
-    private fun loadCpuData() {
+    private suspend fun loadCpuData() {
         if (isCpuDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading CPU data...")
-        viewModelScope.launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             fetchAllCpuData()
             refreshCoreStates()
         }
     }
 
-    private fun loadGpuData() {
+    private suspend fun loadGpuData() {
         if (isGpuDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading GPU data...")
-        viewModelScope.launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             launch { fetchGpuData() }
             launch { fetchOpenGlesDriver() }
             launch { fetchVulkanApiVersion() }
         }
     }
 
-    private fun loadRamData() {
+    private suspend fun loadRamData() {
         if (isRamDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading RAM data...")
-        viewModelScope.launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             fetchRamControlData()
         }
     }
 
-    private fun loadThermalData() {
+    private suspend fun loadThermalData() {
         if (isThermalDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading Thermal data...")
-        viewModelScope.launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             // Prioritize restoring the user's last saved setting.
             val lastSavedIndex = thermalPrefs.getInt(KEY_LAST_APPLIED_THERMAL_INDEX, -2) // Use -2 to indicate no value saved
 
@@ -344,6 +344,7 @@ class TuningViewModel @Inject constructor(
         }
         val governor = when (mode) {
             "Performance" -> "performance"
+            "Powersave" -> "powersave"
             else -> "schedutil"
         }
         cpuClusters.forEach { cluster ->
@@ -366,12 +367,12 @@ class TuningViewModel @Inject constructor(
         }
     }
 
-    private fun refreshCoreStates() = viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun refreshCoreStates() = withContext(Dispatchers.IO) {
         _coreStates.value = (0 until 8).map { repo.getCoreOnline(it) }
     }
 
     /* ---------------- GPU ---------------- */
-    private fun fetchGpuData() = viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun fetchGpuData() = withContext(Dispatchers.IO) {
         try {
             _availableGpuGovernors.value = repo.getAvailableGpuGovernors().first()
             _currentGpuGovernor.value = repo.getGpuGov().first()
@@ -430,11 +431,11 @@ class TuningViewModel @Inject constructor(
     }
 
     /* ---------------- OpenGL / Vulkan ---------------- */
-    private fun fetchOpenGlesDriver() = viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun fetchOpenGlesDriver() = withContext(Dispatchers.IO) {
         repo.getOpenGlesDriver().collect { _currentOpenGlesDriver.value = it }
     }
 
-    private fun fetchVulkanApiVersion() = viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun fetchVulkanApiVersion() = withContext(Dispatchers.IO) {
         repo.getVulkanApiVersion().collect { version ->
             _vulkanApiVersion.value = version
         }
@@ -450,7 +451,7 @@ class TuningViewModel @Inject constructor(
     }
 
     /* ---------------- RAM Control ---------------- */
-    private fun fetchRamControlData() = viewModelScope.launch {
+    private suspend fun fetchRamControlData() = coroutineScope {
         launch(Dispatchers.IO) { repo.getZramEnabled().collect { _zramEnabled.value = it } }
         launch(Dispatchers.IO) { repo.getZramDisksize().collect { _zramDisksize.value = it } }
         launch(Dispatchers.IO) {
@@ -530,8 +531,8 @@ class TuningViewModel @Inject constructor(
 
 
     /* ---------------- Thermal ---------------- */
-    private fun fetchCurrentThermalMode() {
-        viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun fetchCurrentThermalMode() {
+        withContext(Dispatchers.IO) {
             thermalRepo.getCurrentThermalModeIndex()
                 .catch { e ->
                     Log.e("TuningVM_Thermal", "Error getting current thermal mode", e)

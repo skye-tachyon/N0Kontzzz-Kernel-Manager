@@ -2,12 +2,12 @@ package id.nkz.nokontzzzmanager.ui.screens
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,10 +15,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -56,6 +54,7 @@ fun AppProfilesScreen(
     val isLoadingApps by viewModel.isLoadingApps.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val isKgslFeatureAvailable by viewModel.isKgslFeatureAvailable.collectAsStateWithLifecycle()
+    val isPowersaveAvailable by viewModel.isPowersaveAvailable.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState()
     
     var showAddDialog by remember { mutableStateOf(false) }
@@ -184,6 +183,7 @@ fun AppProfilesScreen(
             AppProfileConfigDialog(
                 profile = profileToEdit!!,
                 isKgslFeatureAvailable = isKgslFeatureAvailable == true,
+                isPowersaveAvailable = isPowersaveAvailable,
                 onDismiss = { profileToEdit = null },
                 onSave = { updatedProfile ->
                     viewModel.updateProfile(updatedProfile)
@@ -400,6 +400,7 @@ fun AppPickerSheet(
 fun AppProfileConfigDialog(
     profile: AppProfileEntity,
     isKgslFeatureAvailable: Boolean,
+    isPowersaveAvailable: Boolean,
     onDismiss: () -> Unit,
     onSave: (AppProfileEntity) -> Unit
 ) {
@@ -407,6 +408,14 @@ fun AppProfileConfigDialog(
     var kgslSkipZeroing by remember { mutableStateOf(profile.kgslSkipZeroing) }
     var bypassCharging by remember { mutableStateOf(profile.bypassCharging) }
     var isEnabled by remember { mutableStateOf(profile.isEnabled) }
+
+    val options = remember(isPowersaveAvailable) {
+        if (isPowersaveAvailable) {
+            listOf("Powersave", "Balanced", "Performance")
+        } else {
+            listOf("Balanced", "Performance")
+        }
+    }
 
     BasicAlertDialog(
         onDismissRequest = onDismiss,
@@ -506,16 +515,38 @@ fun AppProfileConfigDialog(
 
                         // Performance Mode
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                text = stringResource(R.string.app_profiles_performance_mode),
-                                style = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.padding(horizontal = 8.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.app_profiles_performance_mode),
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                
+                                val selectedText = when (performanceMode) {
+                                    "Powersave" -> stringResource(R.string.app_profiles_powersave)
+                                    "Balanced" -> stringResource(R.string.app_profiles_balanced)
+                                    else -> stringResource(R.string.app_profiles_performance)
+                                }
+                                
+                                AnimatedContent(targetState = selectedText, label = "modeLabel") { text ->
+                                    Text(
+                                        text = text,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
                             ) {
-                                val options = listOf("Balanced", "Performance")
                                 options.forEachIndexed { index, option ->
                                     val isSelected = performanceMode == option
                                     ToggleButton(
@@ -524,17 +555,21 @@ fun AppProfileConfigDialog(
                                         modifier = Modifier
                                             .weight(1f)
                                             .semantics { role = Role.RadioButton },
-                                        enabled = isEnabled) {
-                                        if (isSelected) {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(ToggleButtonDefaults.IconSize)
-                                            )
-                                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                        enabled = isEnabled,
+                                        shapes = when (index) {
+                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                         }
-                                        Text(
-                                            text = if (option == "Balanced") stringResource(R.string.app_profiles_balanced) else stringResource(R.string.app_profiles_performance)
+                                    ) {
+                                        Icon(
+                                            imageVector = when (option) {
+                                                "Powersave" -> Icons.Default.BatterySaver
+                                                "Balanced" -> Icons.Default.Balance
+                                                else -> Icons.Default.Speed
+                                            },
+                                            contentDescription = option,
+                                            modifier = Modifier.size(24.dp)
                                         )
                                     }
                                 }
