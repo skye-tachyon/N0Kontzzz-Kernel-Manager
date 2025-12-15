@@ -461,141 +461,176 @@ fun AppProfileConfigDialog(
                     // Content
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         // Enable/Disable Toggle
-                        Row(
+                        Card(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                         ) {
-                            Text(stringResource(R.string.app_profiles_enable_profile))
-                            Switch(
-                                checked = isEnabled,
-                                onCheckedChange = { isEnabled = it },
-                                thumbContent = if (isEnabled) {
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.app_profiles_enable_profile),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Switch(
+                                    checked = isEnabled,
+                                    onCheckedChange = { isEnabled = it },
+                                    thumbContent = if (isEnabled) {
+                                        {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                                            )
+                                        }
+                                    } else {
+                                        {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                                            )
+                                        }
                                     }
-                                } else {
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.inverseOnSurface,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
-                                    }
-                                }
-                            )
+                                )
+                            }
                         }
 
-                        HorizontalDivider()
-
                         // Performance Mode
-                        Text(stringResource(R.string.app_profiles_performance_mode), style = MaterialTheme.typography.titleSmall)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
-                        ) {
-                            val options = listOf("Balanced", "Performance")
-                            options.forEachIndexed { index, option ->
-                                val isSelected = performanceMode == option
-                                ToggleButton(
-                                    checked = isSelected,
-                                    onCheckedChange = { performanceMode = option },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .semantics { role = Role.RadioButton },
-                                    shapes = when (index) {
-                                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                    }
-                                ) {
-                                    if (isSelected) {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.app_profiles_performance_mode),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                            ) {
+                                val options = listOf("Balanced", "Performance")
+                                options.forEachIndexed { index, option ->
+                                    val isSelected = performanceMode == option
+                                    ToggleButton(
+                                        checked = isSelected,
+                                        onCheckedChange = { performanceMode = option },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .semantics { role = Role.RadioButton },
+                                        shapes = when (index) {
+                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                        }
+                                    ) {
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+                                            )
+                                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                        }
+                                        Text(
+                                            text = if (option == "Balanced") stringResource(R.string.app_profiles_balanced) else stringResource(R.string.app_profiles_performance)
                                         )
-                                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                     }
-                                    Text(
-                                        text = if (option == "Balanced") stringResource(R.string.app_profiles_balanced) else stringResource(R.string.app_profiles_performance)
-                                    )
                                 }
                             }
                         }
 
-                        // KGSL
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                stringResource(R.string.app_profiles_kgsl_skip_zeroing),
-                                color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            )
-                            Switch(
-                                checked = kgslSkipZeroing && isKgslFeatureAvailable,
-                                onCheckedChange = { kgslSkipZeroing = it },
-                                enabled = isKgslFeatureAvailable,
-                                thumbContent = if (kgslSkipZeroing && isKgslFeatureAvailable) {
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
-                                    }
-                                } else {
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.inverseOnSurface,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
-                                    }
+                        // KGSL and Bypass Charging
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            // KGSL
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        stringResource(R.string.app_profiles_kgsl_skip_zeroing),
+                                        color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                    )
+                                    Switch(
+                                        checked = kgslSkipZeroing && isKgslFeatureAvailable,
+                                        onCheckedChange = { kgslSkipZeroing = it },
+                                        enabled = isKgslFeatureAvailable,
+                                        thumbContent = if (kgslSkipZeroing && isKgslFeatureAvailable) {
+                                            {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            }
+                                        } else {
+                                            {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            }
+                                        }
+                                    )
                                 }
-                            )
-                        }
+                            }
 
-                        // Bypass Charging
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(stringResource(R.string.app_profiles_bypass_charging))
-                            Switch(
-                                checked = bypassCharging,
-                                onCheckedChange = { bypassCharging = it },
-                                thumbContent = if (bypassCharging) {
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
-                                    }
-                                } else {
-                                    {
-                                        Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.inverseOnSurface,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
-                                    }
+                            // Bypass Charging
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(stringResource(R.string.app_profiles_bypass_charging))
+                                    Switch(
+                                        checked = bypassCharging,
+                                        onCheckedChange = { bypassCharging = it },
+                                        thumbContent = if (bypassCharging) {
+                                            {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            }
+                                        } else {
+                                            {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            }
+                                        }
+                                    )
                                 }
-                            )
+                            }
                         }
                     }
 
