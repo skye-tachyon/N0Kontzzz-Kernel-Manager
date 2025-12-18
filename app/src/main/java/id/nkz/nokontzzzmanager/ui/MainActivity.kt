@@ -386,7 +386,7 @@ class MainActivity : ComponentActivity() {
 
     private fun isKernelSupported(): Boolean {
         val supportedSignatures = listOf(
-            "Lunar"
+            "Lunar",
             "N0Kontzzz",
             "FusionX"
         )
@@ -398,6 +398,8 @@ class MainActivity : ComponentActivity() {
         )
 
         val fusionXSupportedHosts = listOf(
+            "andriann@ServerHive",
+            "andrian@ServerHive",
             "build-user@build-host",
             "senx@ubuntu",
             "sensei@ServerHive"
