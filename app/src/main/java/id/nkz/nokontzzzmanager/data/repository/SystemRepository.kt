@@ -1121,6 +1121,8 @@ class SystemRepository @Inject constructor(
     // Helper function to determine which KGSL path is available
     private fun getAvailableKgslPath(): String? {
         val paths = listOf(
+            "/sys/kernel/lunar_attributes/kgsl_skip_zeroing",
+            "/sys/kernel/lunar_attributes/lunar_kgsl_skip_zeroing",
             "/sys/kernel/n0kz_attributes/kgsl_skip_zeroing",
             "/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing",
             "/sys/kernel/fusionx_attributes/fusionx_kgsl_skip_zeroing",
@@ -1183,6 +1185,7 @@ class SystemRepository @Inject constructor(
         // This handles cases where file exists but needs SU permission to access
         try {
             val paths = listOf(
+                "/sys/kernel/lunar_attributes/kgsl_skip_zeroing",
                 "/sys/kernel/n0kz_attributes/kgsl_skip_zeroing",
                 "/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing",
                 "/sys/kernel/fusionx_attributes/fusionx_kgsl_skip_zeroing"
