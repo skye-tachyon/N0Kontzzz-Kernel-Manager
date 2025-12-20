@@ -49,7 +49,7 @@
 
 ## Requirements
 
-- Poco F4 (munch) device running N0Kontzzz or FusionX kernel.
+- Poco F4 (munch) device running N0Kontzzz, FusionX, or Lunar kernel.
 - Root access (Magisk or KernelSU supported).
 
 ---
