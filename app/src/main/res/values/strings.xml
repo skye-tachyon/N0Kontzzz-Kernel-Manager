@@ -496,8 +496,10 @@
     <string name="app_profiles_off">Off</string>
 
     <!-- Battery History Config Dialog -->
-    <string name="battery_history_config_title">Auto-Reset Settings</string>
-    <string name="battery_history_config_desc">Automatically reset battery history and stats when:</string>
+    <string name="battery_history_config_title">History Auto-Reset</string>
+    <string name="battery_history_config_desc">Automatically reset battery history graph when:</string>
+    <string name="battery_monitor_config_title">Monitor Auto-Reset</string>
+    <string name="battery_monitor_config_desc">Automatically reset active monitor statistics when:</string>
     <string name="battery_history_config_device_reboot">Device Reboot</string>
     <string name="battery_history_config_charger_connected">Charger Connected</string>
     <string name="battery_history_config_battery_level">Battery reaches %1$d%%</string>

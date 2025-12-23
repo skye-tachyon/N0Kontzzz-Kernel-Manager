@@ -83,7 +83,13 @@ fun MiscScreen(
     val autoResetAtLevel by viewModel.autoResetAtLevel.collectAsStateWithLifecycle()
     val autoResetTargetLevel by viewModel.autoResetTargetLevel.collectAsStateWithLifecycle()
 
+    val monitorAutoResetOnReboot by viewModel.monitorAutoResetOnReboot.collectAsStateWithLifecycle()
+    val monitorAutoResetOnCharging by viewModel.monitorAutoResetOnCharging.collectAsStateWithLifecycle()
+    val monitorAutoResetAtLevel by viewModel.monitorAutoResetAtLevel.collectAsStateWithLifecycle()
+    val monitorAutoResetTargetLevel by viewModel.monitorAutoResetTargetLevel.collectAsStateWithLifecycle()
+
     var showAutoResetDialog by remember { mutableStateOf(false) }
+    var showMonitorAutoResetDialog by remember { mutableStateOf(false) }
 
     if (showAutoResetDialog) {
         BatteryHistoryConfigDialog(
@@ -96,6 +102,22 @@ fun MiscScreen(
             onResetAtLevelChange = viewModel::setAutoResetAtLevel,
             targetLevel = autoResetTargetLevel,
             onTargetLevelChange = viewModel::setAutoResetTargetLevel
+        )
+    }
+
+    if (showMonitorAutoResetDialog) {
+        BatteryHistoryConfigDialog(
+            onDismiss = { showMonitorAutoResetDialog = false },
+            title = stringResource(R.string.battery_monitor_config_title),
+            description = stringResource(R.string.battery_monitor_config_desc),
+            resetOnReboot = monitorAutoResetOnReboot,
+            onResetOnRebootChange = viewModel::setMonitorAutoResetOnReboot,
+            resetOnCharging = monitorAutoResetOnCharging,
+            onResetOnChargingChange = viewModel::setMonitorAutoResetOnCharging,
+            resetAtLevel = monitorAutoResetAtLevel,
+            onResetAtLevelChange = viewModel::setMonitorAutoResetAtLevel,
+            targetLevel = monitorAutoResetTargetLevel,
+            onTargetLevelChange = viewModel::setMonitorAutoResetTargetLevel
         )
     }
 
@@ -172,6 +194,13 @@ fun MiscScreen(
                         viewModel.toggleBatteryMonitor(enabled)
                     }
                 }
+            )
+        }
+
+        // Battery Monitor Auto Reset Config
+        item {
+            BatteryMonitorAutoResetCard(
+                onClick = { showMonitorAutoResetDialog = true }
             )
         }
 
@@ -466,13 +495,58 @@ fun BatteryMonitorResetCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun BatteryMonitorAutoResetCard(
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(id = R.string.battery_monitor_config_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(id = R.string.battery_monitor_config_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Configure",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun BatteryMonitorCard(
     enabled: Boolean,
     onToggle: (Boolean) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),

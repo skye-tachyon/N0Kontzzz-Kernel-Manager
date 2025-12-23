@@ -59,6 +59,18 @@ class MiscViewModel @Inject constructor(
     private val _autoResetTargetLevel = MutableStateFlow(90)
     val autoResetTargetLevel: StateFlow<Int> = _autoResetTargetLevel.asStateFlow()
 
+    private val _monitorAutoResetOnReboot = MutableStateFlow(false)
+    val monitorAutoResetOnReboot: StateFlow<Boolean> = _monitorAutoResetOnReboot.asStateFlow()
+
+    private val _monitorAutoResetOnCharging = MutableStateFlow(false)
+    val monitorAutoResetOnCharging: StateFlow<Boolean> = _monitorAutoResetOnCharging.asStateFlow()
+
+    private val _monitorAutoResetAtLevel = MutableStateFlow(false)
+    val monitorAutoResetAtLevel: StateFlow<Boolean> = _monitorAutoResetAtLevel.asStateFlow()
+
+    private val _monitorAutoResetTargetLevel = MutableStateFlow(90)
+    val monitorAutoResetTargetLevel: StateFlow<Int> = _monitorAutoResetTargetLevel.asStateFlow()
+
     private val isDataLoaded = java.util.concurrent.atomic.AtomicBoolean(false)
 
     init {
@@ -90,6 +102,11 @@ class MiscViewModel @Inject constructor(
         _autoResetOnCharging.value = preferenceManager.isAutoResetOnCharging()
         _autoResetAtLevel.value = preferenceManager.isAutoResetAtLevel()
         _autoResetTargetLevel.value = preferenceManager.getAutoResetTargetLevel()
+
+        _monitorAutoResetOnReboot.value = preferenceManager.isMonitorAutoResetOnReboot()
+        _monitorAutoResetOnCharging.value = preferenceManager.isMonitorAutoResetOnCharging()
+        _monitorAutoResetAtLevel.value = preferenceManager.isMonitorAutoResetAtLevel()
+        _monitorAutoResetTargetLevel.value = preferenceManager.getMonitorAutoResetTargetLevel()
     }
 
     fun toggleKgslSkipZeroing(enabled: Boolean) {
@@ -198,5 +215,25 @@ class MiscViewModel @Inject constructor(
     fun setAutoResetTargetLevel(level: Int) {
         _autoResetTargetLevel.value = level
         preferenceManager.setAutoResetTargetLevel(level)
+    }
+
+    fun setMonitorAutoResetOnReboot(enabled: Boolean) {
+        _monitorAutoResetOnReboot.value = enabled
+        preferenceManager.setMonitorAutoResetOnReboot(enabled)
+    }
+
+    fun setMonitorAutoResetOnCharging(enabled: Boolean) {
+        _monitorAutoResetOnCharging.value = enabled
+        preferenceManager.setMonitorAutoResetOnCharging(enabled)
+    }
+
+    fun setMonitorAutoResetAtLevel(enabled: Boolean) {
+        _monitorAutoResetAtLevel.value = enabled
+        preferenceManager.setMonitorAutoResetAtLevel(enabled)
+    }
+
+    fun setMonitorAutoResetTargetLevel(level: Int) {
+        _monitorAutoResetTargetLevel.value = level
+        preferenceManager.setMonitorAutoResetTargetLevel(level)
     }
 }

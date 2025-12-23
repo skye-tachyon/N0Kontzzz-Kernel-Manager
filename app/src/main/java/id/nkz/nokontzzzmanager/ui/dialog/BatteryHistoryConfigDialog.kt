@@ -45,6 +45,8 @@ import id.nkz.nokontzzzmanager.R
 @Composable
 fun BatteryHistoryConfigDialog(
     onDismiss: () -> Unit,
+    title: String = stringResource(R.string.battery_history_config_title),
+    description: String = stringResource(R.string.battery_history_config_desc),
     resetOnReboot: Boolean,
     onResetOnRebootChange: (Boolean) -> Unit,
     resetOnCharging: Boolean,
@@ -92,13 +94,13 @@ fun BatteryHistoryConfigDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Tune, // Using Tune icon for settings
-                                    contentDescription = stringResource(R.string.battery_history_config_title),
+                                    contentDescription = title,
                                     modifier = Modifier.size(28.dp),
                                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                             Text(
-                                text = stringResource(R.string.battery_history_config_title),
+                                text = title,
                                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -107,7 +109,7 @@ fun BatteryHistoryConfigDialog(
                         // Content
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { // Reduced spacing
                             Text(
-                                text = stringResource(R.string.battery_history_config_desc),
+                                text = description,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             

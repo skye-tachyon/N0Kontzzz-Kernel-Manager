@@ -84,6 +84,7 @@ class BatteryMonitorService : Service() {
     private var powerReceiver: BroadcastReceiver? = null
     private var windowStartElapsed: Long = -1L
     private var windowStartUptime: Long = -1L
+    private var windowAccumMs: Long = 0L // Accumulated window time from previous sessions (for reboot persistence)
     @Volatile private var nextDelayOverrideMs: Long? = null
 
     // Persistence
@@ -174,8 +175,17 @@ class BatteryMonitorService : Service() {
                 updateNotification(stats)
             } catch (_: Exception) { }
         } else if (intent?.action == ACTION_BOOT_START) {
+            // History auto-reset
             if (preferenceManager.isAutoResetOnReboot()) {
-                fullReset()
+                if (isUserUnlocked(this)) {
+                    scope.launch { try { batteryGraphRepository.deleteAllEntries() } catch (_: Exception) { } }
+                }
+            }
+            // Monitor auto-reset (Active Stats)
+            // Note: restoreStateIfAny() already handles wiping accumulators if this is true.
+            // We call manualReset() here to ensure sampling baselines are also fresh.
+            if (preferenceManager.isMonitorAutoResetOnReboot()) {
+                manualReset()
             }
         } else if (intent?.action == ACTION_UPDATE_ICON) {
             try {
@@ -318,7 +328,8 @@ class BatteryMonitorService : Service() {
         }
 
         val currentScreenOnMs = screenOnAccumMs + (screenOnStartAtElapsed?.let { nowElapsed - it } ?: 0L)
-        val windowMs = if (windowStartElapsed >= 0L) (nowElapsed - windowStartElapsed) else 0L
+        val currentSessionWindowMs = if (windowStartElapsed >= 0L) (nowElapsed - windowStartElapsed) else 0L
+        val windowMs = windowAccumMs + currentSessionWindowMs
         val screenOffMs = (windowMs - currentScreenOnMs).coerceAtLeast(0L)
 
         val awakeMs = if (windowStartUptime >= 0L) (nowUptime - windowStartUptime) else 0L
@@ -477,14 +488,21 @@ class BatteryMonitorService : Service() {
     }
 
     private fun onPowerConnected() {
+        // Legacy: check history auto-reset
         if (preferenceManager.isAutoResetOnCharging()) {
             fullReset()
+        }
+        
+        // Monitor auto-reset on charging
+        if (preferenceManager.isMonitorAutoResetOnCharging()) {
+            manualReset()
         }
 
         screenOnAccumMs = 0L
         screenOnStartAtElapsed = null
         windowStartElapsed = -1L
         windowStartUptime = -1L
+        windowAccumMs = 0L // Reset accumulated time
         prevInteractiveForSample = null
         consumedOnUah = 0L
         consumedOffUah = 0L
@@ -511,6 +529,7 @@ class BatteryMonitorService : Service() {
         val nowUp = SystemClock.uptimeMillis()
         windowStartElapsed = nowEl
         windowStartUptime = nowUp
+        windowAccumMs = 0L // Start fresh window
         screenOnAccumMs = 0L
         val pm = getSystemService(POWER_SERVICE) as PowerManager
         screenOnStartAtElapsed = if (pm.isInteractive) nowEl else null
@@ -542,6 +561,7 @@ class BatteryMonitorService : Service() {
         val pm = getSystemService(POWER_SERVICE) as PowerManager
         windowStartElapsed = nowEl
         windowStartUptime = nowUp
+        windowAccumMs = 0L
         screenOnAccumMs = 0L
         screenOnStartAtElapsed = if (pm.isInteractive) nowEl else null
         consumedOnUah = 0L
@@ -583,11 +603,31 @@ class BatteryMonitorService : Service() {
 
     private fun checkAutoResetAtLevel(level: Int, isCharging: Boolean) {
         if (isCharging) {
+             // History auto-reset
              if (preferenceManager.isAutoResetAtLevel()) {
                  val target = preferenceManager.getAutoResetTargetLevel()
                  if (level >= target && !hasResetForThisChargeCycle) {
-                     fullReset()
+                     if (isUserUnlocked(this)) {
+                         scope.launch { try { batteryGraphRepository.deleteAllEntries() } catch (_: Exception) { } }
+                     }
+                     // Don't call fullReset() here as it forces manualReset() too.
+                     // We should separate them.
+                 }
+             }
+             
+             // Monitor auto-reset
+             if (preferenceManager.isMonitorAutoResetAtLevel()) {
+                 val target = preferenceManager.getMonitorAutoResetTargetLevel()
+                 if (level >= target && !hasResetForThisChargeCycle) {
+                     manualReset()
                      hasResetForThisChargeCycle = true
+                 }
+             } else {
+                 // If only history reset was triggered, we still need to manage hasResetForThisChargeCycle flag
+                 // but it's shared. Let's assume if EITHER triggers, we set the flag.
+                 if (preferenceManager.isAutoResetAtLevel()) {
+                     val target = preferenceManager.getAutoResetTargetLevel()
+                     if (level >= target) hasResetForThisChargeCycle = true
                  }
              }
         } else {
@@ -789,20 +829,69 @@ class BatteryMonitorService : Service() {
             .putLong(keyLastElapsed, now)
             .putLong("window_start_elapsed", windowStartElapsed)
             .putLong("window_start_uptime", windowStartUptime)
+            .putLong("window_accum_ms", windowAccumMs)
+            .putLong("consumed_on_uah", consumedOnUah)
+            .putLong("consumed_off_uah", consumedOffUah)
+            .putLong("on_percent_drop_bits", java.lang.Double.doubleToRawLongBits(onPercentDrop))
+            .putLong("off_percent_drop_bits", java.lang.Double.doubleToRawLongBits(offPercentDrop))
             .apply()
     }
 
     private fun restoreStateIfAny() {
         val lastElapsed = prefs.getLong(keyLastElapsed, 0L)
         val savedAccum = prefs.getLong(keyScreenAccum, 0L)
-        windowStartElapsed = prefs.getLong("window_start_elapsed", -1L)
-        windowStartUptime = prefs.getLong("window_start_uptime", -1L)
+        val savedWindowStart = prefs.getLong("window_start_elapsed", -1L)
+        val savedWindowAccum = prefs.getLong("window_accum_ms", 0L)
+        
+        // Restore drain stats
+        val savedConsumedOn = prefs.getLong("consumed_on_uah", 0L)
+        val savedConsumedOff = prefs.getLong("consumed_off_uah", 0L)
+        val savedOnDrop = java.lang.Double.longBitsToDouble(prefs.getLong("on_percent_drop_bits", 0L))
+        val savedOffDrop = java.lang.Double.longBitsToDouble(prefs.getLong("off_percent_drop_bits", 0L))
+
         val now = SystemClock.elapsedRealtime()
-        // Reset if device rebooted (elapsedRealtime wrapped/reset)
-        screenOnAccumMs = if (lastElapsed == 0L || now < lastElapsed) 0L else savedAccum
-        if (lastElapsed == 0L || now < lastElapsed) {
-            windowStartElapsed = -1L
-            windowStartUptime = -1L
+        val isReboot = (lastElapsed == 0L || now < lastElapsed)
+
+        if (isReboot) {
+            if (preferenceManager.isMonitorAutoResetOnReboot()) {
+                // Reset everything if user requested auto-reset on reboot
+                screenOnAccumMs = 0L
+                windowAccumMs = 0L
+                windowStartElapsed = -1L
+                windowStartUptime = -1L
+                consumedOnUah = 0L
+                consumedOffUah = 0L
+                onPercentDrop = 0.0
+                offPercentDrop = 0.0
+            } else {
+                // Persist: Carry over stats
+                screenOnAccumMs = savedAccum
+                
+                // For window duration: add the duration from the previous session
+                val prevSessionDuration = if (savedWindowStart >= 0) (lastElapsed - savedWindowStart).coerceAtLeast(0L) else 0L
+                windowAccumMs = savedWindowAccum + prevSessionDuration
+                
+                // Reset start time to now for the new session
+                windowStartElapsed = now
+                windowStartUptime = SystemClock.uptimeMillis()
+                
+                // Restore accumulated drain stats
+                consumedOnUah = savedConsumedOn
+                consumedOffUah = savedConsumedOff
+                onPercentDrop = savedOnDrop
+                offPercentDrop = savedOffDrop
+            }
+        } else {
+            // Normal restore (service restart, no reboot)
+            screenOnAccumMs = savedAccum
+            windowAccumMs = savedWindowAccum
+            windowStartElapsed = savedWindowStart
+            windowStartUptime = prefs.getLong("window_start_uptime", -1L)
+            
+            consumedOnUah = savedConsumedOn
+            consumedOffUah = savedConsumedOff
+            onPercentDrop = savedOnDrop
+            offPercentDrop = savedOffDrop
         }
     }
 

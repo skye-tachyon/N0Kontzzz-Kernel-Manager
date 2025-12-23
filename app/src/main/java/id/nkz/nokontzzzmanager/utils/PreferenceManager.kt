@@ -21,6 +21,12 @@ class PreferenceManager @Inject constructor(
         private const val KEY_AUTO_RESET_ON_CHARGING = "auto_reset_on_charging"
         private const val KEY_AUTO_RESET_AT_LEVEL = "auto_reset_at_level"
         private const val KEY_AUTO_RESET_TARGET_LEVEL = "auto_reset_target_level"
+
+        private const val KEY_MONITOR_AUTO_RESET_ON_REBOOT = "monitor_auto_reset_on_reboot"
+        private const val KEY_MONITOR_AUTO_RESET_ON_CHARGING = "monitor_auto_reset_on_charging"
+        private const val KEY_MONITOR_AUTO_RESET_AT_LEVEL = "monitor_auto_reset_at_level"
+        private const val KEY_MONITOR_AUTO_RESET_TARGET_LEVEL = "monitor_auto_reset_target_level"
+
         private const val KEY_NOTIFICATION_ICON_STYLE = "notification_icon_style"
 
         const val ICON_STYLE_BATTERY_PERCENT = 0
@@ -135,6 +141,50 @@ class PreferenceManager @Inject constructor(
     fun getAutoResetTargetLevel(): Int {
         return credentialPrefs()?.getInt(KEY_AUTO_RESET_TARGET_LEVEL, 90)
             ?: deviceProtectedPrefs()?.getInt(KEY_AUTO_RESET_TARGET_LEVEL, 90)
+            ?: 90
+    }
+
+    fun setMonitorAutoResetOnReboot(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, enabled) }
+        deviceProtectedPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, enabled) }
+    }
+
+    fun isMonitorAutoResetOnReboot(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, false)
+            ?: deviceProtectedPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, false)
+            ?: false
+    }
+
+    fun setMonitorAutoResetOnCharging(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, enabled) }
+        deviceProtectedPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, enabled) }
+    }
+
+    fun isMonitorAutoResetOnCharging(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, false)
+            ?: deviceProtectedPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, false)
+            ?: false
+    }
+
+    fun setMonitorAutoResetAtLevel(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, enabled) }
+        deviceProtectedPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, enabled) }
+    }
+
+    fun isMonitorAutoResetAtLevel(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, false)
+            ?: deviceProtectedPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, false)
+            ?: false
+    }
+
+    fun setMonitorAutoResetTargetLevel(level: Int) {
+        credentialPrefs()?.edit { putInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, level) }
+        deviceProtectedPrefs()?.edit { putInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, level) }
+    }
+
+    fun getMonitorAutoResetTargetLevel(): Int {
+        return credentialPrefs()?.getInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, 90)
+            ?: deviceProtectedPrefs()?.getInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, 90)
             ?: 90
     }
 

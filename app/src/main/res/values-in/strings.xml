@@ -496,9 +496,11 @@
     <string name="app_profiles_off">Nonaktif</string>
 
     <!-- Battery History Config Dialog -->
-    <string name="battery_history_config_title">Pengaturan Reset Otomatis</string>
-    <string name="battery_history_config_desc">Secara otomatis mereset riwayat dan statistik baterai saat:</string>
-    <string name="battery_history_config_device_reboot">Perangkat Reboot</string>
+    <string name="battery_history_config_title">Reset Otomatis Riwayat</string>
+    <string name="battery_history_config_desc">Secara otomatis mereset grafik riwayat baterai saat:</string>
+    <string name="battery_monitor_config_title">Reset Otomatis Monitor</string>
+    <string name="battery_monitor_config_desc">Secara otomatis mereset statistik monitor aktif saat:</string>
+    <string name="battery_history_config_device_reboot">Perangkat Mulai Ulang (Reboot)</string>
     <string name="battery_history_config_charger_connected">Pengisi Daya Terhubung</string>
     <string name="battery_history_config_battery_level">Baterai mencapai %1$d%%</string>
     <string name="battery_history_config_done">Selesai</string>
