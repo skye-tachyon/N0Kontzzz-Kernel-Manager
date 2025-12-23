@@ -175,14 +175,6 @@ fun MiscScreen(
             )
         }
 
-        // Battery History
-        item {
-            BatteryHistoryCard(
-                onClick = { navController?.navigate("battery_history") },
-                onSettingsClick = { showAutoResetDialog = true }
-            )
-        }
-
         // Battery Monitor manual reset
         item {
             BatteryMonitorResetCard(
@@ -200,6 +192,14 @@ fun MiscScreen(
                         }
                     }
                 }
+            )
+        }
+
+        // Battery History
+        item {
+            BatteryHistoryCard(
+                onClick = { navController?.navigate("battery_history") },
+                onSettingsClick = { showAutoResetDialog = true }
             )
         }
 
@@ -432,15 +432,10 @@ fun BatteryMonitorResetCard(
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        onClick = {
-            onEnsurePermission()
-            onReset()
-            Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
-        }
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -788,11 +783,11 @@ fun BatteryHistoryCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        onClick = onClick
+
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
