@@ -42,6 +42,10 @@
 - **Bypass Charging**  
   Directly power the device from the AC adapter while pausing battery charging. This effectively minimizes heat buildup during intensive workloads and extends overall battery health. *Note: This feature requires kernel support.*
 
+- **Charging Control**  
+  Automates the charging cycle by stopping at a user-defined percentage and resuming when the battery drops to a lower level.  
+  *Note: This feature requires **Battery Monitor** to be enabled. To maximize power efficiency, the automation logic piggybacks on the Battery Monitor's existing background polling cycle rather than running a separate service.*
+
 - **KGSL Skip Pool Zeroing**  
   Optimizes Adreno GPU memory management by skipping the zero-initialization of memory pages, resulting in reduced overhead and improved graphical performance. *Note: This feature requires kernel support.*
 
