@@ -15,8 +15,8 @@ android {
         applicationId = "id.nkz.nokontzzzmanager"
         minSdk = 26
         targetSdk = 36
-        versionCode = 48
-        versionName = "1.3.2"
+        versionCode = 50
+        versionName = "1.4.0"
     }
     buildTypes {
         release {
