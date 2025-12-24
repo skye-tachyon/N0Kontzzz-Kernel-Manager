@@ -500,7 +500,7 @@ fun HeroHeader(
                 modifier = Modifier
                     .size(64.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(16.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -508,7 +508,7 @@ fun HeroHeader(
                 Icon(
                     imageVector = Icons.Outlined.Lightbulb,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -518,14 +518,14 @@ fun HeroHeader(
                 text = stringResource(id = R.string.system_tuning),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             
             // Description
             Text(
                 text = stringResource(id = R.string.system_tuning_desc),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
             
@@ -533,7 +533,7 @@ fun HeroHeader(
             Text(
                 text = stringResource(id = R.string.tap_for_more_info),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Medium
             )
         }
