@@ -1,5 +1,7 @@
 package id.nkz.nokontzzzmanager.ui.dialog
 
+import androidx.compose.ui.platform.LocalView
+import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +35,7 @@ fun ChargingControlDialog(
     batteryInfo: BatteryInfo?,
     isBypassActive: Boolean
 ) {
+    val view = LocalView.current
     BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier
@@ -127,7 +130,10 @@ fun ChargingControlDialog(
                                         Text(stringResource(R.string.stop_charging_at, stopLevel))
                                         Slider(
                                             value = stopLevel.toFloat(),
-                                            onValueChange = { onStopLevelChange(it.toInt()) },
+                                            onValueChange = { 
+                                                onStopLevelChange(it.toInt()) 
+                                                view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                                            },
                                             valueRange = 50f..95f,
                                             steps = 44,
                                         )
@@ -149,7 +155,8 @@ fun ChargingControlDialog(
                                             onValueChange = { 
                                                 // Ensure resume level is always lower than stop level
                                                 if (it < stopLevel) {
-                                                    onResumeLevelChange(it.toInt()) 
+                                                    onResumeLevelChange(it.toInt())
+                                                    view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                                                 }
                                             },
                                             valueRange = 40f..85f,

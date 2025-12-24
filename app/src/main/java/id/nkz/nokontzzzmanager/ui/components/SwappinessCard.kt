@@ -33,6 +33,8 @@ import androidx.compose.ui.window.DialogProperties
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.viewmodel.TuningViewModel
 import kotlin.math.roundToInt
+import androidx.compose.ui.platform.LocalView
+import android.view.HapticFeedbackConstants
 
 @Composable
 fun SwappinessCard(
@@ -571,6 +573,7 @@ fun SliderSettingDialog(
 ) {
     if (showDialog) {
         var sliderTempValue by remember(currentValue) { mutableFloatStateOf(currentValue.toFloat()) }
+        val view = LocalView.current
 
         // Animation for value changes
         val animatedValue by animateFloatAsState(
@@ -732,7 +735,10 @@ fun SliderSettingDialog(
                             ) {
                                 Slider(
                                     value = sliderTempValue,
-                                    onValueChange = { sliderTempValue = it },
+                                    onValueChange = { 
+                                        sliderTempValue = it 
+                                        view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                                    },
                                     valueRange = valueRange,
                                     steps = steps,
                                     modifier = Modifier.fillMaxWidth(),

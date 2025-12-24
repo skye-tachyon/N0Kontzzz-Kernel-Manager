@@ -1,5 +1,7 @@
 package id.nkz.nokontzzzmanager.ui.dialog
 
+import androidx.compose.ui.platform.LocalView
+import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,6 +58,7 @@ fun BatteryHistoryConfigDialog(
     targetLevel: Int,
     onTargetLevelChange: (Int) -> Unit
 ) {
+    val view = LocalView.current
     BasicAlertDialog( // Changed from AlertDialog
         onDismissRequest = onDismiss,
         modifier = Modifier
@@ -243,7 +246,10 @@ fun BatteryHistoryConfigDialog(
                                         if (resetAtLevel) {
                                             Slider(
                                                 value = targetLevel.toFloat(),
-                                                onValueChange = { onTargetLevelChange(it.toInt()) },
+                                                onValueChange = { 
+                                                    onTargetLevelChange(it.toInt())
+                                                    view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                                                },
                                                 valueRange = 50f..100f,
                                                 steps = 49,
                                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)

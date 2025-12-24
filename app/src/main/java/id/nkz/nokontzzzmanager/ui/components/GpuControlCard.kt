@@ -1,5 +1,7 @@
 package id.nkz.nokontzzzmanager.ui.components
 
+import androidx.compose.ui.platform.LocalView
+import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -64,6 +66,7 @@ fun GpuControlCard(
     blur: Boolean = false
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val view = LocalView.current
 
     // State variables
     var isExpanded by remember { mutableStateOf(false) }
@@ -370,6 +373,7 @@ fun GpuControlCard(
                                         onValueChange = { newValue ->
                                             // Update the temporary value during dragging for smooth UI
                                             tempPowerLevel = newValue
+                                            view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                                         },
                                         onValueChangeFinished = {
                                             // Only apply the change when user stops dragging
