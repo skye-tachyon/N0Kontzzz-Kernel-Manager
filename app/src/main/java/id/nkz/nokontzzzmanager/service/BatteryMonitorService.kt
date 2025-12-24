@@ -169,7 +169,7 @@ class BatteryMonitorService : Service() {
         try {
             powerReceiver?.let { unregisterReceiver(it) }
         } catch (_: Exception) { }
-        persistState()
+        persistState(sync = true)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -302,21 +302,31 @@ class BatteryMonitorService : Service() {
             lastSamplePercent = computeCurrentBatteryPercent(level, currentCharge)
         }
 
-        // Screen state transitions are handled via prevInteractiveForSample for attribution; no baseline resets needed
-
-        // Drain rates based on cumulative consumption and cumulative time in each state (since unplug window)
-        // Durations are computed later as currentScreenOnMs and screenOffMs; compute strings after those values are ready
-        // Charging behavior: reset and pause counting until unplugged
+        // Charging behavior: reset if preferred, otherwise pause window
         if (charging) {
-            screenOnAccumMs = 0L
-            screenOnStartAtElapsed = null
-            windowStartElapsed = -1L
-            windowStartUptime = -1L
-            // Reset cumulative consumption while charging
-            consumedOnUah = 0L
-            consumedOffUah = 0L
-            onPercentDrop = 0.0
-            offPercentDrop = 0.0
+            if (preferenceManager.isMonitorAutoResetOnCharging()) {
+                screenOnAccumMs = 0L
+                screenOnStartAtElapsed = null
+                windowStartElapsed = -1L
+                windowStartUptime = -1L
+                consumedOnUah = 0L
+                consumedOffUah = 0L
+                onPercentDrop = 0.0
+                offPercentDrop = 0.0
+            } else {
+                // Not resetting: just ensure we don't keep adding to the active window while charging
+                if (windowStartElapsed >= 0L) {
+                    val now = SystemClock.elapsedRealtime()
+                    windowAccumMs += (now - windowStartElapsed)
+                    windowStartElapsed = -1L
+                }
+                if (windowStartUptime >= 0L) windowStartUptime = -1L
+                val start = screenOnStartAtElapsed
+                if (start != null) {
+                    screenOnAccumMs += (SystemClock.elapsedRealtime() - start)
+                    screenOnStartAtElapsed = null
+                }
+            }
             lastSampleElapsedMs = nowElapsed
             lastSampleChargeUah = currentCharge
             prevInteractiveForSample = interactive
@@ -391,6 +401,7 @@ class BatteryMonitorService : Service() {
                     } catch (_: Exception) { }
                 }
             }
+            persistState(sync = false)
         }
 
         return BatteryData(
@@ -504,22 +515,23 @@ class BatteryMonitorService : Service() {
         // Monitor auto-reset on charging
         if (preferenceManager.isMonitorAutoResetOnCharging()) {
             manualReset()
+        } else {
+            // Even if we don't reset, we must "close" the current window
+            val now = SystemClock.elapsedRealtime()
+            if (windowStartElapsed >= 0) {
+                windowAccumMs += (now - windowStartElapsed)
+                windowStartElapsed = -1L
+            }
+            if (windowStartUptime >= 0) windowStartUptime = -1L
+            val start = screenOnStartAtElapsed
+            if (start != null) {
+                screenOnAccumMs += (now - start)
+                screenOnStartAtElapsed = null
+            }
+            // And we stop tracking drain baselines for now
+            lastSampleElapsedMs = 0L 
         }
 
-        screenOnAccumMs = 0L
-        screenOnStartAtElapsed = null
-        windowStartElapsed = -1L
-        windowStartUptime = -1L
-        windowAccumMs = 0L // Reset accumulated time
-        prevInteractiveForSample = null
-        consumedOnUah = 0L
-        consumedOffUah = 0L
-        lastSampleElapsedMs = 0L
-        lastSampleChargeUah = 0L
-        prevInteractiveForSample = null
-        lastSamplePercent = Double.NaN
-        onPercentDrop = 0.0
-        offPercentDrop = 0.0
         persistState()
         // Tampilkan status charging seketika tanpa menunggu interval berikutnya
         try {
@@ -533,17 +545,24 @@ class BatteryMonitorService : Service() {
     }
 
     private fun onPowerDisconnected() {
+        if (preferenceManager.isMonitorAutoResetOnCharging()) {
+            windowAccumMs = 0L // Start fresh window
+            screenOnAccumMs = 0L
+            consumedOnUah = 0L
+            consumedOffUah = 0L
+            onPercentDrop = 0.0
+            offPercentDrop = 0.0
+        }
+
         val nowEl = SystemClock.elapsedRealtime()
         val nowUp = SystemClock.uptimeMillis()
         windowStartElapsed = nowEl
         windowStartUptime = nowUp
-        windowAccumMs = 0L // Start fresh window
-        screenOnAccumMs = 0L
+        
         val pm = getSystemService(POWER_SERVICE) as PowerManager
         screenOnStartAtElapsed = if (pm.isInteractive) nowEl else null
-        // Reset cumulative consumption and set sampling baseline
-        consumedOnUah = 0L
-        consumedOffUah = 0L
+        
+        // Set sampling baseline
         val bm = batteryManager
         val charge = bm?.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) ?: 0L
         lastSampleElapsedMs = nowEl
@@ -876,10 +895,10 @@ class BatteryMonitorService : Service() {
         }
     }
 
-    private fun persistState() {
+    private fun persistState(sync: Boolean = false) {
         val now = SystemClock.elapsedRealtime()
         val updatedAccum = screenOnAccumMs + (screenOnStartAtElapsed?.let { now - it } ?: 0L)
-        prefs.edit()
+        val editor = prefs.edit()
             .putLong(keyScreenAccum, updatedAccum)
             .putLong(keyLastElapsed, now)
             .putLong("window_start_elapsed", windowStartElapsed)
@@ -889,7 +908,12 @@ class BatteryMonitorService : Service() {
             .putLong("consumed_off_uah", consumedOffUah)
             .putLong("on_percent_drop_bits", java.lang.Double.doubleToRawLongBits(onPercentDrop))
             .putLong("off_percent_drop_bits", java.lang.Double.doubleToRawLongBits(offPercentDrop))
-            .apply()
+        
+        if (sync) {
+            editor.commit()
+        } else {
+            editor.apply()
+        }
     }
 
     private fun restoreStateIfAny() {
