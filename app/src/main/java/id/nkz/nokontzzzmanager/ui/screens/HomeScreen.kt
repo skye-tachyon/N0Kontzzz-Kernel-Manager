@@ -40,16 +40,8 @@ import id.nkz.nokontzzzmanager.ui.components.IndeterminateExpressiveLoadingIndic
 import id.nkz.nokontzzzmanager.ui.components.KernelCard
 import id.nkz.nokontzzzmanager.ui.components.MergedSystemCard
 import id.nkz.nokontzzzmanager.ui.viewmodel.StorageInfoViewModel
-import id.nkz.nokontzzzmanager.viewmodel.GraphDataViewModel
 import id.nkz.nokontzzzmanager.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
-
-// Helper function to safely find an Activity from a Context.
-private fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
-}
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalAnimationApi::class)
 @Composable
@@ -58,16 +50,6 @@ fun HomeScreen(
 ) {
     val vm: HomeViewModel = hiltViewModel()
     val storageViewModel: StorageInfoViewModel = hiltViewModel()
-    
-    // Safely get the activity context and create the activity-scoped ViewModel.
-    val context = LocalContext.current
-    val activity = remember(context) { context.findActivity() }
-    val graphDataViewModel: GraphDataViewModel = if (activity != null) {
-        viewModel(viewModelStoreOwner = activity as ViewModelStoreOwner)
-    } else {
-        // Fallback if activity is not available, though unlikely in this context.
-        viewModel()
-    }
 
     // Trigger the one-time data load after a short delay to allow animations to finish
     LaunchedEffect(Unit) {
@@ -88,6 +70,7 @@ fun HomeScreen(
     val cpuClusters by vm.cpuClusters.collectAsState()
     val storageInfo by storageViewModel.storageInfo.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
+    val graphData by vm.graphData.collectAsState()
 
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -149,7 +132,15 @@ fun HomeScreen(
                     val clusters = cpuClusters
                     if (clusters != null) {
                         val socNameToDisplay = currentSystemInfo?.soc?.takeIf { it.isNotBlank() && it != stringResource(id = R.string.common_unknown_value) } ?: cpuInfo.soc.takeIf { it.isNotBlank() && it != stringResource(id = R.string.unknown_soc) && it != stringResource(id = R.string.common_na) } ?: stringResource(id = R.string.cpu_cpu_label)
-                        CpuCard(socNameToDisplay, cpuInfo, clusters, false, Modifier, graphDataViewModel)
+                        CpuCard(
+                            soc = socNameToDisplay,
+                            info = cpuInfo,
+                            clusters = clusters,
+                            graphData = graphData,
+                            onGraphModeChange = vm::setCPUGraphMode,
+                            modifier1 = false,
+                            modifier = Modifier
+                        )
                     } else {
                         // Show a smaller placeholder if just this data is missing
                         Card(modifier = Modifier.fillMaxWidth().height(150.dp)) { /* Placeholder */ }
@@ -158,7 +149,7 @@ fun HomeScreen(
 
                 /* 2. GPU */
                 item {
-                    GpuCard(gpuInfo, Modifier, graphDataViewModel)
+                    GpuCard(gpuInfo, graphData.gpuHistory, Modifier)
                 }
 
                 /* 3. Merged card */

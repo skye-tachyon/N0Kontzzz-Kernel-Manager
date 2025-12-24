@@ -23,61 +23,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.model.CpuCluster
 import id.nkz.nokontzzzmanager.data.model.RealtimeCpuInfo
-import id.nkz.nokontzzzmanager.viewmodel.GraphDataViewModel
+import id.nkz.nokontzzzmanager.viewmodel.GraphData
 import id.nkz.nokontzzzmanager.viewmodel.GraphMode
-import id.nkz.nokontzzzmanager.R
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 const val MAX_HISTORY_POINTS_GRAPH = 50
-const val SIMULATE_CPU_LOAD_TOGGLE = false // Keep for existing logic
 
 @Composable
 fun CpuCard(
     soc: String,
     info: RealtimeCpuInfo,
     clusters: ImmutableList<CpuCluster>,
+    graphData: GraphData,
+    onGraphModeChange: (GraphMode) -> Unit,
     modifier1: Boolean, // Parameter tetap ada
-    modifier: Modifier = Modifier,
-    graphDataViewModel: GraphDataViewModel = viewModel()
+    modifier: Modifier = Modifier
 ) {
-    val graphData by graphDataViewModel.graphData.collectAsState()
-    var currentGraphMode by remember { mutableStateOf(graphData.cpuGraphMode) }
-
-    LaunchedEffect(currentGraphMode, info) {
-        val currentDataPoint: Float = when (currentGraphMode) {
-            GraphMode.SPEED -> {
-                if (info.freqs.isNotEmpty()) {
-                    info.freqs.filter { it > 0 }.map { it.toFloat() }.average().toFloat().takeIf { !it.isNaN() } ?: 0f
-                } else {
-                    0f
-                }
-            }
-            GraphMode.LOAD -> {
-                if (SIMULATE_CPU_LOAD_TOGGLE) {
-                    delay(150) // Keep for simulation if enabled
-                    val baseLoad = Random.nextFloat() * 70f
-                    val spike = if (Random.nextInt(0, 4) == 0)
-                        Random.nextFloat() * 30f else 0f
-                    (baseLoad + spike).coerceIn(0f, 100f)
-                } else {
-                    // Gunakan nilai dari info.cpuLoadPercentage jika tersedia, jika tidak gunakan 0f sebagai fallback
-                    val loadValue = info.cpuLoadPercentage ?: 0f
-                    loadValue.coerceIn(0f, 100f)
-                }
-            }
-        }
-        
-        // Update the ViewModel with the new data point
-        when (currentGraphMode) {
-            GraphMode.LOAD -> graphDataViewModel.addCpuLoadData(currentDataPoint)
-            GraphMode.SPEED -> graphDataViewModel.addCpuSpeedData(currentDataPoint)
-        }
-    }
+    val currentGraphMode = graphData.cpuGraphMode
 
     Card( // Mengganti ElevatedCard menjadi Card dengan konfigurasi baru
         modifier = modifier.fillMaxWidth(),
@@ -113,12 +79,7 @@ fun CpuCard(
 
             CpuGraphModeToggle(
                 currentGraphMode = currentGraphMode,
-                onModeChanged = { newMode ->
-                    currentGraphMode = newMode
-                    graphDataViewModel.setCPUGraphMode(newMode)
-                    // Only reset history when explicitly changing modes
-                    // graphDataViewModel.resetCPUGraphHistory()
-                }
+                onModeChanged = onGraphModeChange
             )
         }
     }

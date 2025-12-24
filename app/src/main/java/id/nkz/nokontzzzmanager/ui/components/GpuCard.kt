@@ -25,24 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.model.RealtimeGpuInfo
-import id.nkz.nokontzzzmanager.viewmodel.GraphDataViewModel
 
 const val MAX_GPU_HISTORY_POINTS = 50
-const val SIMULATE_GPU_LOAD_TOGGLE = false // Keep for existing logic
 
 @Composable
 fun GpuCard(
     info: RealtimeGpuInfo,
-    modifier: Modifier = Modifier,
-    graphDataViewModel: GraphDataViewModel = viewModel()
+    gpuHistory: List<Float>,
+    modifier: Modifier = Modifier
 ) {
-    val graphData by graphDataViewModel.graphData.collectAsState()
-    
-    LaunchedEffect(info) {
-        val currentDataPoint: Float = info.usagePercentage?.coerceIn(0f, 100f) ?: 0f
-        graphDataViewModel.addGpuData(currentDataPoint)
-    }
-
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
@@ -59,10 +50,10 @@ fun GpuCard(
         ) {
             GpuHeaderSection(info)
 
-            GpuStatsSection(info = info, graphDataHistory = graphData.gpuHistory)
+            GpuStatsSection(info = info, graphDataHistory = gpuHistory)
 
             EnhancedGpuGraph(
-                graphDataHistory = graphData.gpuHistory,
+                graphDataHistory = gpuHistory,
                 primaryColor = MaterialTheme.colorScheme.primary
             )
         }

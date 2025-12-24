@@ -84,6 +84,10 @@ class HomeViewModel @Inject constructor(
 
     private val _isScrolling = MutableStateFlow(false)
 
+    // Graph Data State
+    private val _graphData = MutableStateFlow(GraphData())
+    val graphData: StateFlow<GraphData> = _graphData.asStateFlow()
+
     private val isInitialDataLoaded = java.util.concurrent.atomic.AtomicBoolean(false)
 
     init {
@@ -104,6 +108,27 @@ class HomeViewModel @Inject constructor(
                             uptime = aggregatedInfo.uptimeMillis,
                             deepSleep = aggregatedInfo.deepSleepMillis
                         )
+
+                        // Update Graph Data
+                        val cpuInfo = aggregatedInfo.cpuInfo
+                        val gpuInfo = aggregatedInfo.gpuInfo
+
+                        // Calculate CPU Data Points
+                        val avgSpeed = if (cpuInfo.freqs.isNotEmpty()) {
+                            cpuInfo.freqs.filter { it > 0 }.map { it.toFloat() }.average().toFloat().takeIf { !it.isNaN() } ?: 0f
+                        } else 0f
+                        val cpuLoad = (cpuInfo.cpuLoadPercentage ?: 0f).coerceIn(0f, 100f)
+
+                        // Calculate GPU Data Point
+                        val gpuUsage = (gpuInfo.usagePercentage ?: 0f).coerceIn(0f, 100f)
+
+                        // Atomically update graph history
+                        val currentGraph = _graphData.value
+                        _graphData.value = currentGraph.copy(
+                            cpuLoadHistory = (currentGraph.cpuLoadHistory + cpuLoad).takeLast(50),
+                            cpuSpeedHistory = (currentGraph.cpuSpeedHistory + avgSpeed).takeLast(50),
+                            gpuHistory = (currentGraph.gpuHistory + gpuUsage).takeLast(50)
+                        )
                     }
                 }
         }
@@ -111,6 +136,11 @@ class HomeViewModel @Inject constructor(
 
     fun setScrolling(isScrolling: Boolean) {
         _isScrolling.value = isScrolling
+    }
+
+    fun setCPUGraphMode(mode: GraphMode) {
+        val current = _graphData.value
+        _graphData.value = current.copy(cpuGraphMode = mode)
     }
 
     fun loadInitialData() {
