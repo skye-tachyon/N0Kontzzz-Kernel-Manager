@@ -1,7 +1,9 @@
 package id.nkz.nokontzzzmanager.data.model
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 
+@Immutable
 @Serializable
 data class StorageInfo(
     val totalSpace: Long,      // Total storage space in bytes

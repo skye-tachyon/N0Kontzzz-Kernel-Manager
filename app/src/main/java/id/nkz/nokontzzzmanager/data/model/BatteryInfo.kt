@@ -1,5 +1,8 @@
 package id.nkz.nokontzzzmanager.data.model
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class BatteryInfo(
     val level: Int = 0,
     val temp: Float = 0f, // Changed from temperature to temp

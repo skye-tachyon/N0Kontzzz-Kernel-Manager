@@ -97,7 +97,7 @@ fun MergedSystemCard(
 }
 
 @Composable
-private fun BatteryCard(
+fun BatteryCard(
     batteryInfo: BatteryInfo,
     deepSleepInfo: DeepSleepInfo?,
     modifier: Modifier = Modifier
@@ -124,7 +124,7 @@ private fun BatteryCard(
 }
 
 @Composable
-private fun MemoryCard(
+fun MemoryCard(
     memoryInfo: MemoryInfo,
     modifier: Modifier = Modifier
 ) {
@@ -152,7 +152,7 @@ private fun MemoryCard(
 }
 
 @Composable
-private fun StorageCard(
+fun StorageCard(
     storageInfo: StorageInfo,
     modifier: Modifier = Modifier
 ) {
@@ -803,7 +803,7 @@ private fun SystemStatItem(
 }
 
 @Composable
-private fun DeviceInfoCard(
+fun DeviceInfoCard(
     systemInfo: SystemInfo,
     rooted: Boolean,
     version: String,

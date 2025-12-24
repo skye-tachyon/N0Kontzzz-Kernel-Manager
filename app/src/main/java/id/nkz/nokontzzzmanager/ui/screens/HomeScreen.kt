@@ -38,7 +38,10 @@ import id.nkz.nokontzzzmanager.ui.components.CpuCard
 import id.nkz.nokontzzzmanager.ui.components.GpuCard
 import id.nkz.nokontzzzmanager.ui.components.IndeterminateExpressiveLoadingIndicator
 import id.nkz.nokontzzzmanager.ui.components.KernelCard
-import id.nkz.nokontzzzmanager.ui.components.MergedSystemCard
+import id.nkz.nokontzzzmanager.ui.components.BatteryCard
+import id.nkz.nokontzzzmanager.ui.components.DeviceInfoCard
+import id.nkz.nokontzzzmanager.ui.components.MemoryCard
+import id.nkz.nokontzzzmanager.ui.components.StorageCard
 import id.nkz.nokontzzzmanager.ui.viewmodel.StorageInfoViewModel
 import id.nkz.nokontzzzmanager.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
@@ -140,29 +143,47 @@ fun HomeScreen(
                 GpuCard(gpuInfo, graphData.gpuHistory, Modifier)
             }
 
-            /* 3. Merged card */
-            item {
-                val currentBattery = batteryInfo
-                val currentMemory = memoryInfo
-                val currentDeepSleep = deepSleepInfo
-                val currentRoot = rootStatus
-                val currentVersion = appVersion
-                val currentSystem = systemInfoState
+            /* 3. System Stats */
+            val currentBattery = batteryInfo
+            val currentMemory = memoryInfo
+            val currentDeepSleep = deepSleepInfo
+            val currentRoot = rootStatus
+            val currentVersion = appVersion
+            val currentSystem = systemInfoState
 
-                if (currentBattery != null && currentMemory != null && currentDeepSleep != null &&
-                    currentRoot != null && currentVersion != null && currentSystem != null) {
-                    MergedSystemCard(
-                        b = currentBattery,
-                        d = currentDeepSleep,
+            if (currentBattery != null && currentMemory != null && currentDeepSleep != null &&
+                currentRoot != null && currentVersion != null && currentSystem != null) {
+                
+                item {
+                    BatteryCard(
+                        batteryInfo = currentBattery,
+                        deepSleepInfo = currentDeepSleep
+                    )
+                }
+                
+                item {
+                    MemoryCard(
+                        memoryInfo = currentMemory
+                    )
+                }
+                
+                item {
+                    StorageCard(
+                        storageInfo = storageInfo
+                    )
+                }
+                
+                item {
+                    DeviceInfoCard(
+                        systemInfo = currentSystem,
                         rooted = currentRoot,
                         version = currentVersion,
-                        mem = currentMemory,
-                        systemInfo = currentSystem,
-                        storageInfo = storageInfo,
-                        modifier = Modifier
+                        storageInfo = storageInfo
                     )
-                } else {
-                    // Placeholder for the merged card while data is loading
+                }
+            } else {
+                item {
+                    // Placeholder while data is loading
                     Card(modifier = Modifier.fillMaxWidth().height(200.dp)) { /* Placeholder */ }
                 }
             }
