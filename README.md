@@ -78,6 +78,9 @@
 - **System Alert Window (`android.permission.SYSTEM_ALERT_WINDOW`)**  
   (Optional) Used for displaying overlays or critical alerts if enabled.
 
+- **Vibration (`android.permission.VIBRATE`)**  
+  Used to provide tactile haptic feedback when interacting with UI elements like sliders, enhancing the user experience.
+
 - **Privacy Focused**  
   No internet access permission is requested. The application operates entirely offline to ensure data privacy.
 
