@@ -285,7 +285,7 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: ImmutableList<CpuCl
                     modifier = Modifier.fillMaxWidth(),
                     shape = shape,
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    contentColor = MaterialTheme.colorScheme.primaryContainer
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ) {
                     Row(
                         modifier = Modifier
@@ -307,7 +307,7 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: ImmutableList<CpuCl
                         Text(
                             text = "Max: ${cluster.maxFreq} MHz",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
