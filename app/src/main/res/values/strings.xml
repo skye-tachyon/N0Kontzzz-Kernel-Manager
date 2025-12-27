@@ -16,6 +16,7 @@
     <string name="abi" translatable="false">ABI</string>
     <string name="kernel_information">Kernel Information</string>
     <string name="kernel_version">Kernel Version</string>
+    <string name="wireguard_version">WireGuard Version</string>
     <string name="n0kz_kernel_manager">N0Kontzzz Kernel Manager</string>
     <string name="home">Home</string>
     <string name="tuning">Tuning</string>
@@ -206,6 +207,11 @@
     <string name="bypass_charging_desc">Charge the device without charging the battery. May preserve battery health. Make sure the kernel is supported.</string>
     <string name="bypass_charging_activated">Bypass Charging Activated</string>
     <string name="bypass_charging_active_desc">Bypass charging is active. The battery is not charging.</string>
+
+    <string name="force_fast_charge">Force Fast Charge</string>
+    <string name="force_fast_charge_desc">Forces the device to charge at a faster rate. Use with caution as it may increase heat. Ensure your kernel supports this feature.</string>
+    <string name="force_fast_charge_activated">Force Fast Charge Activated</string>
+    <string name="force_fast_charge_active_desc">Force fast charge is active. Your device is charging faster.</string>
 
     <string name="charging_control_title">Charging Control</string>
     <string name="charging_control_desc">Automatically stop and resume charging at specific battery levels</string>

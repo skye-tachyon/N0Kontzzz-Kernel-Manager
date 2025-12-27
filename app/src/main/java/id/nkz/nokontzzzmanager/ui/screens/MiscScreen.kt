@@ -73,6 +73,8 @@ fun MiscScreen(
     val isKgslFeatureAvailable by viewModel.isKgslFeatureAvailable.collectAsStateWithLifecycle()
     val bypassChargingEnabled by viewModel.bypassChargingEnabled.collectAsStateWithLifecycle()
     val isBypassChargingAvailable by viewModel.isBypassChargingAvailable.collectAsStateWithLifecycle()
+    val forceFastChargeEnabled by viewModel.forceFastChargeEnabled.collectAsStateWithLifecycle()
+    val isForceFastChargeAvailable by viewModel.isForceFastChargeAvailable.collectAsStateWithLifecycle()
     val batteryMonitorEnabled by viewModel.batteryMonitorEnabled.collectAsStateWithLifecycle()
     val tcpCongestionAlgorithm by viewModel.tcpCongestionAlgorithm.collectAsStateWithLifecycle()
     val availableTcpAlgorithms by viewModel.availableTcpCongestionAlgorithms.collectAsStateWithLifecycle()
@@ -181,6 +183,17 @@ fun MiscScreen(
                 isBypassChargingAvailable = isBypassChargingAvailable,
                 onToggleBypassCharging = { enabled ->
                     viewModel.toggleBypassCharging(enabled)
+                }
+            )
+        }
+
+        // Force Fast Charge feature
+        item {
+            ForceFastChargeCard(
+                forceFastChargeEnabled = forceFastChargeEnabled,
+                isForceFastChargeAvailable = isForceFastChargeAvailable,
+                onToggleForceFastCharge = { enabled ->
+                    viewModel.toggleForceFastCharge(enabled)
                 }
             )
         }
@@ -983,6 +996,124 @@ fun BatteryHistoryCard(
                         contentDescription = "View History",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ForceFastChargeCard(
+    forceFastChargeEnabled: Boolean,
+    isForceFastChargeAvailable: Boolean?,
+    onToggleForceFastCharge: (Boolean) -> Unit,
+) {
+    // Treat null as false for UI purposes, preventing flicker during initial load
+    val featureAvailable = isForceFastChargeAvailable == true
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        onClick = {
+            if (featureAvailable) {
+                onToggleForceFastCharge(!forceFastChargeEnabled)
+            }
+        }
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(id = R.string.force_fast_charge),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.5f
+                        )
+                    )
+                    Text(
+                        text = if (featureAvailable) {
+                            stringResource(id = R.string.force_fast_charge_desc)
+                        } else {
+                            stringResource(id = R.string.feature_not_available)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.5f
+                        )
+                    )
+                }
+
+                Switch(
+                    checked = forceFastChargeEnabled && featureAvailable,
+                    onCheckedChange = null,
+                    enabled = featureAvailable,
+                    thumbContent = if (forceFastChargeEnabled && featureAvailable) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    }
+                )
+            }
+
+            if (forceFastChargeEnabled && featureAvailable) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = stringResource(id = R.string.force_fast_charge_activated),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Text(
+                            text = stringResource(id = R.string.force_fast_charge_active_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
             }
         }

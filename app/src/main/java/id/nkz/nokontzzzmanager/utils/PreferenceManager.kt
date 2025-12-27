@@ -16,6 +16,7 @@ class PreferenceManager @Inject constructor(
         private const val KEY_TARGET_GAME_PACKAGES = "target_game_packages"
         private const val KEY_KGSL_SKIP_ZEROING = "kgsl_skip_zeroing"
         private const val KEY_BYPASS_CHARGING = "bypass_charging"
+        private const val KEY_FORCE_FAST_CHARGE = "force_fast_charge"
         private const val KEY_BATTERY_MONITOR_ENABLED = "battery_monitor_enabled"
 
         private const val KEY_CHARGING_CONTROL_ENABLED = "charging_control_enabled"
@@ -87,6 +88,17 @@ class PreferenceManager @Inject constructor(
     fun getBypassCharging(): Boolean {
         credentialPrefs()?.getBoolean(KEY_BYPASS_CHARGING, false)?.let { return it }
         return deviceProtectedPrefs()?.getBoolean(KEY_BYPASS_CHARGING, false) ?: false
+    }
+
+    fun setForceFastCharge(enabled: Boolean) {
+        credentialPrefs()?.edit {
+            putBoolean(KEY_FORCE_FAST_CHARGE, enabled)
+        }
+    }
+
+    fun getForceFastCharge(): Boolean {
+        credentialPrefs()?.getBoolean(KEY_FORCE_FAST_CHARGE, false)?.let { return it }
+        return deviceProtectedPrefs()?.getBoolean(KEY_FORCE_FAST_CHARGE, false) ?: false
     }
 
     fun setBatteryMonitorEnabled(enabled: Boolean) {

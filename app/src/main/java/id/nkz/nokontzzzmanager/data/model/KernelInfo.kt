@@ -10,5 +10,6 @@ data class KernelInfo(
     val abi: String = "Unknown",
     val architecture: String = "Unknown",
     val kernelSuStatus: String = "Not Detected",
-    val fingerprint: String = "Unknown"
+    val fingerprint: String = "Unknown",
+    val wireguardVersion: String? = null
 )

@@ -922,6 +922,9 @@ class SystemRepository @Inject constructor(
             else -> abi
         }
 
+        // Get WireGuard Version
+        val wireguardVersion = readFileToString("/sys/module/wireguard/version", "WireGuard Version")
+
         // Enhanced KernelSU detection - improved with better logging and error handling
         val kernelSuStatus = when {
             // Method 1: Check kernel version for KernelSU signature (primary method)
@@ -1114,7 +1117,8 @@ class SystemRepository @Inject constructor(
             abi = abi,
             architecture = architecture,
             kernelSuStatus = kernelSuStatus,
-            fingerprint = Build.FINGERPRINT
+            fingerprint = Build.FINGERPRINT,
+            wireguardVersion = wireguardVersion
         )
     }
 
@@ -1229,6 +1233,26 @@ class SystemRepository @Inject constructor(
     fun setBypassCharging(enabled: Boolean): Boolean {
         val value = if (enabled) "1" else "0"
         return writeStringToFile(bypassChargingPath, value, "Bypass Charging")
+    }
+
+    private val forceFastChargePath = "/sys/kernel/fast_charge/force_fast_charge"
+
+    fun isForceFastChargeAvailable(): Boolean {
+        val file = File(forceFastChargePath)
+        if (file.exists()) {
+            return true
+        }
+        return readFileToString(forceFastChargePath, "Force Fast Charge Check") != null
+    }
+
+    fun getForceFastCharge(): Boolean {
+        val value = readFileToString(forceFastChargePath, "Force Fast Charge Status")
+        return value?.trim() == "1"
+    }
+
+    fun setForceFastCharge(enabled: Boolean): Boolean {
+        val value = if (enabled) "1" else "0"
+        return writeStringToFile(forceFastChargePath, value, "Force Fast Charge")
     }
 
     // TCP Congestion Control Algorithm functions

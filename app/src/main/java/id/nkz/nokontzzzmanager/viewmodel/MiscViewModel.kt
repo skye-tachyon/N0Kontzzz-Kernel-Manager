@@ -35,6 +35,12 @@ class MiscViewModel @Inject constructor(
     private val _isBypassChargingAvailable = MutableStateFlow<Boolean?>(null)
     val isBypassChargingAvailable: StateFlow<Boolean?> = _isBypassChargingAvailable.asStateFlow()
 
+    private val _forceFastChargeEnabled = MutableStateFlow(false)
+    val forceFastChargeEnabled: StateFlow<Boolean> = _forceFastChargeEnabled.asStateFlow()
+
+    private val _isForceFastChargeAvailable = MutableStateFlow<Boolean?>(null)
+    val isForceFastChargeAvailable: StateFlow<Boolean?> = _isForceFastChargeAvailable.asStateFlow()
+
     private val _tcpCongestionAlgorithm = MutableStateFlow<String?>(null)
     val tcpCongestionAlgorithm: StateFlow<String?> = _tcpCongestionAlgorithm.asStateFlow()
 
@@ -105,6 +111,10 @@ class MiscViewModel @Inject constructor(
         // Load bypass charging state
         _bypassChargingEnabled.value = preferenceManager.getBypassCharging()
         _isBypassChargingAvailable.value = systemRepository.isBypassChargingAvailable()
+
+        // Load force fast charge state
+        _forceFastChargeEnabled.value = preferenceManager.getForceFastCharge()
+        _isForceFastChargeAvailable.value = systemRepository.isForceFastChargeAvailable()
         
         // Load TCP congestion algorithm
         loadTcpCongestionAlgorithm()
@@ -160,6 +170,19 @@ class MiscViewModel @Inject constructor(
             } else {
                 _bypassChargingEnabled.value = systemRepository.getBypassCharging()
                 preferenceManager.setBypassCharging(_bypassChargingEnabled.value)
+            }
+        }
+    }
+
+    fun toggleForceFastCharge(enabled: Boolean) {
+        viewModelScope.launch {
+            val success = systemRepository.setForceFastCharge(enabled)
+            if (success) {
+                _forceFastChargeEnabled.value = enabled
+                preferenceManager.setForceFastCharge(enabled)
+            } else {
+                _forceFastChargeEnabled.value = systemRepository.getForceFastCharge()
+                preferenceManager.setForceFastCharge(_forceFastChargeEnabled.value)
             }
         }
     }

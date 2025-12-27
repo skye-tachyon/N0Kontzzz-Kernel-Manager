@@ -16,6 +16,7 @@
     <string name="abi" translatable="false">ABI</string>
     <string name="kernel_information">Informasi Kernel</string>
     <string name="kernel_version">Versi Kernel</string>
+    <string name="wireguard_version">Versi WireGuard</string>
     <string name="n0kz_kernel_manager">N0Kontzzz Kernel Manager</string>
     <string name="home">Beranda</string>
     <string name="tuning">Tuning</string>
@@ -206,6 +207,11 @@
     <string name="bypass_charging_desc">Mengisi daya perangkat tanpa mengisi baterai. Dapat menjaga kesehatan baterai. Pastikan kernel didukung.</string>
     <string name="bypass_charging_activated">Bypass Charging Diaktifkan</string>
     <string name="bypass_charging_active_desc">Bypass Charging aktif. Baterai tidak diisi.</string>
+
+    <string name="force_fast_charge">Paksa Pengisian Cepat</string>
+    <string name="force_fast_charge_desc">Memaksa perangkat untuk mengisi daya dengan kecepatan yang lebih tinggi. Gunakan dengan hatihati karena dapat meningkatkan suhu. Pastikan kernel Anda mendukung fitur ini.</string>
+    <string name="force_fast_charge_activated">Paksa Pengisian Cepat Diaktifkan</string>
+    <string name="force_fast_charge_active_desc">Paksa pengisian cepat sedang aktif. Perangkat Anda mengisi daya lebih cepat.</string>
 
     <string name="charging_control_title">Kontrol Pengisian Daya</string>
     <string name="charging_control_desc">Berhenti dan lanjutkan pengisian daya secara otomatis pada level baterai tertentu</string>
