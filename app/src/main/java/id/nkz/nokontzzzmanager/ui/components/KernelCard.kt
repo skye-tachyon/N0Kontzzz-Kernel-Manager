@@ -161,24 +161,23 @@ fun KernelCard(
                     }
                 )
 
-                // WireGuard Version (if available)
-                if (k.wireguardVersion != null) {
-                    val wireguardTitle = stringResource(id = R.string.wireguard_version)
-                    CompactInfoCardWithCustomShape(
-                        label = stringResource(R.string.wireguard_version),
-                        value = k.wireguardVersion,
-                        icon = Icons.Filled.Shield, // Reusing Shield icon which fits security/vpn theme
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(4.dp),
-                        onCardClick = {
-                            detailInfo = KernelDetailInfo(
-                                title = wireguardTitle,
-                                value = k.wireguardVersion,
-                                icon = Icons.Filled.Shield
-                            )
-                        }
-                    )
-                }
+                // WireGuard Version
+                val wireguardTitle = stringResource(id = R.string.wireguard_version)
+                val wireguardValue = k.wireguardVersion ?: stringResource(id = R.string.common_na)
+                CompactInfoCardWithCustomShape(
+                    label = wireguardTitle,
+                    value = wireguardValue,
+                    icon = Icons.Filled.Shield, // Reusing Shield icon which fits security/vpn theme
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    onCardClick = {
+                        detailInfo = KernelDetailInfo(
+                            title = wireguardTitle,
+                            value = wireguardValue,
+                            icon = Icons.Filled.Shield
+                        )
+                    }
+                )
 
                 // Single card: I/O Scheduler (full width)
                 val ioSchedulerTitle = stringResource(id = R.string.io_scheduler)
