@@ -48,25 +48,9 @@ fun MiscScreen(
     viewModel: MiscViewModel = hiltViewModel(),
 ) {
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.loadInitialData()
-    }
-
-    // Listen for destination changes to reset scroll state
-    DisposableEffect(navController) {
-        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-            if (destination.route == "misc") {
-                coroutineScope.launch {
-                    lazyListState.scrollToItem(0)
-                }
-            }
-        }
-        navController?.addOnDestinationChangedListener(listener)
-        onDispose {
-            navController?.removeOnDestinationChangedListener(listener)
-        }
     }
 
     val kgslSkipZeroingEnabled by viewModel.kgslSkipZeroingEnabled.collectAsStateWithLifecycle()
