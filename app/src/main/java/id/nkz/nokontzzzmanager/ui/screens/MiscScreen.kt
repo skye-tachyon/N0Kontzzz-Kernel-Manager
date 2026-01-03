@@ -379,10 +379,10 @@ fun KgslSkipZeroingCard(
                 }
 
                 Switch(
-                    checked = kgslSkipZeroingEnabled && featureAvailable,
+                    checked = kgslSkipZeroingEnabled,
                     onCheckedChange = null,
                     enabled = featureAvailable,
-                    thumbContent = if (kgslSkipZeroingEnabled && featureAvailable) {
+                    thumbContent = if (kgslSkipZeroingEnabled) {
                         {
                             Icon(
                                 imageVector = Icons.Default.Check,
@@ -823,10 +823,10 @@ fun BypassChargingCard(
                 }
 
                 Switch(
-                    checked = bypassChargingEnabled && featureAvailable,
+                    checked = bypassChargingEnabled,
                     onCheckedChange = null,
                     enabled = featureAvailable,
-                    thumbContent = if (bypassChargingEnabled && featureAvailable) {
+                    thumbContent = if (bypassChargingEnabled) {
                         {
                             Icon(
                                 imageVector = Icons.Default.Check,
@@ -1051,10 +1051,10 @@ fun ForceFastChargeCard(
                 }
 
                 Switch(
-                    checked = forceFastChargeEnabled && featureAvailable,
+                    checked = forceFastChargeEnabled,
                     onCheckedChange = null,
                     enabled = featureAvailable,
-                    thumbContent = if (forceFastChargeEnabled && featureAvailable) {
+                    thumbContent = if (forceFastChargeEnabled) {
                         {
                             Icon(
                                 imageVector = Icons.Default.Check,

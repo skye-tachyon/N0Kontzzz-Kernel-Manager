@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import id.nkz.nokontzzzmanager.data.repository.SystemRepository
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import id.nkz.nokontzzzmanager.service.BatteryMonitorService
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -102,41 +103,43 @@ class MiscViewModel @Inject constructor(
     fun loadInitialData() {
         if (isDataLoaded.getAndSet(true)) return
 
-        // Load saved preferences on init
-        _kgslSkipZeroingEnabled.value = preferenceManager.getKgslSkipZeroing()
-        
-        // Check if KGSL feature is available
-        _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
+        viewModelScope.launch(Dispatchers.IO) {
+            // Load saved preferences on init
+            _kgslSkipZeroingEnabled.value = preferenceManager.getKgslSkipZeroing()
 
-        // Load bypass charging state
-        _bypassChargingEnabled.value = preferenceManager.getBypassCharging()
-        _isBypassChargingAvailable.value = systemRepository.isBypassChargingAvailable()
+            // Check if KGSL feature is available
+            _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
 
-        // Load force fast charge state
-        _forceFastChargeEnabled.value = preferenceManager.getForceFastCharge()
-        _isForceFastChargeAvailable.value = systemRepository.isForceFastChargeAvailable()
-        
-        // Load TCP congestion algorithm
-        loadTcpCongestionAlgorithm()
-        
-        // Load I/O scheduler
-        loadIoScheduler()
+            // Load bypass charging state
+            _bypassChargingEnabled.value = preferenceManager.getBypassCharging()
+            _isBypassChargingAvailable.value = systemRepository.isBypassChargingAvailable()
 
-        // Load Battery Monitor preference
-        _batteryMonitorEnabled.value = preferenceManager.isBatteryMonitorEnabled()
-        _autoResetOnReboot.value = preferenceManager.isAutoResetOnReboot()
-        _autoResetOnCharging.value = preferenceManager.isAutoResetOnCharging()
-        _autoResetAtLevel.value = preferenceManager.isAutoResetAtLevel()
-        _autoResetTargetLevel.value = preferenceManager.getAutoResetTargetLevel()
+            // Load force fast charge state
+            _forceFastChargeEnabled.value = preferenceManager.getForceFastCharge()
+            _isForceFastChargeAvailable.value = systemRepository.isForceFastChargeAvailable()
 
-        _monitorAutoResetOnReboot.value = preferenceManager.isMonitorAutoResetOnReboot()
-        _monitorAutoResetOnCharging.value = preferenceManager.isMonitorAutoResetOnCharging()
-        _monitorAutoResetAtLevel.value = preferenceManager.isMonitorAutoResetAtLevel()
-        _monitorAutoResetTargetLevel.value = preferenceManager.getMonitorAutoResetTargetLevel()
+            // Load TCP congestion algorithm
+            loadTcpCongestionAlgorithm()
 
-        _chargingControlEnabled.value = preferenceManager.isChargingControlEnabled()
-        _chargingControlStopLevel.value = preferenceManager.getChargingControlStopLevel()
-        _chargingControlResumeLevel.value = preferenceManager.getChargingControlResumeLevel()
+            // Load I/O scheduler
+            loadIoScheduler()
+
+            // Load Battery Monitor preference
+            _batteryMonitorEnabled.value = preferenceManager.isBatteryMonitorEnabled()
+            _autoResetOnReboot.value = preferenceManager.isAutoResetOnReboot()
+            _autoResetOnCharging.value = preferenceManager.isAutoResetOnCharging()
+            _autoResetAtLevel.value = preferenceManager.isAutoResetAtLevel()
+            _autoResetTargetLevel.value = preferenceManager.getAutoResetTargetLevel()
+
+            _monitorAutoResetOnReboot.value = preferenceManager.isMonitorAutoResetOnReboot()
+            _monitorAutoResetOnCharging.value = preferenceManager.isMonitorAutoResetOnCharging()
+            _monitorAutoResetAtLevel.value = preferenceManager.isMonitorAutoResetAtLevel()
+            _monitorAutoResetTargetLevel.value = preferenceManager.getMonitorAutoResetTargetLevel()
+
+            _chargingControlEnabled.value = preferenceManager.isChargingControlEnabled()
+            _chargingControlStopLevel.value = preferenceManager.getChargingControlStopLevel()
+            _chargingControlResumeLevel.value = preferenceManager.getChargingControlResumeLevel()
+        }
     }
 
     fun toggleKgslSkipZeroing(enabled: Boolean) {
@@ -187,18 +190,14 @@ class MiscViewModel @Inject constructor(
         }
     }
 
-    private fun loadTcpCongestionAlgorithm() {
-        viewModelScope.launch {
-            _tcpCongestionAlgorithm.value = systemRepository.getTcpCongestionAlgorithm()
-            _availableTcpCongestionAlgorithms.value = systemRepository.getAvailableTcpCongestionAlgorithmsList()
-        }
+    private suspend fun loadTcpCongestionAlgorithm() {
+        _tcpCongestionAlgorithm.value = systemRepository.getTcpCongestionAlgorithm()
+        _availableTcpCongestionAlgorithms.value = systemRepository.getAvailableTcpCongestionAlgorithmsList()
     }
 
-    private fun loadIoScheduler() {
-        viewModelScope.launch {
-            _ioScheduler.value = systemRepository.getIoScheduler()
-            _availableIoSchedulers.value = systemRepository.getAvailableIoSchedulersList()
-        }
+    private suspend fun loadIoScheduler() {
+        _ioScheduler.value = systemRepository.getIoScheduler()
+        _availableIoSchedulers.value = systemRepository.getAvailableIoSchedulersList()
     }
 
     fun updateTcpCongestionAlgorithm(algorithm: String) {
