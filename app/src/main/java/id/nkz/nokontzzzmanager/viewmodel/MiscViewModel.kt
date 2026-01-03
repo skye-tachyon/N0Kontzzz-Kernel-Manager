@@ -24,19 +24,19 @@ class MiscViewModel @Inject constructor(
     private val systemRepository: SystemRepository
 ) : AndroidViewModel(application) {
 
-    private val _kgslSkipZeroingEnabled = MutableStateFlow(false)
+    private val _kgslSkipZeroingEnabled = MutableStateFlow(preferenceManager.getKgslSkipZeroing())
     val kgslSkipZeroingEnabled: StateFlow<Boolean> = _kgslSkipZeroingEnabled.asStateFlow()
 
     private val _isKgslFeatureAvailable = MutableStateFlow<Boolean?>(null)
     val isKgslFeatureAvailable: StateFlow<Boolean?> = _isKgslFeatureAvailable.asStateFlow()
 
-    private val _bypassChargingEnabled = MutableStateFlow(false)
+    private val _bypassChargingEnabled = MutableStateFlow(preferenceManager.getBypassCharging())
     val bypassChargingEnabled: StateFlow<Boolean> = _bypassChargingEnabled.asStateFlow()
 
     private val _isBypassChargingAvailable = MutableStateFlow<Boolean?>(null)
     val isBypassChargingAvailable: StateFlow<Boolean?> = _isBypassChargingAvailable.asStateFlow()
 
-    private val _forceFastChargeEnabled = MutableStateFlow(false)
+    private val _forceFastChargeEnabled = MutableStateFlow(preferenceManager.getForceFastCharge())
     val forceFastChargeEnabled: StateFlow<Boolean> = _forceFastChargeEnabled.asStateFlow()
 
     private val _isForceFastChargeAvailable = MutableStateFlow<Boolean?>(null)
@@ -54,40 +54,40 @@ class MiscViewModel @Inject constructor(
     private val _availableIoSchedulers = MutableStateFlow<List<String>>(emptyList())
     val availableIoSchedulers: StateFlow<List<String>> = _availableIoSchedulers.asStateFlow()
 
-    private val _batteryMonitorEnabled = MutableStateFlow(false)
+    private val _batteryMonitorEnabled = MutableStateFlow(preferenceManager.isBatteryMonitorEnabled())
     val batteryMonitorEnabled: StateFlow<Boolean> = _batteryMonitorEnabled.asStateFlow()
 
-    private val _autoResetOnReboot = MutableStateFlow(false)
+    private val _autoResetOnReboot = MutableStateFlow(preferenceManager.isAutoResetOnReboot())
     val autoResetOnReboot: StateFlow<Boolean> = _autoResetOnReboot.asStateFlow()
 
-    private val _autoResetOnCharging = MutableStateFlow(false)
+    private val _autoResetOnCharging = MutableStateFlow(preferenceManager.isAutoResetOnCharging())
     val autoResetOnCharging: StateFlow<Boolean> = _autoResetOnCharging.asStateFlow()
 
-    private val _autoResetAtLevel = MutableStateFlow(false)
+    private val _autoResetAtLevel = MutableStateFlow(preferenceManager.isAutoResetAtLevel())
     val autoResetAtLevel: StateFlow<Boolean> = _autoResetAtLevel.asStateFlow()
 
-    private val _autoResetTargetLevel = MutableStateFlow(90)
+    private val _autoResetTargetLevel = MutableStateFlow(preferenceManager.getAutoResetTargetLevel())
     val autoResetTargetLevel: StateFlow<Int> = _autoResetTargetLevel.asStateFlow()
 
-    private val _monitorAutoResetOnReboot = MutableStateFlow(false)
+    private val _monitorAutoResetOnReboot = MutableStateFlow(preferenceManager.isMonitorAutoResetOnReboot())
     val monitorAutoResetOnReboot: StateFlow<Boolean> = _monitorAutoResetOnReboot.asStateFlow()
 
-    private val _monitorAutoResetOnCharging = MutableStateFlow(false)
+    private val _monitorAutoResetOnCharging = MutableStateFlow(preferenceManager.isMonitorAutoResetOnCharging())
     val monitorAutoResetOnCharging: StateFlow<Boolean> = _monitorAutoResetOnCharging.asStateFlow()
 
-    private val _monitorAutoResetAtLevel = MutableStateFlow(false)
+    private val _monitorAutoResetAtLevel = MutableStateFlow(preferenceManager.isMonitorAutoResetAtLevel())
     val monitorAutoResetAtLevel: StateFlow<Boolean> = _monitorAutoResetAtLevel.asStateFlow()
 
-    private val _monitorAutoResetTargetLevel = MutableStateFlow(90)
+    private val _monitorAutoResetTargetLevel = MutableStateFlow(preferenceManager.getMonitorAutoResetTargetLevel())
     val monitorAutoResetTargetLevel: StateFlow<Int> = _monitorAutoResetTargetLevel.asStateFlow()
 
-    private val _chargingControlEnabled = MutableStateFlow(false)
+    private val _chargingControlEnabled = MutableStateFlow(preferenceManager.isChargingControlEnabled())
     val chargingControlEnabled: StateFlow<Boolean> = _chargingControlEnabled.asStateFlow()
 
-    private val _chargingControlStopLevel = MutableStateFlow(80)
+    private val _chargingControlStopLevel = MutableStateFlow(preferenceManager.getChargingControlStopLevel())
     val chargingControlStopLevel: StateFlow<Int> = _chargingControlStopLevel.asStateFlow()
 
-    private val _chargingControlResumeLevel = MutableStateFlow(70)
+    private val _chargingControlResumeLevel = MutableStateFlow(preferenceManager.getChargingControlResumeLevel())
     val chargingControlResumeLevel: StateFlow<Int> = _chargingControlResumeLevel.asStateFlow()
 
     val batteryInfo = systemRepository.realtimeAggregatedInfoFlow
@@ -104,18 +104,13 @@ class MiscViewModel @Inject constructor(
         if (isDataLoaded.getAndSet(true)) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            // Load saved preferences on init
-            _kgslSkipZeroingEnabled.value = preferenceManager.getKgslSkipZeroing()
-
             // Check if KGSL feature is available
             _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
 
-            // Load bypass charging state
-            _bypassChargingEnabled.value = preferenceManager.getBypassCharging()
+            // Check bypass charging availability
             _isBypassChargingAvailable.value = systemRepository.isBypassChargingAvailable()
 
-            // Load force fast charge state
-            _forceFastChargeEnabled.value = preferenceManager.getForceFastCharge()
+            // Check force fast charge availability
             _isForceFastChargeAvailable.value = systemRepository.isForceFastChargeAvailable()
 
             // Load TCP congestion algorithm
@@ -123,22 +118,6 @@ class MiscViewModel @Inject constructor(
 
             // Load I/O scheduler
             loadIoScheduler()
-
-            // Load Battery Monitor preference
-            _batteryMonitorEnabled.value = preferenceManager.isBatteryMonitorEnabled()
-            _autoResetOnReboot.value = preferenceManager.isAutoResetOnReboot()
-            _autoResetOnCharging.value = preferenceManager.isAutoResetOnCharging()
-            _autoResetAtLevel.value = preferenceManager.isAutoResetAtLevel()
-            _autoResetTargetLevel.value = preferenceManager.getAutoResetTargetLevel()
-
-            _monitorAutoResetOnReboot.value = preferenceManager.isMonitorAutoResetOnReboot()
-            _monitorAutoResetOnCharging.value = preferenceManager.isMonitorAutoResetOnCharging()
-            _monitorAutoResetAtLevel.value = preferenceManager.isMonitorAutoResetAtLevel()
-            _monitorAutoResetTargetLevel.value = preferenceManager.getMonitorAutoResetTargetLevel()
-
-            _chargingControlEnabled.value = preferenceManager.isChargingControlEnabled()
-            _chargingControlStopLevel.value = preferenceManager.getChargingControlStopLevel()
-            _chargingControlResumeLevel.value = preferenceManager.getChargingControlResumeLevel()
         }
     }
 
