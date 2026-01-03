@@ -62,10 +62,12 @@ fun ProcessMonitorScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showSettingsDialog = true }
-            ) {
-                Icon(imageVector = Icons.Default.Settings, contentDescription = stringResource(R.string.process_monitor_settings))
+            if (!isLoading) {
+                FloatingActionButton(
+                    onClick = { showSettingsDialog = true }
+                ) {
+                    Icon(imageVector = Icons.Default.Settings, contentDescription = stringResource(R.string.process_monitor_settings))
+                }
             }
         }
     ) { paddingValues ->
