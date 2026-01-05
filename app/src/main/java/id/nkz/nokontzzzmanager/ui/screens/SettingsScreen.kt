@@ -49,19 +49,20 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import id.nkz.nokontzzzmanager.ui.dialog.BackupRestoreDialog
+import androidx.core.net.toUri
 
 private data class PendingBackupOptions(
     val tuning: Boolean,
     val network: Boolean,
     val battery: Boolean,
-    val other: Boolean
+    val other: Boolean,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -142,7 +143,7 @@ fun SettingsScreen(
             } else {
                 try {
                     val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                        data = Uri.parse("package:${context.packageName}")
+                        data = "package:${context.packageName}".toUri()
                     }
                     manageStorageLauncher.launch(intent)
                 } catch (e: Exception) {
@@ -477,7 +478,7 @@ fun SettingsScreen(
 private fun NotificationIconSelectionDialog(
     currentStyle: Int,
     onStyleSelected: (Int) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     BasicAlertDialog(
         onDismissRequest = onDismiss,
@@ -585,7 +586,7 @@ private fun NotificationIconSelectionDialog(
 private fun LanguageSelectionDialog(
     currentLocale: String,
     onLocaleSelected: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
     val languageOptions = remember {
@@ -688,7 +689,7 @@ private fun LanguageSelectionDialog(
 private fun ThemeSelectionDialog(
     currentThemeMode: ThemeMode,
     onThemeSelected: (ThemeMode) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     BasicAlertDialog(
         onDismissRequest = onDismiss,
@@ -795,7 +796,7 @@ fun SettingItemCard(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     trailingContent: @Composable () -> Unit = {},
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ) {
     Card(
         modifier = modifier
