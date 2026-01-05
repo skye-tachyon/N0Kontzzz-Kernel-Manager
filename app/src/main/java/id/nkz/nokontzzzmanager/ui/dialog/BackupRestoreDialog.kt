@@ -41,6 +41,7 @@ fun BackupRestoreDialog(
     // Sync checkboxes with preview when it arrives
     LaunchedEffect(preview) {
         if (preview != null) {
+            selectedTab = 1
             includeTuning = preview.hasTuning
             includeNetwork = preview.hasNetwork
             includeBattery = preview.hasBattery
