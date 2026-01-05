@@ -65,6 +65,7 @@
   - **Customizable Notification Icon**: Choose between live battery percentage, app logo, or a transparent icon for a cleaner status bar.
   - **Multi-language Support**: Fully localized in English and Indonesian.
   - **Permission Manager**: Transparently view and verify all critical system permissions requested by the application, including Root access and Usage statistics.
+  - **Backup & Restore**: Securely backup and restore your application settings, including kernel tuning configurations, charging profiles, and UI preferences, to local storage.
 
 - **Efficient Architecture**  
   Built on a lightweight MVVM architecture to ensure optimal performance and minimal resource usage on rooted devices.
