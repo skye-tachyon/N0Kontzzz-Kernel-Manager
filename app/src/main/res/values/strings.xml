@@ -589,8 +589,6 @@
     <string name="perm_usage_desc">Required for Per-App Profiles to detect current foreground application.</string>
     <string name="perm_storage_title">File Storage</string>
     <string name="perm_storage_desc">Required for backing up and restoring app configurations.</string>
-    <string name="perm_overlay_title">System Overlay</string>
-    <string name="perm_overlay_desc">Required for displaying floating monitors or critical alerts.</string>
     <string name="perm_battery_opt_title">Ignore Battery Optimization</string>
     <string name="perm_battery_opt_desc">Ensures the app is not killed by the system to maintain active tuning.</string>
 </resources>

@@ -120,9 +120,6 @@
 - **Battery Optimization (`android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`)**  
   Ensures the background monitoring service remains active to reliably apply profiles and track battery statistics without being killed by the system.
 
-- **System Alert Window (`android.permission.SYSTEM_ALERT_WINDOW`)**  
-  (Optional) Used for displaying overlays or critical alerts if enabled.
-
 - **Vibration (`android.permission.VIBRATE`)**  
   Used to provide tactile haptic feedback when interacting with UI elements like sliders, enhancing the user experience.
 

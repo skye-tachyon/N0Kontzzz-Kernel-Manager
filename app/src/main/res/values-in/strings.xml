@@ -588,8 +588,6 @@
     <string name="perm_usage_desc">Diperlukan agar Profil Per-Aplikasi dapat mendeteksi aplikasi yang sedang dibuka.</string>
     <string name="perm_storage_title">Penyimpanan File</string>
     <string name="perm_storage_desc">Diperlukan untuk mencadangkan dan memulihkan konfigurasi aplikasi.</string>
-    <string name="perm_overlay_title">Hamparan Sistem (Overlay)</string>
-    <string name="perm_overlay_desc">Diperlukan untuk menampilkan monitor melayang atau peringatan kritis.</string>
     <string name="perm_battery_opt_title">Abaikan Optimasi Baterai</string>
     <string name="perm_battery_opt_desc">Memastikan aplikasi tidak dihentikan oleh sistem untuk menjaga tuning tetap aktif.</string>
 </resources>

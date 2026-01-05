@@ -166,10 +166,7 @@ private fun getRelevantPermissions(context: Context, viewModel: PermissionManage
     }
     list.add(AppPermissionInfo(R.string.perm_storage_title, R.string.perm_storage_desc, storageGranted))
 
-    // 5. System Overlay
-    list.add(AppPermissionInfo(R.string.perm_overlay_title, R.string.perm_overlay_desc, Settings.canDrawOverlays(context)))
-
-    // 6. Battery Optimization
+    // 5. Battery Optimization
     val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
     list.add(AppPermissionInfo(R.string.perm_battery_opt_title, R.string.perm_battery_opt_desc, pm.isIgnoringBatteryOptimizations(context.packageName)))
 
