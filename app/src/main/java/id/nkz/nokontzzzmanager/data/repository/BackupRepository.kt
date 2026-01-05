@@ -12,12 +12,14 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import javax.inject.Inject
 import javax.inject.Singleton
+import id.nkz.nokontzzzmanager.service.BatteryMonitorService
 
 @Singleton
 class BackupRepository @Inject constructor(
     private val context: Context,
     private val preferenceManager: PreferenceManager,
-    private val persistentSettingsManager: PersistentSettingsManager
+    private val persistentSettingsManager: PersistentSettingsManager,
+    private val systemRepository: SystemRepository
 ) {
     private val json = Json { prettyPrint = true; ignoreUnknownKeys = true }
 
@@ -106,22 +108,47 @@ class BackupRepository @Inject constructor(
             }
 
             if (restoreNetwork && backupData.networkStorage != null) {
-                backupData.networkStorage.tcpCongestion?.let { preferenceManager.setTcpCongestionAlgorithm(it) }
-                backupData.networkStorage.ioScheduler?.let { preferenceManager.setIoScheduler(it) }
+                backupData.networkStorage.tcpCongestion?.let { 
+                    preferenceManager.setTcpCongestionAlgorithm(it)
+                    systemRepository.setTcpCongestionAlgorithm(it)
+                }
+                backupData.networkStorage.ioScheduler?.let { 
+                    preferenceManager.setIoScheduler(it)
+                    systemRepository.setIoScheduler(it)
+                }
             }
 
             if (restoreBattery && backupData.battery != null) {
-                backupData.battery.bypassCharging?.let { preferenceManager.setBypassCharging(it) }
-                backupData.battery.forceFastCharge?.let { preferenceManager.setForceFastCharge(it) }
+                backupData.battery.bypassCharging?.let { 
+                    preferenceManager.setBypassCharging(it) 
+                    systemRepository.setBypassCharging(it)
+                }
+                backupData.battery.forceFastCharge?.let { 
+                    preferenceManager.setForceFastCharge(it)
+                    systemRepository.setForceFastCharge(it)
+                }
                 backupData.battery.chargingControlEnabled?.let { preferenceManager.setChargingControlEnabled(it) }
                 backupData.battery.stopLevel?.let { preferenceManager.setChargingControlStopLevel(it) }
                 backupData.battery.resumeLevel?.let { preferenceManager.setChargingControlResumeLevel(it) }
-                backupData.battery.batteryMonitorEnabled?.let { preferenceManager.setBatteryMonitorEnabled(it) }
+                backupData.battery.batteryMonitorEnabled?.let { 
+                    preferenceManager.setBatteryMonitorEnabled(it)
+                    if (it) {
+                        BatteryMonitorService.start(context)
+                    } else {
+                        BatteryMonitorService.stop(context)
+                    }
+                }
             }
 
             if (restoreOther && backupData.other != null) {
-                backupData.other.kgslSkipZeroing?.let { preferenceManager.setKgslSkipZeroing(it) }
-                backupData.other.notificationIconStyle?.let { preferenceManager.setNotificationIconStyle(it) }
+                backupData.other.kgslSkipZeroing?.let { 
+                    preferenceManager.setKgslSkipZeroing(it)
+                    systemRepository.setKgslSkipZeroing(it)
+                }
+                backupData.other.notificationIconStyle?.let { 
+                    preferenceManager.setNotificationIconStyle(it)
+                    BatteryMonitorService.updateIcon(context)
+                }
             }
 
             Result.success(true)
