@@ -85,6 +85,8 @@ fun SettingsScreen(
         }
     }
 
+    val backupFileName = stringResource(R.string.backup_file_name)
+
     // File Picker Launchers
     val backupLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
@@ -397,7 +399,7 @@ fun SettingsScreen(
             onBackup = { tuning, network, battery, other ->
                 pendingOptions = PendingBackupOptions(tuning, network, battery, other)
                 showBackupDialog = false
-                backupLauncher.launch(context.getString(R.string.backup_file_name))
+                backupLauncher.launch(backupFileName)
             },
             onSelectFile = {
                 showBackupDialog = false
