@@ -91,6 +91,7 @@ fun SettingsScreen(
     }
 
     val backupFileName = stringResource(R.string.backup_file_name)
+    val permissionStorageRequired = stringResource(R.string.permission_storage_required)
 
     // File Picker Launchers
     val backupLauncher = rememberLauncherForActivityResult(
@@ -118,7 +119,7 @@ fun SettingsScreen(
         if (granted) {
             showBackupDialog = true
         } else {
-            Toast.makeText(context, context.getString(R.string.permission_storage_required), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, permissionStorageRequired, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -129,7 +130,7 @@ fun SettingsScreen(
             if (android.os.Environment.isExternalStorageManager()) {
                 showBackupDialog = true
             } else {
-                Toast.makeText(context, context.getString(R.string.permission_storage_required), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, permissionStorageRequired, Toast.LENGTH_SHORT).show()
             }
         }
     }
