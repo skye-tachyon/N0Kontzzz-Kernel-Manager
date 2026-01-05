@@ -41,8 +41,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.DialogProperties
 import android.net.Uri
 import android.widget.Toast
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import id.nkz.nokontzzzmanager.ui.dialog.BackupRestoreDialog
 
 private data class PendingBackupOptions(
@@ -104,6 +109,56 @@ fun SettingsScreen(
         if (uri != null) {
             viewModel.loadBackupPreview(uri)
             showBackupDialog = true // Re-open dialog to show preview
+        }
+    }
+
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            showBackupDialog = true
+        } else {
+            Toast.makeText(context, context.getString(R.string.permission_storage_required), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val manageStorageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (android.os.Environment.isExternalStorageManager()) {
+                showBackupDialog = true
+            } else {
+                Toast.makeText(context, context.getString(R.string.permission_storage_required), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun checkStoragePermissionAndShowDialog() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (android.os.Environment.isExternalStorageManager()) {
+                showBackupDialog = true
+            } else {
+                try {
+                    val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                        data = Uri.parse("package:${context.packageName}")
+                    }
+                    manageStorageLauncher.launch(intent)
+                } catch (e: Exception) {
+                    val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    manageStorageLauncher.launch(intent)
+                }
+            }
+        } else {
+            val granted = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+            if (granted) {
+                showBackupDialog = true
+            } else {
+                storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
         }
     }
 
@@ -319,7 +374,7 @@ fun SettingsScreen(
                     )
                 },
                 shape = getRoundedCornerShape(0, 1),
-                onClick = { showBackupDialog = true }
+                onClick = { checkStoragePermissionAndShowDialog() }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
