@@ -99,14 +99,13 @@ class ProcessMonitorViewModel @Inject constructor(
                             val psDetails = getProcessDetails()
 
                             val newProcessList = mutableListOf<ProcessInfo>()
-                            val cores = Runtime.getRuntime().availableProcessors()
 
                             for ((pid, currTicks) in currentProcessCpuTimes) {
                                 val prevTicks = prevProcessCpuTimes[pid] ?: 0L
                                 val procDelta = currTicks - prevTicks
                                 
                                 if (procDelta >= 0) {
-                                    val cpuUsage = (procDelta.toFloat() / totalDelta) * 100f * cores
+                                    val cpuUsage = (procDelta.toFloat() / totalDelta) * 100f
 
                                     val details = psDetails[pid]
                                     if (details != null) {
