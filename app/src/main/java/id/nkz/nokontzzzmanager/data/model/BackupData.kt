@@ -41,3 +41,11 @@ data class OtherSettings(
     val notificationIconStyle: Int? = null,
     // Auto reset settings could go here too
 )
+
+data class BackupPreview(
+    val hasTuning: Boolean,
+    val hasNetwork: Boolean,
+    val hasBattery: Boolean,
+    val hasOther: Boolean,
+    val timestamp: Long
+)

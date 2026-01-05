@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.SharedFlow
 
 import android.net.Uri
 
+import id.nkz.nokontzzzmanager.data.model.BackupPreview
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val themeManager: ThemeManager,
@@ -39,6 +41,12 @@ class SettingsViewModel @Inject constructor(
 
     private val _backupRestoreEvent = MutableSharedFlow<String>()
     val backupRestoreEvent: SharedFlow<String> = _backupRestoreEvent
+
+    private val _backupPreview = MutableStateFlow<BackupPreview?>(null)
+    val backupPreview: StateFlow<BackupPreview?> = _backupPreview.asStateFlow()
+
+    private val _selectedRestoreUri = MutableStateFlow<Uri?>(null)
+    val selectedRestoreUri: StateFlow<Uri?> = _selectedRestoreUri.asStateFlow()
 
     val currentThemeMode: StateFlow<ThemeMode> = themeManager.currentThemeMode
         .stateIn(
@@ -87,6 +95,23 @@ class SettingsViewModel @Inject constructor(
         themeManager.resetThemeChangedSignal()
     }
 
+    fun loadBackupPreview(uri: Uri) {
+        viewModelScope.launch {
+            val result = backupRepository.getBackupPreview(uri)
+            if (result.isSuccess) {
+                _backupPreview.value = result.getOrNull()
+                _selectedRestoreUri.value = uri
+            } else {
+                _backupRestoreEvent.emit("Failed to read backup file: ${result.exceptionOrNull()?.message}")
+            }
+        }
+    }
+
+    fun clearBackupPreview() {
+        _backupPreview.value = null
+        _selectedRestoreUri.value = null
+    }
+
     fun backupSettings(uri: Uri, includeTuning: Boolean, includeNetwork: Boolean, includeBattery: Boolean, includeOther: Boolean) {
         viewModelScope.launch {
             val result = backupRepository.createBackup(uri, includeTuning, includeNetwork, includeBattery, includeOther)
@@ -106,6 +131,7 @@ class SettingsViewModel @Inject constructor(
                 // Refresh local states if needed
                 _notificationIconStyle.value = preferenceManager.getNotificationIconStyle()
                 _isBatteryMonitorEnabled.value = preferenceManager.isBatteryMonitorEnabled()
+                clearBackupPreview()
             } else {
                 _backupRestoreEvent.emit("Restore failed: ${result.exceptionOrNull()?.message}")
             }

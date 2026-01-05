@@ -130,4 +130,25 @@ class BackupRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    suspend fun getBackupPreview(uri: Uri): Result<BackupPreview> {
+        return try {
+            val jsonString = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                BufferedReader(InputStreamReader(inputStream)).readText()
+            } ?: return Result.failure(Exception("Failed to open input stream"))
+
+            val data = json.decodeFromString<BackupData>(jsonString)
+            Result.success(
+                BackupPreview(
+                    hasTuning = data.tuning != null,
+                    hasNetwork = data.networkStorage != null,
+                    hasBattery = data.battery != null,
+                    hasOther = data.other != null,
+                    timestamp = data.timestamp
+                )
+            )
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,20 +19,34 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.DialogProperties
 import id.nkz.nokontzzzmanager.R
 
+import id.nkz.nokontzzzmanager.data.model.BackupPreview
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupRestoreDialog(
     onDismiss: () -> Unit,
     onBackup: (Boolean, Boolean, Boolean, Boolean) -> Unit,
-    onRestore: (Boolean, Boolean, Boolean, Boolean) -> Unit
+    onSelectFile: () -> Unit,
+    onRestore: (Boolean, Boolean, Boolean, Boolean) -> Unit,
+    preview: BackupPreview? = null
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) } // 0 for Backup, 1 for Restore
+    var selectedTab by remember { mutableStateOf(0) } // 0 for Backup, 1 for Restore
     
     // Checkbox states
     var includeTuning by remember { mutableStateOf(true) }
     var includeNetwork by remember { mutableStateOf(true) }
     var includeBattery by remember { mutableStateOf(true) }
     var includeOther by remember { mutableStateOf(true) }
+
+    // Sync checkboxes with preview when it arrives
+    LaunchedEffect(preview) {
+        if (preview != null) {
+            includeTuning = preview.hasTuning
+            includeNetwork = preview.hasNetwork
+            includeBattery = preview.hasBattery
+            includeOther = preview.hasOther
+        }
+    }
 
     BasicAlertDialog(
         onDismissRequest = onDismiss,
@@ -83,48 +99,80 @@ fun BackupRestoreDialog(
                         )
                     }
 
-                    Text(
-                        text = if (selectedTab == 0) stringResource(R.string.select_items_to_backup) 
-                               else stringResource(R.string.select_items_to_restore),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (selectedTab == 1 && preview == null) {
+                        // Restore initial state: Select File button
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = "Select a backup file to continue",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Button(
+                                onClick = onSelectFile,
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.FolderOpen, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Select File")
+                            }
+                        }
+                    } else {
+                        // List of items (Backup or Restore-after-selection)
+                        Text(
+                            text = if (selectedTab == 0) stringResource(R.string.select_items_to_backup) 
+                                   else stringResource(R.string.select_items_to_restore),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f, fill = false)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        BackupCheckboxItem(
-                            label = stringResource(R.string.category_tuning),
-                            description = stringResource(R.string.desc_tuning),
-                            checked = includeTuning,
-                            onCheckedChange = { includeTuning = it },
-                            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
-                        )
-                        BackupCheckboxItem(
-                            label = stringResource(R.string.category_network_storage),
-                            description = stringResource(R.string.desc_network_storage),
-                            checked = includeNetwork,
-                            onCheckedChange = { includeNetwork = it },
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        BackupCheckboxItem(
-                            label = stringResource(R.string.category_battery),
-                            description = stringResource(R.string.desc_battery),
-                            checked = includeBattery,
-                            onCheckedChange = { includeBattery = it },
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        BackupCheckboxItem(
-                            label = stringResource(R.string.category_other),
-                            description = stringResource(R.string.desc_other),
-                            checked = includeOther,
-                            onCheckedChange = { includeOther = it },
-                            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, fill = false)
+                                .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            if (selectedTab == 0 || preview?.hasTuning == true) {
+                                BackupCheckboxItem(
+                                    label = stringResource(R.string.category_tuning),
+                                    description = stringResource(R.string.desc_tuning),
+                                    checked = includeTuning,
+                                    onCheckedChange = { includeTuning = it },
+                                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
+                                )
+                            }
+                            if (selectedTab == 0 || preview?.hasNetwork == true) {
+                                BackupCheckboxItem(
+                                    label = stringResource(R.string.category_network_storage),
+                                    description = stringResource(R.string.desc_network_storage),
+                                    checked = includeNetwork,
+                                    onCheckedChange = { includeNetwork = it },
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                            }
+                            if (selectedTab == 0 || preview?.hasBattery == true) {
+                                BackupCheckboxItem(
+                                    label = stringResource(R.string.category_battery),
+                                    description = stringResource(R.string.desc_battery),
+                                    checked = includeBattery,
+                                    onCheckedChange = { includeBattery = it },
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                            }
+                            if (selectedTab == 0 || preview?.hasOther == true) {
+                                BackupCheckboxItem(
+                                    label = stringResource(R.string.category_other),
+                                    description = stringResource(R.string.desc_other),
+                                    checked = includeOther,
+                                    onCheckedChange = { includeOther = it },
+                                    shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+                                )
+                            }
+                        }
                     }
 
                     Row(
@@ -138,6 +186,10 @@ fun BackupRestoreDialog(
                         ) {
                             Text(stringResource(R.string.cancel))
                         }
+                        
+                        val isRestoreReady = selectedTab == 1 && preview != null && (includeTuning || includeNetwork || includeBattery || includeOther)
+                        val isBackupReady = selectedTab == 0 && (includeTuning || includeNetwork || includeBattery || includeOther)
+
                         Button(
                             onClick = {
                                 if (selectedTab == 0) {
@@ -147,7 +199,8 @@ fun BackupRestoreDialog(
                                 }
                             },
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            enabled = if (selectedTab == 0) isBackupReady else isRestoreReady
                         ) {
                             Text(if (selectedTab == 0) stringResource(R.string.backup) else stringResource(R.string.restore))
                         }

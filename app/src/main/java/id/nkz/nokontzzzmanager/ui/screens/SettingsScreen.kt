@@ -15,6 +15,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -37,143 +39,73 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.DialogProperties
-
-import androidx.compose.material.icons.filled.Save
-
-import androidx.compose.material.icons.filled.Lock
-
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import id.nkz.nokontzzzmanager.ui.dialog.BackupRestoreDialog
 
-import android.net.Uri
-
-import android.widget.Toast
-
-import androidx.activity.compose.rememberLauncherForActivityResult
-
-import androidx.activity.result.contract.ActivityResultContracts
-
-
-
 private data class PendingBackupOptions(
-
     val tuning: Boolean,
-
     val network: Boolean,
-
     val battery: Boolean,
-
     val other: Boolean
-
 )
 
-
-
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
-
 fun SettingsScreen(
-
     navController: NavController,
-
     viewModel: SettingsViewModel = hiltViewModel()
-
 ) {
-
     
-
     var showThemeDialog by remember { mutableStateOf(false) }
-
     var showNotificationIconDialog by remember { mutableStateOf(false) }
-
     var showBackupDialog by remember { mutableStateOf(false) }
-
     
-
     // State to hold options selected in the dialog before file picker is launched
-
     var pendingOptions by remember { mutableStateOf<PendingBackupOptions?>(null) }
 
-
-
     val currentThemeMode by viewModel.currentThemeMode.collectAsState()
-
     val notificationIconStyle by viewModel.notificationIconStyle.collectAsState()
-
     val isBatteryMonitorEnabled by viewModel.isBatteryMonitorEnabled.collectAsState()
-
+    val backupPreview by viewModel.backupPreview.collectAsState()
+    val selectedRestoreUri by viewModel.selectedRestoreUri.collectAsState()
     val context = LocalContext.current
-
     
-
     var themeRefreshKey by remember { mutableIntStateOf(0) }
-
     
-
     LaunchedEffect(currentThemeMode) {
-
         themeRefreshKey++
-
     }
-
-
 
     LaunchedEffect(Unit) {
-
         viewModel.backupRestoreEvent.collect { message ->
-
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-
         }
-
     }
-
-
 
     // File Picker Launchers
-
     val backupLauncher = rememberLauncherForActivityResult(
-
         ActivityResultContracts.CreateDocument("application/json")
-
     ) { uri ->
-
         if (uri != null && pendingOptions != null) {
-
             val ops = pendingOptions!!
-
             viewModel.backupSettings(uri, ops.tuning, ops.network, ops.battery, ops.other)
-
         }
-
         pendingOptions = null
-
     }
 
-
-
-    val restoreLauncher = rememberLauncherForActivityResult(
-
+    val restoreFilePickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
-
     ) { uri ->
-
-        if (uri != null && pendingOptions != null) {
-
-            val ops = pendingOptions!!
-
-            viewModel.restoreSettings(uri, ops.tuning, ops.network, ops.battery, ops.other)
-
+        if (uri != null) {
+            viewModel.loadBackupPreview(uri)
+            showBackupDialog = true // Re-open dialog to show preview
         }
-
-        pendingOptions = null
-
     }
-
-
 
     Column(
-
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
@@ -458,17 +390,26 @@ fun SettingsScreen(
 
     if (showBackupDialog) {
         BackupRestoreDialog(
-            onDismiss = { showBackupDialog = false },
+            onDismiss = { 
+                showBackupDialog = false
+                viewModel.clearBackupPreview()
+            },
             onBackup = { tuning, network, battery, other ->
                 pendingOptions = PendingBackupOptions(tuning, network, battery, other)
                 showBackupDialog = false
                 backupLauncher.launch(context.getString(R.string.backup_file_name))
             },
-            onRestore = { tuning, network, battery, other ->
-                pendingOptions = PendingBackupOptions(tuning, network, battery, other)
+            onSelectFile = {
                 showBackupDialog = false
-                restoreLauncher.launch(arrayOf("application/json"))
-            }
+                restoreFilePickerLauncher.launch(arrayOf("application/json"))
+            },
+            onRestore = { tuning, network, battery, other ->
+                selectedRestoreUri?.let { uri ->
+                    viewModel.restoreSettings(uri, tuning, network, battery, other)
+                }
+                showBackupDialog = false
+            },
+            preview = backupPreview
         )
     }
 }
