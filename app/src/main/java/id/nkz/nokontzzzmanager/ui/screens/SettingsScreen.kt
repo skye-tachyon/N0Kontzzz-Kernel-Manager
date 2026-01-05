@@ -38,29 +38,142 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.DialogProperties
 
+import androidx.compose.material.icons.filled.Save
+
 import androidx.compose.material.icons.filled.Lock
 
+import id.nkz.nokontzzzmanager.ui.dialog.BackupRestoreDialog
+
+import android.net.Uri
+
+import android.widget.Toast
+
+import androidx.activity.compose.rememberLauncherForActivityResult
+
+import androidx.activity.result.contract.ActivityResultContracts
+
+
+
+private data class PendingBackupOptions(
+
+    val tuning: Boolean,
+
+    val network: Boolean,
+
+    val battery: Boolean,
+
+    val other: Boolean
+
+)
+
+
+
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
+
 fun SettingsScreen(
+
     navController: NavController,
+
     viewModel: SettingsViewModel = hiltViewModel()
+
 ) {
+
     
+
     var showThemeDialog by remember { mutableStateOf(false) }
+
     var showNotificationIconDialog by remember { mutableStateOf(false) }
+
+    var showBackupDialog by remember { mutableStateOf(false) }
+
+    
+
+    // State to hold options selected in the dialog before file picker is launched
+
+    var pendingOptions by remember { mutableStateOf<PendingBackupOptions?>(null) }
+
+
+
     val currentThemeMode by viewModel.currentThemeMode.collectAsState()
+
     val notificationIconStyle by viewModel.notificationIconStyle.collectAsState()
+
     val isBatteryMonitorEnabled by viewModel.isBatteryMonitorEnabled.collectAsState()
+
     val context = LocalContext.current
+
     
+
     var themeRefreshKey by remember { mutableIntStateOf(0) }
+
     
+
     LaunchedEffect(currentThemeMode) {
+
         themeRefreshKey++
+
     }
 
+
+
+    LaunchedEffect(Unit) {
+
+        viewModel.backupRestoreEvent.collect { message ->
+
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+        }
+
+    }
+
+
+
+    // File Picker Launchers
+
+    val backupLauncher = rememberLauncherForActivityResult(
+
+        ActivityResultContracts.CreateDocument("application/json")
+
+    ) { uri ->
+
+        if (uri != null && pendingOptions != null) {
+
+            val ops = pendingOptions!!
+
+            viewModel.backupSettings(uri, ops.tuning, ops.network, ops.battery, ops.other)
+
+        }
+
+        pendingOptions = null
+
+    }
+
+
+
+    val restoreLauncher = rememberLauncherForActivityResult(
+
+        ActivityResultContracts.OpenDocument()
+
+    ) { uri ->
+
+        if (uri != null && pendingOptions != null) {
+
+            val ops = pendingOptions!!
+
+            viewModel.restoreSettings(uri, ops.tuning, ops.network, ops.battery, ops.other)
+
+        }
+
+        pendingOptions = null
+
+    }
+
+
+
     Column(
+
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
@@ -252,6 +365,32 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
+                text = stringResource(id = R.string.backup_restore_title),
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Normal
+                ),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 4.dp)
+            )
+
+            SettingItemCard(
+                headlineText = stringResource(R.string.backup_restore_title),
+                supportingText = stringResource(R.string.backup_restore_desc),
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = null
+                    )
+                },
+                shape = getRoundedCornerShape(0, 1),
+                onClick = { showBackupDialog = true }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
                 text = stringResource(id = R.string.system_info),
                 style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.Normal
@@ -314,6 +453,22 @@ fun SettingsScreen(
                 showThemeDialog = false
             },
             onDismiss = { showThemeDialog = false }
+        )
+    }
+
+    if (showBackupDialog) {
+        BackupRestoreDialog(
+            onDismiss = { showBackupDialog = false },
+            onBackup = { tuning, network, battery, other ->
+                pendingOptions = PendingBackupOptions(tuning, network, battery, other)
+                showBackupDialog = false
+                backupLauncher.launch(context.getString(R.string.backup_file_name))
+            },
+            onRestore = { tuning, network, battery, other ->
+                pendingOptions = PendingBackupOptions(tuning, network, battery, other)
+                showBackupDialog = false
+                restoreLauncher.launch(arrayOf("application/json"))
+            }
         )
     }
 }

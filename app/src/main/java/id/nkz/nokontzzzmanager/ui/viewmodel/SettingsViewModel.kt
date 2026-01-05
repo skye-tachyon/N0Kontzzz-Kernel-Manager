@@ -17,10 +17,17 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import id.nkz.nokontzzzmanager.data.repository.BackupRepository
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+
+import android.net.Uri
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val themeManager: ThemeManager,
     private val preferenceManager: PreferenceManager,
+    private val backupRepository: BackupRepository,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -29,6 +36,9 @@ class SettingsViewModel @Inject constructor(
 
     private val _isBatteryMonitorEnabled = MutableStateFlow(preferenceManager.isBatteryMonitorEnabled())
     val isBatteryMonitorEnabled: StateFlow<Boolean> = _isBatteryMonitorEnabled.asStateFlow()
+
+    private val _backupRestoreEvent = MutableSharedFlow<String>()
+    val backupRestoreEvent: SharedFlow<String> = _backupRestoreEvent
 
     val currentThemeMode: StateFlow<ThemeMode> = themeManager.currentThemeMode
         .stateIn(
@@ -75,5 +85,30 @@ class SettingsViewModel @Inject constructor(
 
     fun resetThemeChangedSignal() {
         themeManager.resetThemeChangedSignal()
+    }
+
+    fun backupSettings(uri: Uri, includeTuning: Boolean, includeNetwork: Boolean, includeBattery: Boolean, includeOther: Boolean) {
+        viewModelScope.launch {
+            val result = backupRepository.createBackup(uri, includeTuning, includeNetwork, includeBattery, includeOther)
+            if (result.isSuccess) {
+                _backupRestoreEvent.emit("Backup created successfully")
+            } else {
+                _backupRestoreEvent.emit("Backup failed: ${result.exceptionOrNull()?.message}")
+            }
+        }
+    }
+
+    fun restoreSettings(uri: Uri, restoreTuning: Boolean, restoreNetwork: Boolean, restoreBattery: Boolean, restoreOther: Boolean) {
+        viewModelScope.launch {
+            val result = backupRepository.restoreBackup(uri, restoreTuning, restoreNetwork, restoreBattery, restoreOther)
+            if (result.isSuccess) {
+                _backupRestoreEvent.emit("Settings restored successfully. A reboot may be required.")
+                // Refresh local states if needed
+                _notificationIconStyle.value = preferenceManager.getNotificationIconStyle()
+                _isBatteryMonitorEnabled.value = preferenceManager.isBatteryMonitorEnabled()
+            } else {
+                _backupRestoreEvent.emit("Restore failed: ${result.exceptionOrNull()?.message}")
+            }
+        }
     }
 }

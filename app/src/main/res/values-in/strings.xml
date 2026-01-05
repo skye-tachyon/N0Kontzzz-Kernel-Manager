@@ -590,4 +590,25 @@
     <string name="perm_storage_desc">Diperlukan untuk mencadangkan dan memulihkan konfigurasi aplikasi.</string>
     <string name="perm_battery_opt_title">Abaikan Optimasi Baterai</string>
     <string name="perm_battery_opt_desc">Memastikan aplikasi tidak dihentikan oleh sistem untuk menjaga tuning tetap aktif.</string>
+
+    <!-- Backup & Restore -->
+    <string name="backup_restore_title">Cadangkan &amp; Pulihkan</string>
+    <string name="backup_restore_desc">Cadangkan atau pulihkan pengaturan dan konfigurasi aplikasi Anda.</string>
+    <string name="backup">Cadangkan</string>
+    <string name="restore">Pulihkan</string>
+    <string name="select_items_to_backup">Pilih item untuk dicadangkan</string>
+    <string name="select_items_to_restore">Pilih item untuk dipulihkan</string>
+    <string name="category_tuning">Tuning Sistem</string>
+    <string name="category_network_storage">Jaringan &amp; Penyimpanan</string>
+    <string name="category_battery">Baterai &amp; Pengisian</string>
+    <string name="category_other">Pengaturan Lainnya</string>
+    <string name="desc_tuning">Termasuk Mode Termal, Governor CPU, dan Frekuensi Maksimum.</string>
+    <string name="desc_network_storage">Termasuk Algoritma TCP Congestion dan I/O Scheduler.</string>
+    <string name="desc_battery">Termasuk Bypass Charging, Paksa Pengisian Cepat, Batas Kontrol Pengisian, dan status Monitor Baterai.</string>
+    <string name="desc_other">Termasuk KGSL Skip Pool Zeroing dan gaya Ikon Notifikasi.</string>
+    <string name="backup_success">Cadangan berhasil dibuat</string>
+    <string name="restore_success">Pengaturan berhasil dipulihkan</string>
+    <string name="error_backup">Pencadangan gagal</string>
+    <string name="error_restore">Pemulihan gagal</string>
+    <string name="permission_storage_required">Izin penyimpanan diperlukan untuk pencadangan/pemulihan</string>
 </resources>

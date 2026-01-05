@@ -591,4 +591,26 @@
     <string name="perm_storage_desc">Required for backing up and restoring app configurations.</string>
     <string name="perm_battery_opt_title">Ignore Battery Optimization</string>
     <string name="perm_battery_opt_desc">Ensures the app is not killed by the system to maintain active tuning.</string>
+
+    <!-- Backup & Restore -->
+    <string name="backup_restore_title">Backup &amp; Restore</string>
+    <string name="backup_restore_desc">Backup or restore your application settings and configurations.</string>
+    <string name="backup">Backup</string>
+    <string name="restore">Restore</string>
+    <string name="select_items_to_backup">Select items to backup</string>
+    <string name="select_items_to_restore">Select items to restore</string>
+    <string name="category_tuning">System Tuning</string>
+    <string name="category_network_storage">Network &amp; Storage</string>
+    <string name="category_battery">Battery &amp; Charging</string>
+    <string name="category_other">Other Settings</string>
+    <string name="desc_tuning">Includes Thermal Mode, CPU Governor, and Max Frequency settings.</string>
+    <string name="desc_network_storage">Includes TCP Congestion Algorithm and I/O Scheduler.</string>
+    <string name="desc_battery">Includes Bypass Charging, Force Fast Charge, Charging Control limits, and Battery Monitor state.</string>
+    <string name="desc_other">Includes KGSL Skip Pool Zeroing and Notification Icon style.</string>
+    <string name="backup_success">Backup created successfully</string>
+    <string name="restore_success">Settings restored successfully</string>
+    <string name="error_backup">Backup failed</string>
+    <string name="error_restore">Restore failed</string>
+    <string name="permission_storage_required">Storage permission required for backup/restore</string>
+    <string name="backup_file_name">nkm_backup.json</string>
 </resources>
