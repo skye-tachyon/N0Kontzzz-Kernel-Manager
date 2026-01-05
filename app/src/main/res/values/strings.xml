@@ -612,5 +612,5 @@
     <string name="error_backup">Backup failed</string>
     <string name="error_restore">Restore failed</string>
     <string name="permission_storage_required">Storage permission required for backup/restore</string>
-    <string name="backup_file_name">nkm_backup.json</string>
+    <string name="backup_file_name" translatable="false">nkm_backup.json</string>
 </resources>
