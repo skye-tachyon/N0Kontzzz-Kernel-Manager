@@ -591,6 +591,16 @@
     <string name="perm_storage_desc">Required for backing up and restoring app configurations.</string>
     <string name="perm_battery_opt_title">Ignore Battery Optimization</string>
     <string name="perm_battery_opt_desc">Ensures the app is not killed by the system to maintain active tuning.</string>
+    <string name="perm_dump_title">Dump System Info</string>
+    <string name="perm_dump_desc">Required for Dexopt feature to optimize application performance.</string>
+    <string name="perm_vibrate_title">Haptic Feedback</string>
+    <string name="perm_vibrate_desc">Provides tactile feedback for UI interactions.</string>
+    <string name="perm_boot_title">Boot Completed</string>
+    <string name="perm_boot_desc">Auto-start services and apply settings on device reboot.</string>
+    <string name="perm_fgs_title">Foreground Service</string>
+    <string name="perm_fgs_desc">Run critical monitoring services in the background.</string>
+    <string name="perm_write_settings_title">Write System Settings</string>
+    <string name="perm_write_settings_desc">Modify system configurations like screen timeout.</string>
 
     <!-- Backup & Restore -->
     <string name="backup_restore_title">Backup &amp; Restore</string>

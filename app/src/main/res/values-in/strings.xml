@@ -590,6 +590,16 @@
     <string name="perm_storage_desc">Diperlukan untuk mencadangkan dan memulihkan konfigurasi aplikasi.</string>
     <string name="perm_battery_opt_title">Abaikan Optimasi Baterai</string>
     <string name="perm_battery_opt_desc">Memastikan aplikasi tidak dihentikan oleh sistem untuk menjaga tuning tetap aktif.</string>
+    <string name="perm_dump_title">Dump Informasi Sistem</string>
+    <string name="perm_dump_desc">Diperlukan untuk fitur Dexopt guna mengoptimalkan performa aplikasi.</string>
+    <string name="perm_vibrate_title">Umpan Balik Haptic</string>
+    <string name="perm_vibrate_desc">Memberikan umpan balik taktil untuk interaksi UI.</string>
+    <string name="perm_boot_title">Boot Selesai</string>
+    <string name="perm_boot_desc">Mulai layanan otomatis dan terapkan pengaturan saat reboot perangkat.</string>
+    <string name="perm_fgs_title">Layanan Latar Depan</string>
+    <string name="perm_fgs_desc">Jalankan layanan pemantauan penting di latar belakang.</string>
+    <string name="perm_write_settings_title">Tulis Pengaturan Sistem</string>
+    <string name="perm_write_settings_desc">Ubah konfigurasi sistem seperti batas waktu layar.</string>
 
     <!-- Backup & Restore -->
     <string name="backup_restore_title">Cadangkan &amp; Pulihkan</string>
