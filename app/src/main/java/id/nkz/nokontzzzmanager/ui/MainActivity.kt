@@ -167,6 +167,7 @@ class MainActivity : ComponentActivity() {
                     "app_profiles" -> "App Profiles"
                     "process_monitor" -> stringResource(id = R.string.process_monitor_title)
                     "permission_manager" -> stringResource(id = R.string.permission_manager_title)
+                    "dexopt" -> "Dexopt"
                     else -> stringResource(id = R.string.n0kz_kernel_manager) // Default title for home, tuning, misc
                 }
 
@@ -402,6 +403,23 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             PermissionManagerScreen(navController = navController)
+                        }
+                        composable(
+                            "dexopt",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                            DexoptScreen(navController = navController)
                         }
                     }
                 }

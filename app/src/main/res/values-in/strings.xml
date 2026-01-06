@@ -611,4 +611,15 @@
     <string name="error_backup">Pencadangan gagal</string>
     <string name="error_restore">Pemulihan gagal</string>
     <string name="permission_storage_required">Izin penyimpanan diperlukan untuk pencadangan/pemulihan</string>
+
+    <!-- Dexopt Screen -->
+    <string name="dexopt_run_dexopt">Jalankan Dexopt</string>
+    <string name="dexopt_confirm_title">Jalankan Dexopt?</string>
+    <string name="dexopt_confirm_content">Proses ini mungkin memakan waktu lama dan mengonsumsi baterai. Jangan tutup aplikasi saat sedang berjalan.</string>
+    <string name="dexopt_start">Mulai</string>
+    <string name="dexopt_about_title">Tentang Dexopt</string>
+    <string name="dexopt_about_content">Dexopt (Dalvik EXecutable OPTimization) mengompilasi aplikasi untuk mengoptimalkan performa. Skrip ini menjalankan:\n\n1. Kompilasi Profil Kecepatan\n2. Kompilasi Tata Letak\n3. Pekerjaan Latar Belakang Dexopt</string>
+    <string name="dexopt_running">Berjalan... JANGAN tutup aplikasi!</string>
+    <string name="dexopt_finished">Dexopt Selesai!</string>
+    <string name="dexopt_last_logs">10 Log Terakhir:</string>
 </resources>

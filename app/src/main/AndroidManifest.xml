@@ -134,6 +134,13 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
+        <!-- Dexopt Service -->
+        <service
+            android:name=".service.DexoptService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <!-- KGSL Tile Service -->
         <service
             android:name=".tile.KgslTileService"

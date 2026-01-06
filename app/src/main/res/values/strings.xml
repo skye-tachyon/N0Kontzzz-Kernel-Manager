@@ -613,4 +613,15 @@
     <string name="error_restore">Restore failed</string>
     <string name="permission_storage_required">Storage permission required for backup/restore</string>
     <string name="backup_file_name" translatable="false">nkm_backup.json</string>
+
+    <!-- Dexopt Screen -->
+    <string name="dexopt_run_dexopt">Run Dexopt</string>
+    <string name="dexopt_confirm_title">Run Dexopt?</string>
+    <string name="dexopt_confirm_content">"This process may take a long time and consume battery. Do not close the app while it\'s running."</string>
+    <string name="dexopt_start">Start</string>
+    <string name="dexopt_about_title">About Dexopt</string>
+    <string name="dexopt_about_content">Dexopt (Dalvik EXecutable OPTimization) compiles apps to optimize performance. This script runs:\n\n1. Speed Profile Compilation\n2. Layout Compilation\n3. Background Dexopt Job</string>
+    <string name="dexopt_running">Running... Do NOT close the app!</string>
+    <string name="dexopt_finished">Dexopt Finished!</string>
+    <string name="dexopt_last_logs">Last 10 Logs:</string>
 </resources>
