@@ -110,7 +110,7 @@
 
 ## Requirements
 
-- Poco F4 (munch) device running N0Kontzzz, FusionX, or Lunar kernel.
+- Poco F4 (munch) device running N0Kontzzz, FusionX, Lunar, or E404R kernel.
 - Root access (Magisk or KernelSU supported).
 
 ---
