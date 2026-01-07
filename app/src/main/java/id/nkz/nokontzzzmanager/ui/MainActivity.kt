@@ -489,6 +489,12 @@ class MainActivity : ComponentActivity() {
             }
 
             if (versionLine != null) {
+                // Special check for E404R kernel
+                if (versionLine.contains("4.19.404R", ignoreCase = true) && 
+                    versionLine.contains("vyn@zorin", ignoreCase = true)) {
+                    return true
+                }
+
                 for (signature in supportedSignatures) {
                     if (versionLine.contains(signature, ignoreCase = true)) {
                         return when (signature.lowercase()) {

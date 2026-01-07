@@ -507,6 +507,12 @@ private fun getKernelSuColor(status: String): Color {
 
 // Utility function to shorten kernel version format
 private fun shortenKernelVersion(version: String): String {
+    // Special case for E404R kernel which has empty kernel name
+    if (version.contains("4.19.404R", ignoreCase = true) && 
+        version.contains("vyn@zorin", ignoreCase = true)) {
+        return "4.19.404R"
+    }
+
     // Extract version number and kernel name
     val versionRegex = """Linux version ([\d.]+)-([^ ]+)""".toRegex()
     val matchResult = versionRegex.find(version)
