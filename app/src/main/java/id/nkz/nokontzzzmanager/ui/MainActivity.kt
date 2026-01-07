@@ -453,7 +453,8 @@ class MainActivity : ComponentActivity() {
         val supportedSignatures = listOf(
             "Lunar",
             "N0Kontzzz",
-            "FusionX"
+            "FusionX",
+            "perf+"
         )
 
         val lunarSupportedHosts = listOf(
@@ -473,6 +474,10 @@ class MainActivity : ComponentActivity() {
         val n0KontzzzSupportedHosts = listOf(
             "bimoalfarrabi@github.com",
             "build-user@build-host"
+        )
+
+        val perfSupportedHosts = listOf(
+            "rohmanurip@Github"
         )
 
         try {
@@ -508,6 +513,10 @@ class MainActivity : ComponentActivity() {
 
                             "n0kontzzz" -> {
                                 n0KontzzzSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
+                            }
+
+                            "perf+" -> {
+                                perfSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
                             }
 
                             else -> true

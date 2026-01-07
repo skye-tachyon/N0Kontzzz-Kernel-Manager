@@ -513,6 +513,15 @@ private fun shortenKernelVersion(version: String): String {
         return "4.19.404R"
     }
 
+    // Special case for perf+ kernel by rohmanurip
+    if (version.contains("perf+", ignoreCase = true) && 
+        version.contains("rohmanurip@Github", ignoreCase = true)) {
+         val versionRegex = """Linux version ([\d.]+)""".toRegex()
+         val match = versionRegex.find(version)
+         val ver = match?.groupValues?.get(1) ?: ""
+         return if (ver.isNotEmpty()) "$ver-perf+" else "perf+"
+    }
+
     // Extract version number and kernel name
     val versionRegex = """Linux version ([\d.]+)-([^ ]+)""".toRegex()
     val matchResult = versionRegex.find(version)
