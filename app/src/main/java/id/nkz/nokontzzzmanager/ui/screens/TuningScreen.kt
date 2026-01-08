@@ -95,40 +95,25 @@ fun TuningScreen(
     } else {
         var showResetDialog by remember { mutableStateOf(false) }
 
-        Scaffold(
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { showResetDialog = true },
-                    modifier = Modifier.size(72.dp),
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.RestartAlt,
-                        contentDescription = stringResource(id = R.string.reset_to_default_title)
-                    )
-                }
-            }
-        ) { innerPadding ->
-            val expandedCards by viewModel.expandedCards.collectAsState()
+        val expandedCards by viewModel.expandedCards.collectAsState()
 
-            LazyColumn(
-                state = lazyListState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 16.dp + innerPadding.calculateTopPadding(),
-                    bottom = 16.dp + innerPadding.calculateBottomPadding()
-                ),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                // Hero Header
-                item {
-                    HeroHeader(
-                        onClick = { showInfoDialog = true }
-                    )
-                }
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 0.dp,
+                bottom = 16.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            // Hero Header
+            item {
+                HeroHeader(
+                    onClick = { showInfoDialog = true }
+                )
+            }
 
                 item {
                     PerformanceModeCard(viewModel = viewModel)
@@ -165,8 +150,13 @@ fun TuningScreen(
                         onExpandChange = { viewModel.toggleCardExpansion("ram") }
                     )
                 }
+                
+                item {
+                    ResetSettingsCard(
+                        onClick = { showResetDialog = true }
+                    )
+                }
             }
-        }
 
         if (showInfoDialog) {
             FeatureInfoDialog(
@@ -609,6 +599,61 @@ fun HeroHeader(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+fun ResetSettingsCard(
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.RestartAlt,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            
+            Text(
+                text = stringResource(id = R.string.reset_to_default_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+            
+            Text(
+                text = stringResource(id = R.string.reset_to_default_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center
             )
         }
     }
