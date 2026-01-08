@@ -643,7 +643,7 @@
     <string name="dexopt_start">Start</string>
     <string name="dexopt_about_title">About Dexopt</string>
     <string name="dexopt_about_content">Dexopt (Dalvik EXecutable OPTimization) compiles apps to optimize performance. This script runs:\n\n1. Speed Profile Compilation\n2. Layout Compilation\n3. Background Dexopt Job</string>
-    <string name="dexopt_running">Running... Do NOT close the app!</string>
+    <string name="dexopt_running">Running… Do NOT close the app!</string>
     <string name="dexopt_finished">Dexopt Finished!</string>
     <string name="dexopt_last_logs">Last 10 Logs:</string>
 
