@@ -94,8 +94,7 @@ fun SwappinessCard(
                 ) {
                     // ZRAM Toggle Section
                     RamZramToggleSection(
-                        zramEnabled = zramEnabled,
-                        onZramToggle = { } // ZRAM state is controlled by kernel, so no-op
+                        zramEnabled = zramEnabled
                     )
 
                     AnimatedVisibility(visible = zramEnabled) {
@@ -427,8 +426,7 @@ fun RamControlHeaderSection(
 
 @Composable
 fun RamZramToggleSection(
-    zramEnabled: Boolean,
-    onZramToggle: () -> Unit
+    zramEnabled: Boolean
 ) {
     Row(
         modifier = Modifier
