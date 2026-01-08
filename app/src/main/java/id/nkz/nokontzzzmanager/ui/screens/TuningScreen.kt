@@ -722,33 +722,38 @@ fun ResetSettingsDialog(
 
                     // Selection List
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
                             text = stringResource(id = R.string.reset_selection_title),
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
                         
                         ResetOptionItem(
                             title = stringResource(id = R.string.reset_cpu),
                             checked = resetCpu,
-                            onCheckedChange = { resetCpu = it }
+                            onCheckedChange = { resetCpu = it },
+                            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
                         )
                         ResetOptionItem(
                             title = stringResource(id = R.string.reset_gpu),
                             checked = resetGpu,
-                            onCheckedChange = { resetGpu = it }
+                            onCheckedChange = { resetGpu = it },
+                            shape = RoundedCornerShape(8.dp)
                         )
                         ResetOptionItem(
                             title = stringResource(id = R.string.reset_thermal),
                             checked = resetThermal,
-                            onCheckedChange = { resetThermal = it }
+                            onCheckedChange = { resetThermal = it },
+                            shape = RoundedCornerShape(8.dp)
                         )
                         ResetOptionItem(
                             title = stringResource(id = R.string.reset_ram),
                             checked = resetRam,
-                            onCheckedChange = { resetRam = it }
+                            onCheckedChange = { resetRam = it },
+                            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
                         )
                     }
 
@@ -786,17 +791,20 @@ fun ResetSettingsDialog(
 private fun ResetOptionItem(
     title: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    shape: androidx.compose.ui.graphics.Shape
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onCheckedChange(!checked) },
         colors = CardDefaults.cardColors(
             containerColor = if (checked) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceContainer
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = shape
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
