@@ -19,6 +19,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -91,39 +93,60 @@ fun TuningScreen(
             IndeterminateExpressiveLoadingIndicator()
         }
     } else {
-        LazyColumn(
-            state = lazyListState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            // Hero Header
-            item {
-                HeroHeader(
-                    onClick = { showInfoDialog = true }
-                )
+        var showResetDialog by remember { mutableStateOf(false) }
+
+        Scaffold(
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = { showResetDialog = true },
+                    modifier = Modifier.size(72.dp),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.RestartAlt,
+                        contentDescription = stringResource(id = R.string.reset_to_default_title)
+                    )
+                }
             }
+        ) { innerPadding ->
+            LazyColumn(
+                state = lazyListState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp + innerPadding.calculateTopPadding(),
+                    bottom = 16.dp + innerPadding.calculateBottomPadding()
+                ),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                // Hero Header
+                item {
+                    HeroHeader(
+                        onClick = { showInfoDialog = true }
+                    )
+                }
 
-            item {
-                PerformanceModeCard(viewModel = viewModel)
-            }
+                item {
+                    PerformanceModeCard(viewModel = viewModel)
+                }
 
-            item {
-                CpuGovernorCard(vm = viewModel)
-            }
+                item {
+                    CpuGovernorCard(vm = viewModel)
+                }
 
+                item {
+                    GpuControlCard(tuningViewModel = viewModel)
+                }
 
+                item {
+                    ThermalCard(viewModel = viewModel)
+                }
 
-            item {
-                GpuControlCard(tuningViewModel = viewModel)
-            }
-
-            item {
-                ThermalCard(viewModel = viewModel)
-            }
-
-            item {
-                SwappinessCard(vm = viewModel)
+                item {
+                    SwappinessCard(vm = viewModel)
+                }
             }
         }
 
@@ -131,6 +154,16 @@ fun TuningScreen(
             FeatureInfoDialog(
                 onDismissRequest = { showInfoDialog = false },
                 features = tuningFeatures
+            )
+        }
+
+        if (showResetDialog) {
+            ResetSettingsDialog(
+                onDismiss = { showResetDialog = false },
+                onReset = { cpu, gpu, thermal, ram ->
+                    viewModel.resetSettings(cpu, gpu, thermal, ram)
+                    showResetDialog = false
+                }
             )
         }
     }
@@ -558,6 +591,164 @@ fun HeroHeader(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ResetSettingsDialog(
+    onDismiss: () -> Unit,
+    onReset: (Boolean, Boolean, Boolean, Boolean) -> Unit
+) {
+    var resetCpu by remember { mutableStateOf(true) }
+    var resetGpu by remember { mutableStateOf(true) }
+    var resetThermal by remember { mutableStateOf(true) }
+    var resetRam by remember { mutableStateOf(true) }
+
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(0.9f),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = RoundedCornerShape(24.dp),
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // Header
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.errorContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.RestartAlt,
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = stringResource(id = R.string.reset_to_default_title),
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = stringResource(id = R.string.reset_to_default_desc),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    HorizontalDivider()
+
+                    // Selection List
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.reset_selection_title),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        
+                        ResetOptionItem(
+                            title = stringResource(id = R.string.reset_cpu),
+                            checked = resetCpu,
+                            onCheckedChange = { resetCpu = it }
+                        )
+                        ResetOptionItem(
+                            title = stringResource(id = R.string.reset_gpu),
+                            checked = resetGpu,
+                            onCheckedChange = { resetGpu = it }
+                        )
+                        ResetOptionItem(
+                            title = stringResource(id = R.string.reset_thermal),
+                            checked = resetThermal,
+                            onCheckedChange = { resetThermal = it }
+                        )
+                        ResetOptionItem(
+                            title = stringResource(id = R.string.reset_ram),
+                            checked = resetRam,
+                            onCheckedChange = { resetRam = it }
+                        )
+                    }
+
+                    // Actions
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(stringResource(id = R.string.close))
+                        }
+                        Button(
+                            onClick = { onReset(resetCpu, resetGpu, resetThermal, resetRam) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(stringResource(id = R.string.reset_confirmation))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResetOptionItem(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable { onCheckedChange(!checked) },
+        colors = CardDefaults.cardColors(
+            containerColor = if (checked) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceContainer
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Checkbox(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = MaterialTheme.colorScheme.error,
+                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
         }
     }

@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
+import id.nkz.nokontzzzmanager.R
 
 @HiltViewModel
 class TuningViewModel @Inject constructor(
@@ -639,4 +640,54 @@ class TuningViewModel @Inject constructor(
 
     fun setThermalProfile(profile: ThermalRepository.ThermalProfile) =
         viewModelScope.launch { setThermalProfileInternal(profile, isRestoring = false) }
+
+    fun resetSettings(
+        resetCpu: Boolean,
+        resetGpu: Boolean,
+        resetThermal: Boolean,
+        resetRam: Boolean
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (resetCpu) {
+                preferenceManager.clearCpuSettings()
+                performancePrefs.edit { remove(KEY_LAST_APPLIED_PERFORMANCE_MODE) }
+                _performanceMode.value = "Balanced"
+
+                // Attempt to revert to safe defaults (Schedutil)
+                val availableGovs = _generalAvailableCpuGovernors.value
+                val defaultGov = if (availableGovs.contains("schedutil")) "schedutil" else availableGovs.firstOrNull()
+                if (defaultGov != null) {
+                    cpuClusters.forEach { 
+                        repo.setCpuGov(it, defaultGov)
+                        repo.getCpuGov(it).take(1).collect { gov -> _currentCpuGovernors[it]?.value = gov }
+                    }
+                }
+            }
+
+            if (resetGpu) {
+                preferenceManager.clearGpuSettings()
+            }
+
+            if (resetThermal) {
+                thermalPrefs.edit { remove(KEY_LAST_APPLIED_THERMAL_INDEX) }
+                // Try to find Dynamic (10) or Balanced (0)
+                val profiles = thermalRepo.getSupportedThermalProfiles().first()
+                val defaultProfile = profiles.find { it.index == 10 } ?: profiles.find { it.index == 0 }
+                
+                if (defaultProfile != null) {
+                    setThermalProfileInternal(defaultProfile, isRestoring = true)
+                }
+            }
+
+            if (resetRam) {
+                preferenceManager.clearRamSettings()
+                // Reset Swappiness to standard default 60
+                if (repo.setSwappiness(60)) {
+                    repo.getSwappiness().take(1).collect { _swappiness.value = it }
+                }
+            }
+
+            _rebootCommandFeedback.emit(application.getString(R.string.reset_success_toast))
+        }
+    }
 }

@@ -646,4 +646,15 @@
     <string name="dexopt_running">Running... Do NOT close the app!</string>
     <string name="dexopt_finished">Dexopt Finished!</string>
     <string name="dexopt_last_logs">Last 10 Logs:</string>
+
+    <!-- Reset to Default Strings -->
+    <string name="reset_to_default_title">Reset to Default</string>
+    <string name="reset_to_default_desc">Reset tuning configurations to their default state</string>
+    <string name="reset_selection_title">Select Items to Reset</string>
+    <string name="reset_confirmation">Reset Selected</string>
+    <string name="reset_success_toast">Settings reset. Reboot to apply fully.</string>
+    <string name="reset_cpu">CPU Settings</string>
+    <string name="reset_gpu">GPU Settings</string>
+    <string name="reset_thermal">Thermal Profiles</string>
+    <string name="reset_ram">RAM &amp; I/O Settings</string>
 </resources>

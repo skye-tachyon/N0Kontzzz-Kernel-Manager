@@ -433,6 +433,41 @@ class PreferenceManager @Inject constructor(
         return credentialPrefs()?.getInt(KEY_MIN_FREE_MEMORY, -1) ?: -1
     }
 
+    // Reset Methods
+    fun clearCpuSettings() {
+        credentialPrefs()?.edit {
+            val keys = credentialPrefs()?.all?.keys ?: emptySet()
+            keys.filter { 
+                it.startsWith(KEY_CPU_GOV_PREFIX) || 
+                it.startsWith(KEY_CPU_MIN_FREQ_PREFIX) || 
+                it.startsWith(KEY_CPU_MAX_FREQ_PREFIX) 
+            }.forEach { remove(it) }
+        }
+    }
+
+    fun clearGpuSettings() {
+        credentialPrefs()?.edit {
+            remove(KEY_GPU_GOVERNOR)
+            remove(KEY_GPU_MIN_FREQ)
+            remove(KEY_GPU_MAX_FREQ)
+            remove(KEY_GPU_POWER_LEVEL)
+            remove(KEY_GPU_THROTTLING)
+        }
+    }
+
+    fun clearRamSettings() {
+        credentialPrefs()?.edit {
+            remove(KEY_ZRAM_DISKSIZE)
+            remove(KEY_ZRAM_COMPRESSION)
+            remove(KEY_SWAPPINESS)
+            remove(KEY_DIRTY_RATIO)
+            remove(KEY_DIRTY_BACKGROUND_RATIO)
+            remove(KEY_DIRTY_WRITEBACK)
+            remove(KEY_DIRTY_EXPIRE)
+            remove(KEY_MIN_FREE_MEMORY)
+        }
+    }
+
     // CPU Per-cluster
     fun setCpuGov(cluster: String, gov: String) {
         credentialPrefs()?.edit { putString(KEY_CPU_GOV_PREFIX + cluster, gov) }

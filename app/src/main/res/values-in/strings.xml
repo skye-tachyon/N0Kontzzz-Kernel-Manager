@@ -644,4 +644,15 @@
     <string name="dexopt_running">Berjalan… JANGAN tutup aplikasi!</string>
     <string name="dexopt_finished">Dexopt Selesai!</string>
     <string name="dexopt_last_logs">10 Log Terakhir:</string>
+
+    <!-- Reset to Default Strings -->
+    <string name="reset_to_default_title">Reset ke Awal</string>
+    <string name="reset_to_default_desc">Reset konfigurasi tuning ke kondisi awal</string>
+    <string name="reset_selection_title">Pilih Item untuk Direset</string>
+    <string name="reset_confirmation">Reset Terpilih</string>
+    <string name="reset_success_toast">Pengaturan direset. Reboot untuk menerapkan sepenuhnya.</string>
+    <string name="reset_cpu">Pengaturan CPU</string>
+    <string name="reset_gpu">Pengaturan GPU</string>
+    <string name="reset_thermal">Profil Termal</string>
+    <string name="reset_ram">Pengaturan RAM &amp; I/O</string>
 </resources>
