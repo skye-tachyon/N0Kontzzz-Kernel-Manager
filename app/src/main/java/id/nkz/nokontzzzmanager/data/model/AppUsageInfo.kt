@@ -8,5 +8,6 @@ data class AppUsageInfo(
     val usageTimeMs: Long,
     val formattedTime: String,
     val usagePercentage: Int,
+    val powerConsumptionMah: Double,
     val icon: Bitmap?
 )

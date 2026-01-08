@@ -108,7 +108,7 @@ fun BackupRestoreDialog(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             Text(
-                                text = "Select a backup file to continue",
+                                text = stringResource(R.string.backup_restore_select_file_msg),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -118,7 +118,7 @@ fun BackupRestoreDialog(
                             ) {
                                 Icon(Icons.Default.FolderOpen, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Select File")
+                                Text(stringResource(R.string.backup_restore_select_file_btn))
                             }
                         }
                     } else {

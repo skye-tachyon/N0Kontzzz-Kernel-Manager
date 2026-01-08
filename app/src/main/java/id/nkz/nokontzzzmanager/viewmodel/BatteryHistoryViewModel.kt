@@ -65,16 +65,35 @@ class BatteryHistoryViewModel @Inject constructor(
             if (!_hasUsagePermission.value) return@launch
 
             val now = System.currentTimeMillis()
+            val allEntries = repository.getAllEntries().firstOrNull() ?: emptyList()
+
             val startTime = when (_filter.value) {
                 HistoryFilter.LAST_24_HOURS, HistoryFilter.PER_CYCLE -> now - 24 * 60 * 60 * 1000
                 HistoryFilter.SINCE_UNPLUGGED -> {
-                    val allEntries = repository.getAllEntries().firstOrNull() ?: emptyList()
                     val lastChargeIndex = allEntries.indexOfLast { it.isCharging }
                     if (lastChargeIndex != -1 && lastChargeIndex < allEntries.size - 1) {
                         allEntries[lastChargeIndex + 1].timestamp
                     } else {
                         now - 24 * 60 * 60 * 1000
                     }
+                }
+            }
+
+            // Calculate total discharge in mAh during this period
+            val relevantEntries = allEntries.filter { it.timestamp in startTime..now }.sortedBy { it.timestamp }
+            var totalPeriodDischargeMah = 0.0
+
+            for (i in 0 until relevantEntries.size - 1) {
+                val current = relevantEntries[i]
+                val next = relevantEntries[i + 1]
+                val dt = next.timestamp - current.timestamp
+
+                // Skip large gaps (> 5 mins)
+                if (dt > 5 * 60 * 1000) continue
+
+                if (current.currentMa < 0) {
+                    val avgCurrent = (kotlin.math.abs(current.currentMa) + kotlin.math.abs(next.currentMa)) / 2.0
+                    totalPeriodDischargeMah += (avgCurrent * dt) / 3_600_000.0
                 }
             }
 
@@ -123,8 +142,9 @@ class BatteryHistoryViewModel @Inject constructor(
                     }
                     
                     val percentage = ((totalTime.toDouble() / totalUsageTime.toDouble()) * 100).toInt()
+                    val estimatedMah = totalPeriodDischargeMah * (totalTime.toDouble() / totalUsageTime.toDouble())
 
-                    AppUsageInfo(packageName, appName, totalTime, formattedTime, percentage, resizedBitmap)
+                    AppUsageInfo(packageName, appName, totalTime, formattedTime, percentage, estimatedMah, resizedBitmap)
                 } catch (e: Exception) {
                     null
                 }

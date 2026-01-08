@@ -763,10 +763,9 @@ fun AppUsageItem(app: AppUsageInfo) {
                     trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                 )
                 Text(
-                    text = "${app.usagePercentage}%",
+                    text = "${app.usagePercentage}% (${"%.1f".format(app.powerConsumptionMah)} mAh)",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.width(64.dp),
                     textAlign = androidx.compose.ui.text.style.TextAlign.End
                 )
             }
