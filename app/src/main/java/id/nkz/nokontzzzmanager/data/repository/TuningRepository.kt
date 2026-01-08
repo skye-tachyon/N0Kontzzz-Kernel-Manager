@@ -64,15 +64,12 @@ class TuningRepository @Inject constructor(
         val needsSelinuxChange = originalSelinuxMode.equals("Enforcing", ignoreCase = true)
 
         if (needsSelinuxChange) {
-            if (!setSelinuxModeInternal(false)) {
-
-            }
+            setSelinuxModeInternal(false)
         }
 
         val success = executeShellCommand(cmd)
         if (needsSelinuxChange) {
-            if (!setSelinuxModeInternal(true)) { // Set kembali ke Enforcing (1)
-            }
+            setSelinuxModeInternal(true) // Set kembali ke Enforcing (1)
         }
         return success
     }
@@ -121,10 +118,7 @@ class TuningRepository @Inject constructor(
        ---------------------------------------------------------- */
     private fun setSelinuxModeInternal(enforcing: Boolean): Boolean {
         val mode = if (enforcing) "1" else "0"
-        val success = executeShellCommand("setenforce $mode")
-        if (!success) {
-        }
-        return success
+        return executeShellCommand("setenforce $mode")
     }
 
     private fun getSelinuxModeInternal(): String {
@@ -176,8 +170,7 @@ class TuningRepository @Inject constructor(
         var overallSuccess = true
 
         if (needsSelinuxChange) {
-            if (!setSelinuxModeInternal(false)) {
-            }
+            setSelinuxModeInternal(false)
         }
 
         if (!executeShellCommand("swapoff /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
@@ -187,8 +180,7 @@ class TuningRepository @Inject constructor(
         if (!executeShellCommand("swapon /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
 
         if (needsSelinuxChange) {
-            if (!setSelinuxModeInternal(true)) {
-            }
+            setSelinuxModeInternal(true)
         }
         return overallSuccess
     }
@@ -446,21 +438,11 @@ class TuningRepository @Inject constructor(
 
 
     fun setGpuMinFreq(freqMHz: Int): Boolean {
-        val success = runTuningCommand("echo ${freqMHz * 1000000} > $gpuMinFreqPath")
-        if (success) {
-            val valueAfterSet = readShellCommand("cat $gpuMinFreqPath").trim()
-        } else {
-        }
-        return success
+        return runTuningCommand("echo ${freqMHz * 1000000} > $gpuMinFreqPath")
     }
 
     fun setGpuMaxFreq(freqMHz: Int): Boolean {
-        val success = runTuningCommand("echo ${freqMHz * 1000000} > $gpuMaxFreqPath")
-        if (success) {
-            val valueAfterSet = readShellCommand("cat $gpuMaxFreqPath").trim()
-        } else {
-        }
-        return success
+        return runTuningCommand("echo ${freqMHz * 1000000} > $gpuMaxFreqPath")
     }
 
 
@@ -598,22 +580,6 @@ class TuningRepository @Inject constructor(
 
             val vulkanDisabled = negativeIndicators.any { indicator ->
                 dumpsysOutput.contains(indicator, ignoreCase = true)
-            }
-
-            // Log detailed information for debugging
-            if (vulkanEnabled && !vulkanDisabled) {
-                // Log which indicator was found
-                vulkanIndicators.forEach { indicator ->
-                    if (dumpsysOutput.contains(indicator, ignoreCase = true)) {
-                    }
-                }
-            } else if (vulkanDisabled) {
-                // Log which negative indicator was found
-                negativeIndicators.forEach { indicator ->
-                    if (dumpsysOutput.contains(indicator, ignoreCase = true)) {
-                    }
-                }
-            } else {
             }
 
             vulkanEnabled && !vulkanDisabled

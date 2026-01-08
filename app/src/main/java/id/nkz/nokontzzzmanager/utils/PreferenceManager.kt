@@ -6,7 +6,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import androidx.core.content.edit
-import android.os.Build
 
 @Singleton
 class PreferenceManager @Inject constructor(
@@ -74,13 +73,9 @@ class PreferenceManager @Inject constructor(
         }
     }
 
-    private fun deviceProtectedPrefs(): SharedPreferences? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val deviceContext = context.createDeviceProtectedStorageContext()
-            deviceContext.getSharedPreferences("nkm_preferences", Context.MODE_PRIVATE)
-        } else {
-            null
-        }
+    private fun deviceProtectedPrefs(): SharedPreferences {
+        val deviceContext = context.createDeviceProtectedStorageContext()
+        return deviceContext.getSharedPreferences("nkm_preferences", Context.MODE_PRIVATE)
     }
 
     fun setTargetGamePackages(packages: Set<String>) {
@@ -91,7 +86,7 @@ class PreferenceManager @Inject constructor(
 
     fun getTargetGamePackages(): Set<String> {
         credentialPrefs()?.getStringSet(KEY_TARGET_GAME_PACKAGES, null)?.let { return it }
-        return deviceProtectedPrefs()?.getStringSet(KEY_TARGET_GAME_PACKAGES, emptySet()) ?: emptySet()
+        return deviceProtectedPrefs().getStringSet(KEY_TARGET_GAME_PACKAGES, emptySet()) ?: emptySet()
     }
 
     fun setKgslSkipZeroing(enabled: Boolean) {
@@ -102,7 +97,7 @@ class PreferenceManager @Inject constructor(
 
     fun getKgslSkipZeroing(): Boolean {
         credentialPrefs()?.getBoolean(KEY_KGSL_SKIP_ZEROING, false)?.let { return it }
-        return deviceProtectedPrefs()?.getBoolean(KEY_KGSL_SKIP_ZEROING, false) ?: false
+        return deviceProtectedPrefs().getBoolean(KEY_KGSL_SKIP_ZEROING, false)
     }
 
     fun setAvoidDirtyPte(enabled: Boolean) {
@@ -113,7 +108,7 @@ class PreferenceManager @Inject constructor(
 
     fun getAvoidDirtyPte(): Boolean {
         credentialPrefs()?.getBoolean(KEY_AVOID_DIRTY_PTE, false)?.let { return it }
-        return deviceProtectedPrefs()?.getBoolean(KEY_AVOID_DIRTY_PTE, false) ?: false
+        return deviceProtectedPrefs().getBoolean(KEY_AVOID_DIRTY_PTE, false)
     }
 
     fun setBypassCharging(enabled: Boolean) {
@@ -124,7 +119,7 @@ class PreferenceManager @Inject constructor(
 
     fun getBypassCharging(): Boolean {
         credentialPrefs()?.getBoolean(KEY_BYPASS_CHARGING, false)?.let { return it }
-        return deviceProtectedPrefs()?.getBoolean(KEY_BYPASS_CHARGING, false) ?: false
+        return deviceProtectedPrefs().getBoolean(KEY_BYPASS_CHARGING, false)
     }
 
     fun setForceFastCharge(enabled: Boolean) {
@@ -135,14 +130,14 @@ class PreferenceManager @Inject constructor(
 
     fun getForceFastCharge(): Boolean {
         credentialPrefs()?.getBoolean(KEY_FORCE_FAST_CHARGE, false)?.let { return it }
-        return deviceProtectedPrefs()?.getBoolean(KEY_FORCE_FAST_CHARGE, false) ?: false
+        return deviceProtectedPrefs().getBoolean(KEY_FORCE_FAST_CHARGE, false)
     }
 
     fun setBatteryMonitorEnabled(enabled: Boolean) {
         credentialPrefs()?.edit {
             putBoolean(KEY_BATTERY_MONITOR_ENABLED, enabled)
         }
-        deviceProtectedPrefs()?.edit {
+        deviceProtectedPrefs().edit {
             putBoolean(KEY_BATTERY_MONITOR_ENABLED, enabled)
         }
     }
@@ -150,140 +145,127 @@ class PreferenceManager @Inject constructor(
     fun isBatteryMonitorEnabled(): Boolean {
         val primary = credentialPrefs()?.getBoolean(KEY_BATTERY_MONITOR_ENABLED, false)
         if (primary == true) return true
-        val fallback = deviceProtectedPrefs()?.getBoolean(KEY_BATTERY_MONITOR_ENABLED, false)
-        return fallback ?: false
+        return deviceProtectedPrefs().getBoolean(KEY_BATTERY_MONITOR_ENABLED, false)
     }
 
     fun setChargingControlEnabled(enabled: Boolean) {
         credentialPrefs()?.edit { putBoolean(KEY_CHARGING_CONTROL_ENABLED, enabled) }
-        deviceProtectedPrefs()?.edit { putBoolean(KEY_CHARGING_CONTROL_ENABLED, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_CHARGING_CONTROL_ENABLED, enabled) }
     }
 
     fun isChargingControlEnabled(): Boolean {
         return credentialPrefs()?.getBoolean(KEY_CHARGING_CONTROL_ENABLED, false)
-            ?: deviceProtectedPrefs()?.getBoolean(KEY_CHARGING_CONTROL_ENABLED, false)
-            ?: false
+            ?: deviceProtectedPrefs().getBoolean(KEY_CHARGING_CONTROL_ENABLED, false)
     }
 
     fun setChargingControlStopLevel(level: Int) {
         credentialPrefs()?.edit { putInt(KEY_CHARGING_CONTROL_STOP_LEVEL, level) }
-        deviceProtectedPrefs()?.edit { putInt(KEY_CHARGING_CONTROL_STOP_LEVEL, level) }
+        deviceProtectedPrefs().edit { putInt(KEY_CHARGING_CONTROL_STOP_LEVEL, level) }
     }
 
     fun getChargingControlStopLevel(): Int {
         return credentialPrefs()?.getInt(KEY_CHARGING_CONTROL_STOP_LEVEL, 80)
-            ?: deviceProtectedPrefs()?.getInt(KEY_CHARGING_CONTROL_STOP_LEVEL, 80)
-            ?: 80
+            ?: deviceProtectedPrefs().getInt(KEY_CHARGING_CONTROL_STOP_LEVEL, 80)
     }
 
     fun setChargingControlResumeLevel(level: Int) {
         credentialPrefs()?.edit { putInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, level) }
-        deviceProtectedPrefs()?.edit { putInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, level) }
+        deviceProtectedPrefs().edit { putInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, level) }
     }
 
     fun getChargingControlResumeLevel(): Int {
         return credentialPrefs()?.getInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, 70)
-            ?: deviceProtectedPrefs()?.getInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, 70)
-            ?: 70
+            ?: deviceProtectedPrefs().getInt(KEY_CHARGING_CONTROL_RESUME_LEVEL, 70)
     }
 
     fun setAutoResetOnReboot(enabled: Boolean) {
         credentialPrefs()?.edit { putBoolean(KEY_AUTO_RESET_ON_REBOOT, enabled) }
-        deviceProtectedPrefs()?.edit { putBoolean(KEY_AUTO_RESET_ON_REBOOT, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_AUTO_RESET_ON_REBOOT, enabled) }
     }
 
     fun isAutoResetOnReboot(): Boolean {
         return credentialPrefs()?.getBoolean(KEY_AUTO_RESET_ON_REBOOT, false)
-            ?: deviceProtectedPrefs()?.getBoolean(KEY_AUTO_RESET_ON_REBOOT, false)
-            ?: false
+            ?: deviceProtectedPrefs().getBoolean(KEY_AUTO_RESET_ON_REBOOT, false)
     }
 
     fun setAutoResetOnCharging(enabled: Boolean) {
         credentialPrefs()?.edit { putBoolean(KEY_AUTO_RESET_ON_CHARGING, enabled) }
-        deviceProtectedPrefs()?.edit { putBoolean(KEY_AUTO_RESET_ON_CHARGING, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_AUTO_RESET_ON_CHARGING, enabled) }
     }
 
     fun isAutoResetOnCharging(): Boolean {
         return credentialPrefs()?.getBoolean(KEY_AUTO_RESET_ON_CHARGING, false)
-            ?: deviceProtectedPrefs()?.getBoolean(KEY_AUTO_RESET_ON_CHARGING, false)
-            ?: false
+            ?: deviceProtectedPrefs().getBoolean(KEY_AUTO_RESET_ON_CHARGING, false)
     }
 
     fun setAutoResetAtLevel(enabled: Boolean) {
         credentialPrefs()?.edit { putBoolean(KEY_AUTO_RESET_AT_LEVEL, enabled) }
-        deviceProtectedPrefs()?.edit { putBoolean(KEY_AUTO_RESET_AT_LEVEL, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_AUTO_RESET_AT_LEVEL, enabled) }
     }
 
     fun isAutoResetAtLevel(): Boolean {
         return credentialPrefs()?.getBoolean(KEY_AUTO_RESET_AT_LEVEL, false)
-            ?: deviceProtectedPrefs()?.getBoolean(KEY_AUTO_RESET_AT_LEVEL, false)
-            ?: false
+            ?: deviceProtectedPrefs().getBoolean(KEY_AUTO_RESET_AT_LEVEL, false)
     }
 
     fun setAutoResetTargetLevel(level: Int) {
         credentialPrefs()?.edit { putInt(KEY_AUTO_RESET_TARGET_LEVEL, level) }
-        deviceProtectedPrefs()?.edit { putInt(KEY_AUTO_RESET_TARGET_LEVEL, level) }
+        deviceProtectedPrefs().edit { putInt(KEY_AUTO_RESET_TARGET_LEVEL, level) }
     }
 
     fun getAutoResetTargetLevel(): Int {
         return credentialPrefs()?.getInt(KEY_AUTO_RESET_TARGET_LEVEL, 90)
-            ?: deviceProtectedPrefs()?.getInt(KEY_AUTO_RESET_TARGET_LEVEL, 90)
-            ?: 90
+            ?: deviceProtectedPrefs().getInt(KEY_AUTO_RESET_TARGET_LEVEL, 90)
     }
 
     fun setMonitorAutoResetOnReboot(enabled: Boolean) {
         credentialPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, enabled) }
-        deviceProtectedPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, enabled) }
     }
 
     fun isMonitorAutoResetOnReboot(): Boolean {
         return credentialPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, false)
-            ?: deviceProtectedPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, false)
-            ?: false
+            ?: deviceProtectedPrefs().getBoolean(KEY_MONITOR_AUTO_RESET_ON_REBOOT, false)
     }
 
     fun setMonitorAutoResetOnCharging(enabled: Boolean) {
         credentialPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, enabled) }
-        deviceProtectedPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, enabled) }
     }
 
     fun isMonitorAutoResetOnCharging(): Boolean {
         return credentialPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, false)
-            ?: deviceProtectedPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, false)
-            ?: false
+            ?: deviceProtectedPrefs().getBoolean(KEY_MONITOR_AUTO_RESET_ON_CHARGING, false)
     }
 
     fun setMonitorAutoResetAtLevel(enabled: Boolean) {
         credentialPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, enabled) }
-        deviceProtectedPrefs()?.edit { putBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, enabled) }
     }
 
     fun isMonitorAutoResetAtLevel(): Boolean {
         return credentialPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, false)
-            ?: deviceProtectedPrefs()?.getBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, false)
-            ?: false
+            ?: deviceProtectedPrefs().getBoolean(KEY_MONITOR_AUTO_RESET_AT_LEVEL, false)
     }
 
     fun setMonitorAutoResetTargetLevel(level: Int) {
         credentialPrefs()?.edit { putInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, level) }
-        deviceProtectedPrefs()?.edit { putInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, level) }
+        deviceProtectedPrefs().edit { putInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, level) }
     }
 
     fun getMonitorAutoResetTargetLevel(): Int {
         return credentialPrefs()?.getInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, 90)
-            ?: deviceProtectedPrefs()?.getInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, 90)
-            ?: 90
+            ?: deviceProtectedPrefs().getInt(KEY_MONITOR_AUTO_RESET_TARGET_LEVEL, 90)
     }
 
     fun setNotificationIconStyle(style: Int) {
         credentialPrefs()?.edit { putInt(KEY_NOTIFICATION_ICON_STYLE, style) }
-        deviceProtectedPrefs()?.edit { putInt(KEY_NOTIFICATION_ICON_STYLE, style) }
+        deviceProtectedPrefs().edit { putInt(KEY_NOTIFICATION_ICON_STYLE, style) }
     }
 
     fun getNotificationIconStyle(): Int {
         return credentialPrefs()?.getInt(KEY_NOTIFICATION_ICON_STYLE, ICON_STYLE_APP_LOGO)
-            ?: deviceProtectedPrefs()?.getInt(KEY_NOTIFICATION_ICON_STYLE, ICON_STYLE_APP_LOGO)
-            ?: ICON_STYLE_APP_LOGO
+            ?: deviceProtectedPrefs().getInt(KEY_NOTIFICATION_ICON_STYLE, ICON_STYLE_APP_LOGO)
     }
 
     fun setTcpCongestionAlgorithm(algorithm: String?) {
@@ -291,7 +273,7 @@ class PreferenceManager @Inject constructor(
             if (algorithm == null) remove(KEY_TCP_CONGESTION_ALGORITHM)
             else putString(KEY_TCP_CONGESTION_ALGORITHM, algorithm)
         }
-        deviceProtectedPrefs()?.edit {
+        deviceProtectedPrefs().edit {
             if (algorithm == null) remove(KEY_TCP_CONGESTION_ALGORITHM)
             else putString(KEY_TCP_CONGESTION_ALGORITHM, algorithm)
         }
@@ -299,7 +281,7 @@ class PreferenceManager @Inject constructor(
 
     fun getTcpCongestionAlgorithm(): String? {
         return credentialPrefs()?.getString(KEY_TCP_CONGESTION_ALGORITHM, null)
-            ?: deviceProtectedPrefs()?.getString(KEY_TCP_CONGESTION_ALGORITHM, null)
+            ?: deviceProtectedPrefs().getString(KEY_TCP_CONGESTION_ALGORITHM, null)
     }
 
     fun setIoScheduler(scheduler: String?) {
@@ -307,7 +289,7 @@ class PreferenceManager @Inject constructor(
             if (scheduler == null) remove(KEY_IO_SCHEDULER)
             else putString(KEY_IO_SCHEDULER, scheduler)
         }
-        deviceProtectedPrefs()?.edit {
+        deviceProtectedPrefs().edit {
             if (scheduler == null) remove(KEY_IO_SCHEDULER)
             else putString(KEY_IO_SCHEDULER, scheduler)
         }
@@ -315,7 +297,7 @@ class PreferenceManager @Inject constructor(
 
     fun getIoScheduler(): String? {
         return credentialPrefs()?.getString(KEY_IO_SCHEDULER, null)
-            ?: deviceProtectedPrefs()?.getString(KEY_IO_SCHEDULER, null)
+            ?: deviceProtectedPrefs().getString(KEY_IO_SCHEDULER, null)
     }
 
     // GPU

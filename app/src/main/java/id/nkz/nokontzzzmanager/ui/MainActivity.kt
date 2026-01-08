@@ -55,6 +55,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import androidx.activity.compose.BackHandler
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import android.Manifest
 
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
@@ -117,8 +118,9 @@ class MainActivity : ComponentActivity() {
                 ActivityResultContracts.RequestPermission()
             ) {
                 // tandai sudah pernah prompt agar tidak berulang
-                getSharedPreferences("perm_prefs", MODE_PRIVATE)
-                    .edit().putBoolean("notif_prompted", true).apply()
+                getSharedPreferences("perm_prefs", MODE_PRIVATE).edit {
+                    putBoolean("notif_prompted", true)
+                }
             }
             maybeRequestNotificationPermissionOnce()
         }

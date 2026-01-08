@@ -13,7 +13,6 @@ import id.nkz.nokontzzzmanager.data.repository.ThermalRepository
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import android.content.Intent
 import androidx.core.content.ContextCompat
-import android.os.Build
 import id.nkz.nokontzzzmanager.service.ThermalService
 
 @HiltWorker
@@ -217,11 +216,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
                          val intent = Intent(applicationContext, ThermalService::class.java)
                          intent.putExtra("thermal_mode", lastSavedIndex)
                          try {
-                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                 ContextCompat.startForegroundService(applicationContext, intent)
-                             } else {
-                                 applicationContext.startService(intent)
-                             }
+                             ContextCompat.startForegroundService(applicationContext, intent)
                          } catch (e: Exception) {
                              Log.e("RestoreSettingsWorker", "Failed to start ThermalService", e)
                          }
