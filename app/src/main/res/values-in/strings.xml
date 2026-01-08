@@ -216,10 +216,10 @@
     <string name="bypass_charging_activated">Bypass Charging Diaktifkan</string>
     <string name="bypass_charging_active_desc">Bypass Charging aktif. Baterai tidak diisi.</string>
 
-    <string name="force_fast_charge">Paksa Pengisian Cepat</string>
+    <string name="force_fast_charge">Force Fast Charge</string>
     <string name="force_fast_charge_desc">Memaksa perangkat untuk mengisi daya dengan kecepatan yang lebih tinggi. Gunakan dengan hati-hati karena dapat meningkatkan suhu. Pastikan kernel Anda mendukung fitur ini.</string>
-    <string name="force_fast_charge_activated">Paksa Pengisian Cepat Diaktifkan</string>
-    <string name="force_fast_charge_active_desc">Paksa pengisian cepat sedang aktif. Perangkat Anda mengisi daya lebih cepat.</string>
+    <string name="force_fast_charge_activated">Force Fast Charge Diaktifkan</string>
+    <string name="force_fast_charge_active_desc">Force Fast Charge sedang aktif. Perangkat Anda mengisi daya lebih cepat.</string>
 
     <string name="charging_control_title">Kontrol Pengisian Daya</string>
     <string name="charging_control_desc">Berhenti dan lanjutkan pengisian daya secara otomatis pada level baterai tertentu</string>
@@ -620,9 +620,9 @@
     <string name="category_network_storage">Jaringan &amp; Penyimpanan</string>
     <string name="category_battery">Baterai &amp; Pengisian</string>
     <string name="category_other">Pengaturan Lainnya</string>
-    <string name="desc_tuning">Termasuk Mode Termal, Governor CPU, dan Frekuensi Maksimum.</string>
+    <string name="desc_tuning">Termasuk Mode Termal, CPU Governor, dan Frekuensi Maksimum.</string>
     <string name="desc_network_storage">Termasuk Algoritma TCP Congestion dan I/O Scheduler.</string>
-    <string name="desc_battery">Termasuk Bypass Charging, Paksa Pengisian Cepat, Batas Kontrol Pengisian, dan status Monitor Baterai.</string>
+    <string name="desc_battery">Termasuk Bypass Charging, Force Fast Charge, Batas Kontrol Pengisian, dan status Monitor Baterai.</string>
     <string name="desc_other">Termasuk KGSL Skip Pool Zeroing dan gaya Ikon Notifikasi.</string>
     <string name="backup_success">Cadangan berhasil dibuat</string>
     <string name="restore_success">Pengaturan berhasil dipulihkan</string>
