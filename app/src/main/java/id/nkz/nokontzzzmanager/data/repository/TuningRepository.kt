@@ -657,14 +657,10 @@ class TuningRepository @Inject constructor(
         try {
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
             process.inputStream.bufferedReader().use { it.readText() }
-            val errorOutput = process.errorStream.bufferedReader().use { it.readText() }
+            process.errorStream.bufferedReader().use { it.readText() }
 
             val exitCode = process.waitFor()
-            return if (exitCode == 0) {
-                true
-            } else {
-                false
-            }
+            return exitCode == 0
         } catch (e: Exception) {
             return false
         }
@@ -674,7 +670,7 @@ class TuningRepository @Inject constructor(
         try {
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
             val output = process.inputStream.bufferedReader().use { it.readText() }
-            val errorOutput = process.errorStream.bufferedReader().use { it.readText() }
+            process.errorStream.bufferedReader().use { it.readText() }
             val exitCode = process.waitFor()
 
             return if (exitCode == 0) {

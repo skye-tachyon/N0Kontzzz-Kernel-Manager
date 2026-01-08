@@ -74,7 +74,7 @@ class BootReceiver : BroadcastReceiver() {
                     } catch (ise: IllegalStateException) {
                         WorkManager.initialize(
                             context,
-                            Configuration.Builder().setMinimumLoggingLevel(android.util.Log.DEBUG).build()
+                            Configuration.Builder().setMinimumLoggingLevel(Log.DEBUG).build()
                         )
                         WorkManager.getInstance(context)
                             .enqueueUniqueWork("start_battery_monitor", ExistingWorkPolicy.REPLACE, req)

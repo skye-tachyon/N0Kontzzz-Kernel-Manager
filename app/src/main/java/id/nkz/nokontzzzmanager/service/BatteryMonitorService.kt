@@ -97,9 +97,11 @@ class BatteryMonitorService : Service() {
     // Persistence
     private val prefs by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !isDeviceProtectedStorage) {
-            createDeviceProtectedStorageContext().getSharedPreferences("battery_monitor_prefs", Context.MODE_PRIVATE)
+            createDeviceProtectedStorageContext().getSharedPreferences("battery_monitor_prefs",
+                MODE_PRIVATE
+            )
         } else {
-            getSharedPreferences("battery_monitor_prefs", Context.MODE_PRIVATE)
+            getSharedPreferences("battery_monitor_prefs", MODE_PRIVATE)
         }
     }
     private val keyScreenAccum = "screen_accum_ms"
@@ -109,7 +111,7 @@ class BatteryMonitorService : Service() {
         super.onCreate()
         serviceStartedAtMs = System.currentTimeMillis()
         batteryManager = getSystemService(BATTERY_SERVICE) as BatteryManager
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         createNotificationChannel()
         val initialNotification = createNotification("Starting...", "Collecting battery data...")
         try {
@@ -621,7 +623,7 @@ class BatteryMonitorService : Service() {
 
     private fun isUserUnlocked(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val um = context.getSystemService(Context.USER_SERVICE) as android.os.UserManager
+            val um = context.getSystemService(USER_SERVICE) as android.os.UserManager
             um.isUserUnlocked
         } else {
             true

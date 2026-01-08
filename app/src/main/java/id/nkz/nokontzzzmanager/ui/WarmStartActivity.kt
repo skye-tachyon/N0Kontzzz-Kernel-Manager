@@ -10,14 +10,14 @@ class WarmStartActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
-            val sp = getSharedPreferences("nkm_preferences", Context.MODE_PRIVATE)
+            val sp = getSharedPreferences("nkm_preferences", MODE_PRIVATE)
             if (sp.getBoolean("battery_monitor_enabled", false)) {
                 BatteryMonitorService.start(this)
             }
         } catch (_: Throwable) { }
         finish()
         if (Build.VERSION.SDK_INT >= 34) {
-            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0)
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
         } else {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)

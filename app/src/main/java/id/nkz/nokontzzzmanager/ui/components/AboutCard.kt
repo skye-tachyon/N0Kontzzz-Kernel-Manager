@@ -120,8 +120,7 @@ fun AboutCard(
             )
 
             // Action Section
-            Column(
-            ) {
+            Column {
                 // Social Links Row
                 val uriHandler = LocalUriHandler.current
                 Row(
