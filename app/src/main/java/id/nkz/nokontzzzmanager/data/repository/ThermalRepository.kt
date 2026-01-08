@@ -231,13 +231,14 @@ class ThermalRepository @Inject constructor(
         monitoringJob?.cancel()
         monitoringJob = null
 
-        // Set SELinux context to allow write
+        // Set SELinux context and permissions to allow write
         executeRootCommand("chcon u:object_r:sysfs_thermal:s0 $thermalSysfsNode")
+        executeRootCommand("chmod 0666 '$thermalSysfsNode'")
         
         val writeOk = executeRootCommand("echo $modeIndex > '$thermalSysfsNode'").isSuccess
         
-        // Restore SELinux context
-        executeRootCommand("restorecon $thermalSysfsNode")
+        // Lock with read-only permissions and do NOT restorecon to prevent system override
+        executeRootCommand("chmod 0444 '$thermalSysfsNode'")
 
         if (!writeOk) {
             Log.e(TAG, "setThermalModeIndex: Failed to write $modeIndex to $thermalSysfsNode")

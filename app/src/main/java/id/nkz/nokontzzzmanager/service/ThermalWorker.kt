@@ -23,9 +23,12 @@ class ThermalWorker(appContext: Context, params: WorkerParameters) : CoroutineWo
             return@withContext Result.success()
         }
 
+        // Apply with robust permissions and SELinux context handling
+        Shell.cmd("chcon u:object_r:sysfs_thermal:s0 $thermalSysfsNode").exec()
         Shell.cmd("chmod 0666 $thermalSysfsNode").exec()
         Shell.cmd("echo $modeIndex > $thermalSysfsNode").exec()
-        Shell.cmd("chmod 0644 $thermalSysfsNode").exec()
+        // Lock with read-only permissions and do NOT restorecon
+        Shell.cmd("chmod 0444 $thermalSysfsNode").exec()
 
         val verifyValue = Shell.cmd("cat $thermalSysfsNode").exec().out.joinToString("").trim().toIntOrNull() ?: -1
         if (verifyValue == modeIndex) {
