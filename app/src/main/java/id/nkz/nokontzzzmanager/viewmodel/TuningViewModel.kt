@@ -330,12 +330,15 @@ class TuningViewModel @Inject constructor(
 
     fun setCpuGov(cluster: String, gov: String) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setCpuGov(cluster, gov)) {
+            preferenceManager.setCpuGov(cluster, gov)
             repo.getCpuGov(cluster).take(1).collect { _currentCpuGovernors[cluster]?.value = it }
         }
     }
 
     fun setCpuFreq(cluster: String, min: Int, max: Int) = viewModelScope.launch(Dispatchers.IO) {
         if (repo.setCpuFreq(cluster, min, max)) {
+            preferenceManager.setCpuMinFreq(cluster, min)
+            preferenceManager.setCpuMaxFreq(cluster, max)
             repo.getCpuFreq(cluster).take(1).collect { _currentCpuFrequencies[cluster]?.value = it }
         }
     }
@@ -351,6 +354,7 @@ class TuningViewModel @Inject constructor(
             else -> "schedutil"
         }
         cpuClusters.forEach { cluster ->
+            preferenceManager.setCpuGov(cluster, governor)
             setCpuGov(cluster, governor)
         }
     }

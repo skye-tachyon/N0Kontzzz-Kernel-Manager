@@ -34,12 +34,32 @@ class RestoreSettingsWorker @AssistedInject constructor(
 
         restoreNetworkAndIoSettings()
         restoreMiscSettings()
+        restoreCpuSettings() // New method for per-cluster restore
         restorePerformanceMode()
         restoreGpuSettings()
         restoreRamSettings()
         restoreThermalSettings()
 
         return Result.success()
+    }
+
+    private fun restoreCpuSettings() {
+        val clusters = listOf("cpu0", "cpu4", "cpu7")
+        clusters.forEach { cluster ->
+            // Restore Governor
+            preferenceManager.getCpuGov(cluster)?.let { gov ->
+                tuningRepository.setCpuGov(cluster, gov)
+                Log.d("RestoreSettingsWorker", "Restored CPU Governor for $cluster: $gov")
+            }
+
+            // Restore Frequencies
+            val minFreq = preferenceManager.getCpuMinFreq(cluster)
+            val maxFreq = preferenceManager.getCpuMaxFreq(cluster)
+            if (minFreq != -1 && maxFreq != -1) {
+                tuningRepository.setCpuFreq(cluster, minFreq, maxFreq)
+                Log.d("RestoreSettingsWorker", "Restored CPU Frequencies for $cluster: $minFreq - $maxFreq")
+            }
+        }
     }
 
     private fun restoreNetworkAndIoSettings() {

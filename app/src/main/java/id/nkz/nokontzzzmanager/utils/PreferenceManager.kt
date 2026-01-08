@@ -59,6 +59,11 @@ class PreferenceManager @Inject constructor(
         private const val KEY_DIRTY_WRITEBACK = "dirty_writeback"
         private const val KEY_DIRTY_EXPIRE = "dirty_expire"
         private const val KEY_MIN_FREE_MEMORY = "min_free_memory"
+
+        // CPU Per-cluster
+        private const val KEY_CPU_GOV_PREFIX = "cpu_gov_"
+        private const val KEY_CPU_MIN_FREQ_PREFIX = "cpu_min_freq_"
+        private const val KEY_CPU_MAX_FREQ_PREFIX = "cpu_max_freq_"
     }
 
     private fun credentialPrefs(): SharedPreferences? {
@@ -426,5 +431,30 @@ class PreferenceManager @Inject constructor(
 
     fun getMinFreeMemory(): Int {
         return credentialPrefs()?.getInt(KEY_MIN_FREE_MEMORY, -1) ?: -1
+    }
+
+    // CPU Per-cluster
+    fun setCpuGov(cluster: String, gov: String) {
+        credentialPrefs()?.edit { putString(KEY_CPU_GOV_PREFIX + cluster, gov) }
+    }
+
+    fun getCpuGov(cluster: String): String? {
+        return credentialPrefs()?.getString(KEY_CPU_GOV_PREFIX + cluster, null)
+    }
+
+    fun setCpuMinFreq(cluster: String, freq: Int) {
+        credentialPrefs()?.edit { putInt(KEY_CPU_MIN_FREQ_PREFIX + cluster, freq) }
+    }
+
+    fun getCpuMinFreq(cluster: String): Int {
+        return credentialPrefs()?.getInt(KEY_CPU_MIN_FREQ_PREFIX + cluster, -1) ?: -1
+    }
+
+    fun setCpuMaxFreq(cluster: String, freq: Int) {
+        credentialPrefs()?.edit { putInt(KEY_CPU_MAX_FREQ_PREFIX + cluster, freq) }
+    }
+
+    fun getCpuMaxFreq(cluster: String): Int {
+        return credentialPrefs()?.getInt(KEY_CPU_MAX_FREQ_PREFIX + cluster, -1) ?: -1
     }
 }
