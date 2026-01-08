@@ -196,7 +196,8 @@ fun SettingsScreen(
                 icon = {
                     Icon(
                         imageVector = Icons.Default.Language,
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
                     )
                 },
                 shape = getRoundedCornerShape(0, 1),
@@ -256,7 +257,8 @@ fun SettingsScreen(
                 icon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_notification),
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
                     )
                 },
                 shape = getRoundedCornerShape(0, 1),
@@ -298,7 +300,8 @@ fun SettingsScreen(
                 icon = {
                     Icon(
                         imageVector = Icons.Default.Contrast,
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
                     )
                 },
                 shape = getRoundedCornerShape(0, 2),
@@ -318,7 +321,8 @@ fun SettingsScreen(
                 icon = {
                     Icon(
                         imageVector = Icons.Default.DarkMode,
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
                     )
                 },
                 trailingContent = {
@@ -372,7 +376,8 @@ fun SettingsScreen(
                 icon = {
                     Icon(
                         imageVector = Icons.Default.Save,
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
                     )
                 },
                 shape = getRoundedCornerShape(0, 1),
@@ -398,7 +403,8 @@ fun SettingsScreen(
                 icon = {
                     Icon(
                         imageVector = Icons.Default.Lock,
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
                     )
                 },
                 shape = getRoundedCornerShape(0, 1),
@@ -815,11 +821,21 @@ fun SettingItemCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Icon with themed background
             Box(
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(36.dp)
+                    .background(
+                        color = if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(10.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                icon()
+                CompositionLocalProvider(
+                    LocalContentColor provides if (enabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                ) {
+                    icon()
+                }
             }
             
             Column(
