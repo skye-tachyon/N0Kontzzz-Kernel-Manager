@@ -74,6 +74,8 @@ import id.nkz.nokontzzzmanager.R
 @Composable
 fun CpuGovernorCard(
     vm: TuningViewModel,
+    isExpanded: Boolean,
+    onExpandChange: (Boolean) -> Unit
 ) {
     val clusters = vm.cpuClusters
     val availableGovernors by vm.generalAvailableCpuGovernors.collectAsState()
@@ -83,8 +85,6 @@ fun CpuGovernorCard(
     var showMinFreqDialogForCluster by remember { mutableStateOf<String?>(null) }
     var showMaxFreqDialogForCluster by remember { mutableStateOf<String?>(null) }
     var showCoreDialogForCluster by remember { mutableStateOf<String?>(null) }
-
-    var isExpanded by remember { mutableStateOf(false) }
 
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
@@ -107,7 +107,7 @@ fun CpuGovernorCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { isExpanded = !isExpanded },
+                    .clickable { onExpandChange(!isExpanded) },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {

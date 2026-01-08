@@ -110,6 +110,8 @@ fun TuningScreen(
                 }
             }
         ) { innerPadding ->
+            val expandedCards by viewModel.expandedCards.collectAsState()
+
             LazyColumn(
                 state = lazyListState,
                 modifier = Modifier.fillMaxSize(),
@@ -133,19 +135,35 @@ fun TuningScreen(
                 }
 
                 item {
-                    CpuGovernorCard(vm = viewModel)
+                    CpuGovernorCard(
+                        vm = viewModel,
+                        isExpanded = expandedCards["cpu"] ?: false,
+                        onExpandChange = { viewModel.toggleCardExpansion("cpu") }
+                    )
                 }
 
                 item {
-                    GpuControlCard(tuningViewModel = viewModel)
+                    GpuControlCard(
+                        tuningViewModel = viewModel,
+                        isExpanded = expandedCards["gpu"] ?: false,
+                        onExpandChange = { viewModel.toggleCardExpansion("gpu") }
+                    )
                 }
 
                 item {
-                    ThermalCard(viewModel = viewModel)
+                    ThermalCard(
+                        viewModel = viewModel,
+                        isExpanded = expandedCards["thermal"] ?: false,
+                        onExpandChange = { viewModel.toggleCardExpansion("thermal") }
+                    )
                 }
 
                 item {
-                    SwappinessCard(vm = viewModel)
+                    SwappinessCard(
+                        vm = viewModel,
+                        isExpanded = expandedCards["ram"] ?: false,
+                        onExpandChange = { viewModel.toggleCardExpansion("ram") }
+                    )
                 }
             }
         }

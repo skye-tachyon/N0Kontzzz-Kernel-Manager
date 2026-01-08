@@ -65,13 +65,14 @@ import kotlin.math.abs
 @Composable
 fun GpuControlCard(
     tuningViewModel: TuningViewModel = hiltViewModel(),
+    isExpanded: Boolean,
+    onExpandChange: (Boolean) -> Unit,
     blur: Boolean = false
 ) {
     val coroutineScope = rememberCoroutineScope()
     val view = LocalView.current
 
     // State variables
-    var isExpanded by remember { mutableStateOf(false) }
     var showGovernorDialog by remember { mutableStateOf(false) }
     var showMinFreqDialog by remember { mutableStateOf(false) }
     var showMaxFreqDialog by remember { mutableStateOf(false) }
@@ -120,7 +121,7 @@ fun GpuControlCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { isExpanded = !isExpanded },
+                    .clickable { onExpandChange(!isExpanded) },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {

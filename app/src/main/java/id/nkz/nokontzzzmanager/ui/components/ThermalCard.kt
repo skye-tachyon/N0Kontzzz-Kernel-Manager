@@ -31,6 +31,8 @@ import id.nkz.nokontzzzmanager.viewmodel.TuningViewModel
 @Composable
 fun ThermalCard(
     viewModel: TuningViewModel,
+    isExpanded: Boolean,
+    onExpandChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -40,7 +42,6 @@ fun ThermalCard(
     val currentProfileIndex by viewModel.currentThermalModeIndex.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
-    var isExpanded by remember { mutableStateOf(false) }
 
 
     Card(
@@ -60,7 +61,7 @@ fun ThermalCard(
             ThermalHeaderSection(
                 currentProfileName = currentProfileName,
                 isExpanded = isExpanded,
-                onExpandClick = { isExpanded = !isExpanded }
+                onExpandClick = { onExpandChange(!isExpanded) }
             )
 
             AnimatedVisibility(visible = isExpanded) {

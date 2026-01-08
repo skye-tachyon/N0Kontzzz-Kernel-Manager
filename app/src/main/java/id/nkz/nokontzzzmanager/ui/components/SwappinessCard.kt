@@ -40,6 +40,8 @@ import android.view.HapticFeedbackConstants
 @Composable
 fun SwappinessCard(
     vm: TuningViewModel,
+    isExpanded: Boolean,
+    onExpandChange: (Boolean) -> Unit
 ) {
     val zramEnabled by vm.zramEnabled.collectAsState()
     val zramDisksize by vm.zramDisksize.collectAsState()
@@ -53,8 +55,6 @@ fun SwappinessCard(
     val dirtyExpireCentisecs by vm.dirtyExpireCentisecs.collectAsState()
     val minFreeMemory by vm.minFreeMemory.collectAsState()
 
-
-    var isExpanded by remember { mutableStateOf(false) }
 
     // Dialog visibility states
     var showCompressionDialog by remember { mutableStateOf(false) }
@@ -85,7 +85,7 @@ fun SwappinessCard(
                 zramEnabled = zramEnabled,
                 zramDisksize = zramDisksize,
                 isExpanded = isExpanded,
-                onExpandClick = { isExpanded = !isExpanded }
+                onExpandClick = { onExpandChange(!isExpanded) }
             )
 
             AnimatedVisibility(visible = isExpanded) {
