@@ -1,20 +1,15 @@
 <resources>
     <string name="app_name">NKM</string>
-    <string name="welcome_message">Selamat datang di N0Kontzzz Kernel Manager!</string>
     <string name="desc_about">Terima kasih telah memilih N0Kontzzz Kernel Manager. Semoga Anda menikmati pengalamannya!</string>
     <string name="about">Tentang Aplikasi</string>
     <string name="telegram">Telegram</string>
     <string name="github">Github</string>
     <string name="credits">Pengembang dan Kontributor</string>
-    <string name="credits_author">1. Gustyx-Power : Pendiri &amp; Pengembang
-2. Pavellc : Dukungan UI
-3. Ziyu : Dukungan Tuning</string>
     <string name="kernel">Kernel</string>
     <string name="version">Versi</string>
     <string name="kernel_type">Jenis Kernel</string>
     <string name="sched">I/O Scheduler</string>
     <string name="abi" translatable="false">ABI</string>
-    <string name="kernel_information">Informasi Kernel</string>
     <string name="kernel_version">Versi Kernel</string>
     <string name="wireguard_version">Versi WireGuard</string>
     <string name="n0kz_kernel_manager">N0Kontzzz Kernel Manager</string>
@@ -25,14 +20,12 @@
     <string name="github_link">https://github.com/bimoalfarrabi/kernel_xiaomi_sm8250_n0kontzz</string>
     <string name="telegram_link">https://t.me/n0kontzzz</string>
     <string name="reboot_system">Mulai Ulang Sistem</string>
-    <string name="reboot_systemui">Mulai Ulang System UI</string>
     <string name="reboot_bootloader">Mulai Ulang ke Bootloader</string>
     <string name="reboot_recovery">Mulai Ulang ke Recovery</string>
     <string name="power_off">Matikan Daya</string>
 
     <!-- Notification Settings -->
     <string name="notification_icon">Ikon Notifikasi</string>
-    <string name="notification_icon_desc">Pilih ikon untuk ditampilkan di bilah notifikasi</string>
     <string name="requires_battery_monitor">Memerlukan Monitor Baterai untuk diaktifkan</string>
     <string name="icon_battery_percent">Persentase Baterai</string>
     <string name="icon_app_logo">Logo Aplikasi</string>
@@ -40,31 +33,20 @@
     <string name="select_notification_icon">Pilih Ikon Notifikasi</string>
 
     <!-- Settings strings -->
-    <string name="settings_language_label">Bahasa</string>
 
     <!-- ... string lainnya ... -->
     <string name="central_proccessing_unit_cpu">Central Processing Unit (CPU)</string>
-    <string name="offline">Offline</string>
     <string name="cpu_governor_label">Governor:</string>
     <string name="cpu_cores_title" translatable="false">CPU Cores</string>
     <string name="cpu_cores_label">Inti:</string>
-    <string name="core_suffix">Inti</string> <!-- atau "Cores" -->
+    <!-- atau "Cores" -->
     <string name="temperature_label">Suhu:</string>
-    <string name="temperature_c_format">%.1f °C</string>
-    <string name="avg_load_label">Beban Rata-rata:</string>
-    <string name="clock_speed">Kecepatan Clock</string>
-    <string name="cpu_load">Beban CPU</string>
 
     <!-- String yang sudah ada dari kode sebelumnya, pastikan masih relevan -->
-    <string name="cpu_governor">Governor: %s</string>
-    <string name="cpu_cores_format">%d Inti</string>
-    <string name="temperature_c">Suhu: %.1f °C</string>
-    <string name="uptime_regex" formatted="false">%02dh %02dm %02ds</string>
 
     <!-- Settings Screen -->
     <string name="settings">Pengaturan</string>
     <string name="back">Kembali</string>
-    <string name="preferences">Preferensi</string>
     <string name="theme">Tema</string>
     <string name="theme_system">Sistem</string>
     <string name="theme_light">Terang</string>
@@ -72,36 +54,19 @@
     <string name="select_theme">Pilih Tema</string>
 
     <!-- Widget strings -->
-    <string name="widget_description">Aktifkan/nonaktifkan notifikasi baterai</string>
-    <string name="widget_battery_stats_on">Statistik Baterai: AKTIF</string>
-    <string name="widget_battery_stats_off">Statistik Baterai: NONAKTIF</string>
 
     <!-- Battery Performance Widget strings -->
-    <string name="widget_battery_on">Baterai AKTIF</string>
-    <string name="widget_battery_off">Baterai MATI</string>
-    <string name="battery_performance_widget_description">Kontrol notifikasi baterai dan mode performa</string>
 
     <string name="battery_toggle">Ubah Statistik Baterai</string>
-    <string name="performance_cycle">Siklus Mode Performa</string>
-    <string name="performance_mode_balanced">Mode: Seimbang</string>
 
     <!-- CpuCard -->
     <string name="cpu_soc_label">SoC</string>
     <string name="cpu_cpu_label">CPU</string>
     <string name="cpu_freq_mhz">%d MHz</string>
     <string name="common_na">Tidak Ada</string>
-    <string name="cpu_avg_load_format">%.1f%%</string>
-    <string name="cpu_toggle_graph_mode_desc">Ubah Mode Grafik</string>
 
     <!-- HomeScreen -->
-    <string name="home_reboot_system_desc">Mulai Ulang Sistem</string>
-    <string name="home_reboot_systemui_desc">Mulai Ulang System UI</string>
-    <string name="home_reboot_bootloader_desc">Mulai Ulang Bootloader</string>
-    <string name="home_reboot_recovery_desc">Mulai Ulang Recovery</string>
-    <string name="home_power_off_desc">Matikan Daya</string>
-    <string name="home_toggle_fab_desc">Ubah Menu FAB</string>
     <string name="home_settings_button_desc">Pengaturan</string>
-    <string name="cpu_fallback_title">CPU</string>
 
     <!-- Common -->
     <string name="common_unknown_value">Tidak Diketahui</string>
@@ -111,7 +76,6 @@
     <string name="system_info">Informasi Sistem</string>
 
     <!-- FPS Overlay Strings -->
-    <string name="fps_format" translatable="false">%d FPS</string>
 
     <!-- Language strings -->
     <string name="language_english">Inggris</string>
@@ -130,7 +94,6 @@
 
     <!-- Tuning Feature Info Dialog strings -->
     <string name="tuning_feature_info_title">Informasi Fitur Tuning</string>
-    <string name="tuning_feature_info_close">TUTUP</string>
     <string name="tuning_feature_performance_mode_title">Mode Performa</string>
     <string name="tuning_feature_performance_mode_desc">Menyediakan preset konfigurasi untuk mengoptimalkan sistem sesuai kebutuhan: Seimbang (schedutil governor) dan Performa (performance governor).</string>
     <string name="tuning_feature_cpu_governor_title">Governor CPU</string>
@@ -149,7 +112,6 @@
     <string name="exit_app">Keluar</string>
 
     <!-- Tuning Screen -->
-    <string name="performance_mode_performance">Performa</string>
     <string name="quick_presets_desc">Preset cepat untuk mengoptimalkan performa sistem dan konsumsi daya</string>
     <string name="balanced_performance_desc">%s governor untuk performa seimbang</string>
     <string name="maximum_speed_desc">%s governor untuk kecepatan maksimum</string>
@@ -230,14 +192,12 @@
     <string name="status_limit_reached">BATAS TERCAPAI</string>
     <string name="status_stopped">BERHENTI</string>
     <string name="status_charging">MENGISI DAYA</string>
-    <string name="status_discharging">MENGURANGI DAYA</string>
     <string name="status_idle">IDLE</string>
 
     <!-- Battery Monitor -->
     <string name="battery_settings">Baterai</string>
     <string name="battery_monitor">Monitor Baterai</string>
     <string name="battery_monitor_desc">Tampilkan statistik baterai realtime. Diperlukan untuk fitur seperti Kontrol Pengisian Daya.</string>
-    <string name="reset_battery_stats">Reset</string>
     <string name="battery_monitor_reset_title">Reset Monitor Baterai</string>
     <string name="battery_monitor_reset_desc">Hapus akumulasi statistik tanpa mematikan layanan</string>
     <string name="battery_stats_reset_toast">Statistik baterai direset</string>
@@ -253,10 +213,8 @@
     <string name="stats_total_active_time">Total Aktif</string>
     <string name="stats_screen_on_time">Layar Hidup</string>
     <string name="stats_screen_off_time">Layar Mati</string>
-    <string name="stats_usage_format">%1$s • %2$d%% (%3$d mAh)</string>
 
     <!-- SettingsScreen -->
-    <string name="coming_soon">Segera Hadir</string>
     <string name="theme_and_display">Tema &amp; Tampilan</string>
     <string name="amoled_mode">Mode AMOLED</string>
     <string name="amoled_mode_desc">Gunakan latar belakang hitam pekat dalam mode gelap</string>
@@ -461,13 +419,11 @@
     <string name="cancel">Batal</string>
     <string name="apply">Terapkan</string>
     <string name="swappiness_explanation">Mengontrol seberapa agresif kernel memindahkan data dari RAM ke penyimpanan. Nilai rendah (0–10) membuat sistem lebih fokus menggunakan RAM, nilai tinggi (60–100) menggunakan swap lebih sering untuk menghemat RAM.</string>
-    <string name="zram_explanation">Menentukan ukuran RAM terkompresi untuk meningkatkan kapasitas memori virtual. ZRAM mengompresi data di RAM untuk menyimpan lebih banyak aplikasi tanpa menggunakan penyimpanan yang lebih lambat. (Status ZRAM dikendalikan oleh kernel Anda dan tidak dapat diubah)</string>
     <string name="dirty_ratio_explanation">Menetapkan persentase RAM yang digunakan untuk cache tulis sebelum memaksa penulisan ke penyimpanan. Nilai lebih tinggi = performa lebih baik tetapi risiko kehilangan data saat crash.</string>
     <string name="dirty_background_ratio_explanation">Menentukan kapan kernel mulai secara bertahap menulis cache ke penyimpanan di latar belakang. Membantu menjaga performa stabil dengan mengurangi lag saat penulisan besar.</string>
     <string name="min_free_memory_explanation">Menentukan jumlah minimum RAM yang harus selalu bebas. Nilai lebih tinggi membuat sistem lebih responsif tetapi mengurangi RAM yang tersedia untuk aplikasi.</string>
     <string name="dirty_expire_explanation">Menentukan berapa lama data cache dapat bertahan sebelum dipaksa menulis ke penyimpanan. Nilai lebih rendah = data lebih aman tetapi performa berkurang.</string>
     <string name="dirty_writeback_explanation">Menetapkan interval waktu bagi kernel untuk memeriksa dan menulis cache yang sudah kedaluwarsa. Mempengaruhi seberapa sering sistem melakukan pembersihan cache otomatis.</string>
-    <string name="default_explanation">Pengaturan ini mempengaruhi bagaimana sistem mengelola memori dan performa. Sesuaikan berdasarkan kebutuhan penggunaan perangkat Anda untuk hasil optimal.</string>
 
     <!-- Thermal Service -->
     <string name="thermal_service_channel_name">Saluran Layanan Termal</string>
@@ -478,7 +434,6 @@
     <string name="clear_history_title">Hapus Riwayat</string>
     <string name="clear_history_confirmation">Apakah Anda yakin ingin menghapus semua riwayat baterai?</string>
     <string name="delete">Hapus</string>
-    <string name="graph_mode_speed">Kecepatan Isi/Kuras</string>
     <string name="graph_mode_drain">Laju Pengurasan</string>
     <string name="graph_mode_speed_short">Kec. Isi/Kuras</string>
     <string name="graph_title_current">Arus (mA) - %s</string>
@@ -585,7 +540,6 @@
     <string name="permission_manager_desc">Lihat izin yang diberikan dan ditolak</string>
     <string name="permission_granted">Diberikan</string>
     <string name="permission_denied">Ditolak</string>
-    <string name="permission_name_unknown">Izin Tidak Diketahui</string>
 
     <!-- Permission Labels & Descriptions -->
     <string name="perm_root_title">Akses Root</string>
@@ -606,8 +560,6 @@
     <string name="perm_boot_desc">Mulai layanan otomatis dan terapkan pengaturan saat reboot perangkat.</string>
     <string name="perm_fgs_title">Layanan Latar Depan</string>
     <string name="perm_fgs_desc">Jalankan layanan pemantauan penting di latar belakang.</string>
-    <string name="perm_write_settings_title">Tulis Pengaturan Sistem</string>
-    <string name="perm_write_settings_desc">Ubah konfigurasi sistem seperti batas waktu layar.</string>
 
     <!-- Backup & Restore -->
     <string name="backup_restore_title">Cadangkan &amp; Pulihkan</string>

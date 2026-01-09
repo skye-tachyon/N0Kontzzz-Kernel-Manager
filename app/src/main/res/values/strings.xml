@@ -1,20 +1,15 @@
 <resources>
     <string name="app_name">NKM</string>
-    <string name="welcome_message">Welcome to N0Kontzzz Kernel Manager!</string>
     <string name="desc_about">Thank you for choosing N0Kontzzz Kernel Manager. We hope you enjoy the experience!</string>
     <string name="about">About App</string>
     <string name="telegram">Telegram</string>
     <string name="github">Github</string>
     <string name="credits">Developer and Contributors</string>
-    <string name="credits_author">1. Gustyx-Power : Founder &amp; Developer
-2. Pavellc : Ui Supports
-3. Ziyu : Tuning Supports</string>
     <string name="kernel">Kernel</string>
     <string name="version">Version</string>
     <string name="kernel_type">Kernel Type</string>
     <string name="sched">I/O Scheduler</string>
     <string name="abi" translatable="false">ABI</string>
-    <string name="kernel_information">Kernel Information</string>
     <string name="kernel_version">Kernel Version</string>
     <string name="wireguard_version">WireGuard Version</string>
     <string name="n0kz_kernel_manager">N0Kontzzz Kernel Manager</string>
@@ -25,14 +20,12 @@
     <string name="github_link">https://github.com/bimoalfarrabi/kernel_xiaomi_sm8250_n0kontzz</string>
     <string name="telegram_link">https://t.me/n0kontzzz</string>
     <string name="reboot_system">Reboot System</string>
-    <string name="reboot_systemui">Reboot SystemUI</string>
     <string name="reboot_bootloader">Reboot Bootloader</string>
     <string name="reboot_recovery">Reboot Recovery</string>
     <string name="power_off">Power Off</string>
 
     <!-- Notification Settings -->
     <string name="notification_icon">Notification Icon</string>
-    <string name="notification_icon_desc">Select the icon to display in the notification bar</string>
     <string name="requires_battery_monitor">Requires Battery Monitor to be enabled</string>
     <string name="icon_battery_percent">Battery Percentage</string>
     <string name="icon_app_logo">App Logo</string>
@@ -40,31 +33,19 @@
     <string name="select_notification_icon">Select Notification Icon</string>
 
     <!-- Settings strings -->
-    <string name="settings_language_label">Language</string>
 
     <!-- ... string lainnya ... -->
     <string name="central_proccessing_unit_cpu">Central Processing Unit (CPU)</string>
-    <string name="offline">Offline</string>
     <string name="cpu_governor_label">Governor:</string>
     <string name="cpu_cores_title" translatable="false">CPU Cores</string>
     <string name="cpu_cores_label">Cores:</string>
-    <string name="core_suffix">Cores</string>
     <string name="temperature_label">Temp:</string>
-    <string name="temperature_c_format">%.1f °C</string>
-    <string name="avg_load_label">Avg. Load:</string>
-    <string name="clock_speed">Clock Speed</string>
-    <string name="cpu_load">CPU Load</string>
 
     <!-- String yang sudah ada dari kode sebelumnya, pastikan masih relevan -->
-    <string name="cpu_governor">Governor: %s</string>
-    <string name="cpu_cores_format">%d Cores</string>
-    <string name="temperature_c">Temp: %.1f °C</string>
-    <string name="uptime_regex" formatted="false">%02dh %02dm %02ds</string>
 
     <!-- Settings Screen -->
     <string name="settings">Settings</string>
     <string name="back">Back</string>
-    <string name="preferences">Preferences</string>
     <string name="theme">Theme</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
@@ -72,36 +53,19 @@
     <string name="select_theme">Choose Theme</string>
 
     <!-- Widget strings -->
-    <string name="widget_description">Toggle battery notification on/off</string>
-    <string name="widget_battery_stats_on">Battery Stats: ON</string>
-    <string name="widget_battery_stats_off">Battery Stats: OFF</string>
 
     <!-- Battery Performance Widget strings -->
-    <string name="widget_battery_on">Battery ON</string>
-    <string name="widget_battery_off">Battery OFF</string>
-    <string name="battery_performance_widget_description">Control battery notification and performance mode</string>
 
     <string name="battery_toggle">Toggle Battery Stats</string>
-    <string name="performance_cycle">Cycle Performance Mode</string>
-    <string name="performance_mode_balanced">Mode: Balanced</string>
 
     <!-- CpuCard -->
     <string name="cpu_soc_label">SoC</string>
     <string name="cpu_cpu_label">CPU</string>
     <string name="cpu_freq_mhz">%d MHz</string>
     <string name="common_na">N/A</string>
-    <string name="cpu_avg_load_format">%.1f%%</string>
-    <string name="cpu_toggle_graph_mode_desc">Toggle Graph Mode</string>
 
     <!-- HomeScreen -->
-    <string name="home_reboot_system_desc">Reboot System</string>
-    <string name="home_reboot_systemui_desc">Reboot SystemUI</string>
-    <string name="home_reboot_bootloader_desc">Reboot Bootloader</string>
-    <string name="home_reboot_recovery_desc">Reboot Recovery</string>
-    <string name="home_power_off_desc">Power Off</string>
-    <string name="home_toggle_fab_desc">Toggle FAB Menu</string>
     <string name="home_settings_button_desc">Settings</string>
-    <string name="cpu_fallback_title">CPU</string>
 
     <!-- Common -->
     <string name="common_unknown_value">Unknown</string>
@@ -111,7 +75,6 @@
     <string name="system_info">System Info</string>
 
     <!-- FPS Overlay Strings -->
-    <string name="fps_format" translatable="false">%d FPS</string>
 
     <!-- Language strings -->
     <string name="language_english">English</string>
@@ -130,7 +93,6 @@
 
     <!-- Tuning Feature Info Dialog strings -->
     <string name="tuning_feature_info_title">Tuning Feature Information</string>
-    <string name="tuning_feature_info_close">CLOSE</string>
     <string name="tuning_feature_performance_mode_title">Performance Mode</string>
     <string name="tuning_feature_performance_mode_desc">Provides configuration presets to optimize the system based on needs: Balanced (schedutil governor) and Performance (performance governor).</string>
     <string name="tuning_feature_cpu_governor_title">CPU Governor</string>
@@ -149,7 +111,6 @@
     <string name="exit_app">Exit</string>
 
     <!-- Tuning Screen -->
-    <string name="performance_mode_performance">Performance</string>
     <string name="quick_presets_desc">Quick presets to optimize system performance and power consumption</string>
     <string name="balanced_performance_desc">%s governor for balanced performance</string>
     <string name="maximum_speed_desc">%s governor for maximum speed</string>
@@ -230,14 +191,12 @@
     <string name="status_limit_reached">LIMIT REACHED</string>
     <string name="status_stopped">STOPPED</string>
     <string name="status_charging">CHARGING</string>
-    <string name="status_discharging">DISCHARGING</string>
     <string name="status_idle">IDLE</string>
 
     <!-- Battery Monitor -->
     <string name="battery_settings">Battery</string>
     <string name="battery_monitor">Battery Monitor</string>
     <string name="battery_monitor_desc">Show realtime battery stats. Required for features like Charging Control.</string>
-    <string name="reset_battery_stats">Reset</string>
     <string name="battery_monitor_reset_title">Reset Battery Monitor</string>
     <string name="battery_monitor_reset_desc">Clear accumulated stats without turning off the service</string>
     <string name="battery_stats_reset_toast">Battery stats reset</string>
@@ -253,10 +212,8 @@
     <string name="stats_total_active_time">Total Active</string>
     <string name="stats_screen_on_time">Screen On</string>
     <string name="stats_screen_off_time">Screen Off</string>
-    <string name="stats_usage_format">%1$s • %2$d%% (%3$d mAh)</string>
 
     <!-- SettingsScreen -->
-    <string name="coming_soon">Coming Soon</string>
     <string name="theme_and_display">Theme &amp; Display</string>
     <string name="amoled_mode">AMOLED Mode</string>
     <string name="amoled_mode_desc">Use a pure black background in dark mode</string>
@@ -461,13 +418,11 @@
     <string name="cancel">Cancel</string>
     <string name="apply">Apply</string>
     <string name="swappiness_explanation">Controls how aggressively the kernel moves data from RAM to storage. Low values (0–10) make the system focus more on using RAM, high values (60–100) use swap more frequently to save RAM.</string>
-    <string name="zram_explanation">Sets the size of compressed RAM to increase virtual memory capacity. ZRAM compresses data in RAM to store more applications without using slower storage. (ZRAM state is controlled by your kernel and cannot be changed)</string>
     <string name="dirty_ratio_explanation">Sets the percentage of RAM used for write cache before forcing writes to storage. Higher values = better performance but risk of data loss during crashes.</string>
     <string name="dirty_background_ratio_explanation">Sets when the kernel starts gradually writing cache to storage in the background. Helps maintain stable performance by reducing lag during large writes.</string>
     <string name="min_free_memory_explanation">Sets the minimum amount of RAM that must always remain free. Higher values make the system more responsive but reduce RAM available for applications.</string>
     <string name="dirty_expire_explanation">Sets how long cache data can persist before being forced to write to storage. Lower values = safer data but reduced performance.</string>
     <string name="dirty_writeback_explanation">Sets the time interval for the kernel to check and write expired cache. Affects how often the system performs automatic cache cleanup.</string>
-    <string name="default_explanation">This setting affects how the system manages memory and performance. Adjust according to your device usage needs for optimal results.</string>
 
     <!-- Thermal Service -->
     <string name="thermal_service_channel_name">Thermal Service Channel</string>
@@ -478,7 +433,6 @@
     <string name="clear_history_title">Clear History</string>
     <string name="clear_history_confirmation">Are you sure you want to delete all battery history?</string>
     <string name="delete">Delete</string>
-    <string name="graph_mode_speed">Charge/Discharge Speed</string>
     <string name="graph_mode_drain">Drain Rate</string>
     <string name="graph_mode_speed_short">C/D Speed</string>
     <string name="graph_title_current">Current (mA) - %s</string>
@@ -586,7 +540,6 @@
     <string name="permission_manager_desc">View granted and denied permissions</string>
     <string name="permission_granted">Granted</string>
     <string name="permission_denied">Denied</string>
-    <string name="permission_name_unknown">Unknown Permission</string>
 
     <!-- Permission Labels & Descriptions -->
     <string name="perm_root_title">Root Access</string>
@@ -607,8 +560,6 @@
     <string name="perm_boot_desc">Auto-start services and apply settings on device reboot.</string>
     <string name="perm_fgs_title">Foreground Service</string>
     <string name="perm_fgs_desc">Run critical monitoring services in the background.</string>
-    <string name="perm_write_settings_title">Write System Settings</string>
-    <string name="perm_write_settings_desc">Modify system configurations like screen timeout.</string>
 
     <!-- Backup & Restore -->
     <string name="backup_restore_title">Backup &amp; Restore</string>
