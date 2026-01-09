@@ -98,7 +98,7 @@ fun AboutCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.nkm_logo),
+                        painter = painterResource(id = R.drawable.nkm_png),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.size(80.dp)

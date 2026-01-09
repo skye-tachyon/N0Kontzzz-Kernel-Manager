@@ -826,7 +826,7 @@ class BatteryMonitorService : Service() {
                 builder.setSmallIcon(R.drawable.transparent)
             }
             else -> {
-                builder.setSmallIcon(R.drawable.nkm_logo)
+                builder.setSmallIcon(R.drawable.nkm_png)
             }
         }
 
