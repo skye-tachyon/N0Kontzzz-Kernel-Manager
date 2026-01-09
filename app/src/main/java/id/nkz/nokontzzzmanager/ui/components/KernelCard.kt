@@ -541,7 +541,7 @@ private fun shortenKernelVersion(version: String): String {
             parenIndex != -1 -> parenIndex
             else -> version.length
         }
-        version.substring(0, endIndex).trim()
+        version.take(endIndex).trim()
     }
 }
 
@@ -571,7 +571,7 @@ private fun getKernelTypeResByVersion(version: String): Int {
             val firstDotIndex = cleanVersionNumber.indexOf('.')
             val secondDotIndex = cleanVersionNumber.indexOf('.', firstDotIndex + 1)
             if (secondDotIndex != -1) {
-                cleanVersionNumber.substring(0, secondDotIndex)
+                cleanVersionNumber.take(secondDotIndex)
             } else {
                 cleanVersionNumber
             }
@@ -640,7 +640,7 @@ private fun getKernelTypeResByVersion(version: String): Int {
             val firstDotIndex = cleanVersionNumber.indexOf('.')
             val secondDotIndex = cleanVersionNumber.indexOf('.', firstDotIndex + 1)
             if (secondDotIndex != -1) {
-                cleanVersionNumber.substring(0, secondDotIndex)
+                cleanVersionNumber.take(secondDotIndex)
             } else {
                 cleanVersionNumber
             }

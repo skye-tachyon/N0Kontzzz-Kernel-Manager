@@ -548,7 +548,7 @@ class SystemRepository @Inject constructor(
                 var gpuModel = cleanResult
                 val commaIndex = cleanResult.indexOf(',')
                 if (commaIndex != -1) {
-                    gpuModel = cleanResult.substring(0, commaIndex).trim()
+                    gpuModel = cleanResult.take(commaIndex).trim()
                 }
                 
                 // Remove common prefixes and clean up

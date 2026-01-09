@@ -78,7 +78,7 @@ private fun GpuHeaderSection(info: RealtimeGpuInfo) {
                         modelName = modelName.replace("Adreno", "Adreno™")
                     }
                     if (modelName.length > 25) {
-                        modelName.substring(0, 22) + "..."
+                        modelName.take(22) + "..."
                     } else {
                         modelName
                     }
