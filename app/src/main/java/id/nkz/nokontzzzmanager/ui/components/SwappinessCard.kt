@@ -1084,7 +1084,7 @@ fun CompressionAlgorithmDialog(
                             verticalArrangement = Arrangement.spacedBy(2.dp) // Changed to 2.dp
                         ) {
                             itemsIndexed(compressionAlgorithms) { index, algorithm ->
-                                val isSelected = algorithm.lowercase() == currentCompression.lowercase()
+                                val isSelected = algorithm.equals(currentCompression, ignoreCase = true)
 
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
