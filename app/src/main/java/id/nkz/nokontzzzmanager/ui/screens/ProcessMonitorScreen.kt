@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import java.util.Locale
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.ui.MainActivity
 import id.nkz.nokontzzzmanager.ui.components.IndeterminateExpressiveLoadingIndicator
@@ -179,7 +180,7 @@ fun ProcessItem(process: ProcessInfo) {
             Row(modifier = Modifier.width(160.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                 // CPU
                 Text(
-                    text = String.format("%.1f%%", process.cpu),
+                    text = String.format(Locale.getDefault(), "%.1f%%", process.cpu),
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = if (process.cpu > 20) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.width(50.dp).padding(end = 8.dp),
