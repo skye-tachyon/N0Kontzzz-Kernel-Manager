@@ -30,7 +30,7 @@ fun BackupRestoreDialog(
     onRestore: (Boolean, Boolean, Boolean, Boolean) -> Unit,
     preview: BackupPreview? = null
 ) {
-    var selectedTab by remember { mutableStateOf(0) } // 0 for Backup, 1 for Restore
+    var selectedTab by remember { mutableIntStateOf(0) } // 0 for Backup, 1 for Restore
     
     // Checkbox states
     var includeTuning by remember { mutableStateOf(true) }
