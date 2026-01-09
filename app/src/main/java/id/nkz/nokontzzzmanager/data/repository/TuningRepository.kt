@@ -499,7 +499,7 @@ class TuningRepository @Inject constructor(
         val rawOutput = readShellCommand("dumpsys SurfaceFlinger | grep \"GLES:\"")
         val glesInfo = rawOutput.substringAfter("GLES:", "").trim()
         emit(
-            if (glesInfo.isNotBlank()) glesInfo else "N/A"
+            glesInfo.ifBlank { "N/A" }
         )
     }.flowOn(Dispatchers.IO)
 
