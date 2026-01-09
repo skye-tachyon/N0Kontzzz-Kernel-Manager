@@ -577,7 +577,7 @@ fun SliderSettingDialog(
         // Animation for value changes
         val animatedValue by animateFloatAsState(
             targetValue = sliderTempValue,
-            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+            animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow),
             label = "slider_value_animation"
         )
 

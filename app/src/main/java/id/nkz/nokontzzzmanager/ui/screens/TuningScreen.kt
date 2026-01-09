@@ -2,6 +2,8 @@ package id.nkz.nokontzzzmanager.ui.screens
 
 import kotlinx.coroutines.delay
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -190,8 +192,10 @@ fun FeatureInfoDialog(
     ) {
         AnimatedVisibility(
             visible = true,
-            enter = fadeIn() + scaleIn(initialScale = 0.95f),
-            exit = fadeOut() + scaleOut(targetScale = 0.95f)
+            enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) + 
+                    scaleIn(initialScale = 0.95f, animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
+            exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + 
+                   scaleOut(targetScale = 0.95f, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
         ) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
@@ -496,8 +500,10 @@ fun PerformanceModeCard(
 
             AnimatedVisibility(
                 visible = activePerformanceMode != null && activePerformanceMode != "Balanced",
-                enter = fadeIn(animationSpec = tween(300)) + expandVertically(animationSpec = tween(300)),
-                exit = fadeOut(animationSpec = tween(300)) + shrinkVertically(animationSpec = tween(300))
+                enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) + 
+                        expandVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
+                exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + 
+                       shrinkVertically(animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow))
             ) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),

@@ -1,6 +1,8 @@
 package id.nkz.nokontzzzmanager.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.clickable
@@ -197,10 +199,11 @@ fun AboutCard(
     }
 
     if (showCreditsDialog) {
-        AnimatedVisibility(
-            visible = showCreditsDialog,
-            enter = fadeIn(animationSpec = tween(durationMillis = 300)),
-        ) {
+    AnimatedVisibility(
+        visible = showCreditsDialog,
+        enter = fadeIn(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
+        exit = fadeOut(animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow))
+    ) {
             AlertDialog(
                 onDismissRequest = { showCreditsDialog = false },
                 title = {
