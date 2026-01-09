@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
+import kotlin.math.abs
 
 @HiltViewModel
 class BatteryInfoViewModel @Inject constructor(
@@ -100,7 +101,7 @@ class BatteryInfoViewModel @Inject constructor(
 
                 // Calculate charging wattage
                 val chargingWattage = if (current != Int.MIN_VALUE) {
-                    (Math.abs(current) * voltage) / 1000000f // Convert to watts
+                    (abs(current) * voltage) / 1000000f // Convert to watts
                 } else {
                     0f
                 }
