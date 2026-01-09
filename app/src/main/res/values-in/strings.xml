@@ -607,4 +607,16 @@
     <string name="reset_gpu">Pengaturan GPU</string>
     <string name="reset_thermal">Profil Termal</string>
     <string name="reset_ram">Pengaturan RAM &amp; I/O</string>
+
+    <!-- GPU Driver Info -->
+    <string name="gpu_driver_info_title">Info Driver GPU</string>
+    <string name="gpu_driver_info_subtitle">Informasi Grafis</string>
+    <string name="gpu_renderer">Renderer</string>
+    <string name="gpu_vendor">Vendor</string>
+    <string name="gpu_driver_version">Versi Driver</string>
+    <string name="gpu_opengl_version">OpenGL ES</string>
+    <string name="gpu_gl_es_prefix">GL ES %s</string>
+    <string name="copied_to_clipboard">Disalin ke papan klip</string>
+    <string name="unknown_vendor">Vendor Tidak Diketahui</string>
+    <string name="unknown">Tidak Diketahui</string>
 </resources>

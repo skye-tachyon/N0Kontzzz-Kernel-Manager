@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,10 +23,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.model.RealtimeGpuInfo
 import kotlinx.collections.immutable.ImmutableList
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import android.widget.Toast
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.ui.platform.LocalContext
 
 const val MAX_GPU_HISTORY_POINTS = 50
 
@@ -35,6 +49,8 @@ fun GpuCard(
     gpuHistory: ImmutableList<Float>,
     modifier: Modifier = Modifier
 ) {
+    var showDriverDialog by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
@@ -49,7 +65,10 @@ fun GpuCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            GpuHeaderSection(info)
+            GpuHeaderSection(
+                info = info,
+                onDriverInfoClick = { showDriverDialog = true }
+            )
 
             GpuStatsSection(info = info, graphDataHistory = gpuHistory)
 
@@ -59,10 +78,20 @@ fun GpuCard(
             )
         }
     }
+
+    if (showDriverDialog) {
+        GpuDriverDialog(
+            info = info,
+            onDismiss = { showDriverDialog = false }
+        )
+    }
 }
 
 @Composable
-private fun GpuHeaderSection(info: RealtimeGpuInfo) {
+private fun GpuHeaderSection(
+    info: RealtimeGpuInfo,
+    onDriverInfoClick: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -89,16 +118,41 @@ private fun GpuHeaderSection(info: RealtimeGpuInfo) {
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(R.string.gpu_label),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Text(
+                        text = stringResource(R.string.gpu_label),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+
+                if (info.glVersion.isNotBlank()) {
+                        val simplifiedVersion = remember(info.glVersion) {
+                        val v = info.glVersion.replace("OpenGL ES", "").trim()
+                        if (v.length > 20) v.take(20) + "..." else v
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                        modifier = Modifier.clickable { onDriverInfoClick() }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.gpu_gl_es_prefix, simplifiedVersion),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
             }
         }
 
@@ -115,6 +169,170 @@ private fun GpuHeaderSection(info: RealtimeGpuInfo) {
                 modifier = Modifier.size(28.dp),
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GpuDriverDialog(
+    info: RealtimeGpuInfo,
+    onDismiss: () -> Unit
+) {
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    
+    val vendor = remember(info.model) {
+        when {
+            info.model.contains("Adreno", ignoreCase = true) -> "Qualcomm"
+            info.model.contains("Mali", ignoreCase = true) -> "ARM"
+            info.model.contains("PowerVR", ignoreCase = true) -> "Imagination Technologies"
+            info.model.contains("Xclipse", ignoreCase = true) -> "Samsung (AMD RDNA)"
+            info.model.contains("Immortalis", ignoreCase = true) -> "ARM"
+            info.model.contains("Vivante", ignoreCase = true) -> "VeriSilicon"
+            else -> context.getString(R.string.unknown_vendor)
+        }
+    }
+
+    // Prepare labels and values using resources inside composable context where needed
+    val labelRenderer = stringResource(R.string.gpu_renderer)
+    val labelVendor = stringResource(R.string.gpu_vendor)
+    val labelDriver = stringResource(R.string.gpu_driver_version)
+    val labelOpenGl = stringResource(R.string.gpu_opengl_version)
+    val unknownText = stringResource(R.string.unknown)
+    val copiedText = stringResource(R.string.copied_to_clipboard)
+
+    val driverDetails = listOf(
+        labelRenderer to info.model,
+        labelVendor to vendor,
+        labelDriver to info.glVersion, 
+    )
+
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) + 
+                        scaleIn(initialScale = 0.95f, animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
+                exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + 
+                       scaleOut(targetScale = 0.95f, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                    shape = RoundedCornerShape(24.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        // Header
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Info, // Changed icon to Info
+                                    contentDescription = null,
+                                    modifier = Modifier.size(28.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.gpu_driver_info_title),
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = stringResource(R.string.gpu_driver_info_subtitle),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Details List
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            driverDetails.forEachIndexed { index, (label, value) ->
+                                Card(
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                    ),
+                                    shape = when {
+                                        driverDetails.size == 1 -> RoundedCornerShape(24.dp)
+                                        index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
+                                        index == driverDetails.size - 1 -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+                                        else -> RoundedCornerShape(8.dp)
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = label,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = value.ifBlank { unknownText },
+                                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                        
+                                        IconButton(
+                                            onClick = {
+                                                clipboardManager.setText(AnnotatedString("$label: $value"))
+                                                Toast.makeText(context, copiedText, Toast.LENGTH_SHORT).show()
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.ContentCopy,
+                                                contentDescription = "Copy",
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Dismiss Button
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(stringResource(id = R.string.close))
+                        }
+                    }
+                }
+            }
         }
     }
 }

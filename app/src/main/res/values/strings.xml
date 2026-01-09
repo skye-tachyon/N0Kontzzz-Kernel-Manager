@@ -608,4 +608,16 @@
     <string name="reset_gpu">GPU Settings</string>
     <string name="reset_thermal">Thermal Profiles</string>
     <string name="reset_ram">RAM &amp; I/O Settings</string>
+    
+    <!-- GPU Driver Info -->
+    <string name="gpu_driver_info_title">GPU Driver Info</string>
+    <string name="gpu_driver_info_subtitle">Graphics Information</string>
+    <string name="gpu_renderer">Renderer</string>
+    <string name="gpu_vendor">Vendor</string>
+    <string name="gpu_driver_version">Driver Version</string>
+    <string name="gpu_opengl_version">OpenGL ES</string>
+    <string name="gpu_gl_es_prefix">GL ES %s</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="unknown_vendor">Unknown Vendor</string>
+    <string name="unknown">Unknown</string>
 </resources>
