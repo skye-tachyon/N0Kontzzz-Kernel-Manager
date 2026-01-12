@@ -121,7 +121,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
         Log.d("RestoreSettingsWorker", "Restored Performance Mode ($mode -> $governor) on $successCount clusters")
     }
 
-    private suspend fun restoreGpuSettings() {
+    private fun restoreGpuSettings() {
         // Governor
         preferenceManager.getGpuGovernor()?.let { gov ->
             if (tuningRepository.setGpuGov(gov)) {
@@ -152,7 +152,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun restoreRamSettings() {
+    private fun restoreRamSettings() {
         // ZRAM Size
         val zramSize = preferenceManager.getZramDisksize()
         if (zramSize != -1L) {

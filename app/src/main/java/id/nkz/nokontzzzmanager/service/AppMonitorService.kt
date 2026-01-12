@@ -152,7 +152,7 @@ class AppMonitorService : Service() {
         systemRepository.setBypassCharging(globalBypass)
     }
 
-    private suspend fun applyPerformanceMode(mode: String) {
+    private fun applyPerformanceMode(mode: String) {
         val governor = if (mode == "Performance") "performance" else "schedutil"
         
         // Dynamically get cluster leaders instead of hardcoding

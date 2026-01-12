@@ -17,7 +17,6 @@ import android.os.SystemClock
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.IconCompat
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
