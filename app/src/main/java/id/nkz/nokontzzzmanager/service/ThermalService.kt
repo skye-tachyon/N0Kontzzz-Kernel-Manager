@@ -158,9 +158,29 @@ class ThermalService : Service() {
     private fun startMonitoring() {
         monitoringJob?.cancel()
         monitoringJob = serviceScope.launch {
+            // Cache the target mode
+            var targetMode = 0
+            
+            // Launch a separate coroutine to observe settings changes
+            launch {
+                thermalDataStore.data.collect { prefs ->
+                    targetMode = prefs[LAST_THERMAL_MODE] ?: 0
+                }
+            }
+
+            val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
             var retryCount = 0
+
             while (isActive) {
                 try {
+                    // Optimization: Pause monitoring if screen is off, 
+                    // unless we are in a critical state (which we don't track here yet).
+                    // For now, just slowing down check when screen is off is safer than stopping.
+                    if (!pm.isInteractive) {
+                        delay(5000)
+                        continue
+                    }
+
                     if (!isRootAvailable) {
                         checkRootAccess()
                         if (!isRootAvailable) {
@@ -174,38 +194,35 @@ class ThermalService : Service() {
                         }
                     }
 
-                    // Check if we're still in Dynamic mode (10)
-                    val savedMode = try {
-                        runBlocking {
-                            thermalDataStore.data.first()[LAST_THERMAL_MODE] ?: 0
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to get saved thermal mode", e)
-                        0
-                    }
-
                     // If we're no longer in Dynamic mode, stop the service
-                    if (savedMode != 10) {
-                        Log.d(TAG, "No longer in Dynamic mode ($savedMode), stopping service")
-                        stopSelf()
-                        break
+                    if (targetMode != 10 && targetMode != 0) {
+                         // Wait a bit to ensure targetMode is stable or if we should just stop
+                         // But for now, if it's not dynamic, we shouldn't be enforcing it?
+                         // The original logic stopped if savedMode != 10.
+                         // We'll mimic that behavior but slightly more robustly.
+                         Log.d(TAG, "No longer in Dynamic mode ($targetMode), stopping service")
+                         stopSelf()
+                         break
                     }
+                    
+                    if (targetMode == 10) {
+                        val currentMode = thermalRepository.getCurrentThermalModeIndex().first()
 
-                    val currentMode = thermalRepository.getCurrentThermalModeIndex().first()
-
-                    if (currentMode != savedMode && savedMode != 0) {
-                        Log.d(TAG, "Thermal mode changed from $savedMode to $currentMode, restoring...")
-                        val result = Shell.cmd("echo $savedMode > /sys/class/thermal/thermal_message/sconfig").exec()
-                        if (result.isSuccess) {
-                            retryCount = 0
-                        } else {
-                            Log.e(TAG, "Failed to restore thermal mode: ${result.err.joinToString()}")
-                            if (++retryCount >= MAX_RETRY_COUNT) {
-                                break
+                        if (currentMode != targetMode) {
+                            Log.d(TAG, "Thermal mode changed from $targetMode to $currentMode, restoring...")
+                            val result = Shell.cmd("echo $targetMode > /sys/class/thermal/thermal_message/sconfig").exec()
+                            if (result.isSuccess) {
+                                retryCount = 0
+                            } else {
+                                Log.e(TAG, "Failed to restore thermal mode: ${result.err.joinToString()}")
+                                if (++retryCount >= MAX_RETRY_COUNT) {
+                                    break
+                                }
                             }
                         }
                     }
-                    delay(MONITOR_INTERVAL)
+                    
+                    delay(3000) // Increase interval to 3s
 
                 } catch (e: Exception) {
                     Log.e(TAG, "Error in monitoring loop", e)

@@ -42,6 +42,10 @@ class AppMonitorService : Service() {
         getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager
     }
 
+    private val powerManager by lazy {
+        getSystemService(POWER_SERVICE) as android.os.PowerManager
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -66,8 +70,13 @@ class AppMonitorService : Service() {
         monitorJob?.cancel()
         monitorJob = serviceScope.launch {
             while (isActive) {
-                checkForegroundApp()
-                delay(1000) // Check every 1 second
+                if (powerManager.isInteractive) {
+                    checkForegroundApp()
+                    delay(1000) // Check every 1 second
+                } else {
+                    // Screen is off, pause monitoring
+                    delay(5000)
+                }
             }
         }
     }

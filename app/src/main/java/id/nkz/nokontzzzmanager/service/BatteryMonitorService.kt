@@ -208,11 +208,15 @@ class BatteryMonitorService : Service() {
         if (isRunning) return
         isRunning = true
 
+        val pm = getSystemService(POWER_SERVICE) as PowerManager
+
         scope.launch {
             while (isRunning) {
                 val stats = collectSystemStats()
                 updateNotification(stats)
-                val d = nextDelayOverrideMs ?: 5_000L
+                
+                // Adaptive delay: 5s if screen on, 60s if screen off (to match history save interval)
+                val d = nextDelayOverrideMs ?: if (pm.isInteractive) 5_000L else 60_000L
                 nextDelayOverrideMs = null
                 delay(d)
             }
