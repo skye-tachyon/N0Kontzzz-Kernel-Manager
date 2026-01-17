@@ -1,6 +1,5 @@
-package id.nkz.nokontzzzmanager.ui.components
+package id.nkz.nokontzzzmanager.ui.dialog
 
-import android.os.Process
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,7 +37,7 @@ import id.nkz.nokontzzzmanager.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RootRequiredDialog(
+fun KernelVerificationDialog(
     onDismiss: () -> Unit
 ) {
     BasicAlertDialog(
@@ -68,14 +68,14 @@ fun RootRequiredDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Lock,
+                                imageVector = Icons.Default.Warning,
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp),
                                 tint = MaterialTheme.colorScheme.onErrorContainer
                             )
                         }
                         Text(
-                            text = stringResource(id = R.string.root_required),
+                            text = stringResource(id = R.string.kernel_verification_title),
                             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
@@ -83,11 +83,46 @@ fun RootRequiredDialog(
                     }
 
                     // Content
-                    Text(
-                        text = stringResource(id = R.string.root_required_desc),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = stringResource(id = R.string.kernel_verification_desc),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        // Highlighted Note for perf+
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = stringResource(id = R.string.kernel_verification_perf_note),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = stringResource(id = R.string.kernel_verification_instruction),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
 
                     // Actions
                     Row(
@@ -95,11 +130,7 @@ fun RootRequiredDialog(
                         horizontalArrangement = Arrangement.End
                     ) {
                         Button(
-                            onClick = {
-                                onDismiss()
-                                // Force close the entire app process to ensure fresh start
-                                Process.killProcess(Process.myPid())
-                            },
+                            onClick = onDismiss,
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.error,
@@ -116,11 +147,11 @@ fun RootRequiredDialog(
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
-private fun RootRequiredDialogPreview() {
+private fun KernelVerificationDialogPreview() {
     MaterialTheme {
-        RootRequiredDialog(onDismiss = {})
+        KernelVerificationDialog(onDismiss = {})
     }
 }
-

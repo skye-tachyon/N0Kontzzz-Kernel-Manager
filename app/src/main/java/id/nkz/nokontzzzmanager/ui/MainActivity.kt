@@ -36,8 +36,8 @@ import id.nkz.nokontzzzmanager.data.repository.RootRepository
 import id.nkz.nokontzzzmanager.data.repository.ThermalRepository
 import id.nkz.nokontzzzmanager.ui.components.BottomNavBar
 
-import id.nkz.nokontzzzmanager.ui.components.KernelVerificationDialog
-import id.nkz.nokontzzzmanager.ui.components.RootRequiredDialog
+import id.nkz.nokontzzzmanager.ui.dialog.KernelVerificationDialog
+import id.nkz.nokontzzzmanager.ui.dialog.RootRequiredDialog
 import id.nkz.nokontzzzmanager.ui.dialog.BatteryOptDialog
 import id.nkz.nokontzzzmanager.ui.screens.*
 import id.nkz.nokontzzzmanager.ui.theme.RvKernelManagerTheme
