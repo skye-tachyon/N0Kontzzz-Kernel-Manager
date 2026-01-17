@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-android {
+configure <com.android.build.api.dsl.ApplicationExtension> {
     namespace = "id.nkz.nokontzzzmanager"
     compileSdk = 36
 
@@ -27,16 +27,18 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        lint.disable.add("NullSafeMutableLiveData")
+    }
+    lint {
+        disable.add("NullSafeMutableLiveData")
     }
     buildFeatures { compose = true }
-    
-    configurations.all {
-        resolutionStrategy {
-            force(libs.guava)
-        }
-        exclude(group = "com.google.guava", module = "listenablefuture")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force(libs.guava)
     }
+    exclude(group = "com.google.guava", module = "listenablefuture")
 }
 
 kotlin {
