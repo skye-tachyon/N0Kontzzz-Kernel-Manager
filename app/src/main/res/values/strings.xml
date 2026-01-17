@@ -188,7 +188,10 @@
 
     <string name="charging_control_title">Charging Control</string>
     <string name="charging_control_desc">Automatically stop and resume charging at specific battery levels</string>
+    <string name="charging_control_bypass_note">Note: This feature only works if your kernel supports Bypass Charging as it uses the same control node.</string>
     <string name="enable_charging_control">Enable Charge Limit</string>
+    <string name="bypass_active_subtitle">Disabled: Bypass Charging is active</string>
+    <string name="charging_control_active_subtitle">Disabled: Charging Control is active</string>
     <string name="stop_charging_at">Stop charging at: %d%%</string>
     <string name="resume_charging_at">Resume charging at: %d%%</string>
     <string name="charging_status">Status: %s</string>

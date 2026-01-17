@@ -185,6 +185,7 @@ fun MiscScreen(
             BypassChargingCard(
                 bypassChargingEnabled = bypassChargingEnabled,
                 isBypassChargingAvailable = isBypassChargingAvailable,
+                isChargingControlEnabled = chargingControlEnabled,
                 onToggleBypassCharging = { enabled ->
                     viewModel.toggleBypassCharging(enabled)
                 }
@@ -207,6 +208,7 @@ fun MiscScreen(
             ChargingControlCard(
                 enabled = chargingControlEnabled,
                 isBatteryMonitorEnabled = batteryMonitorEnabled,
+                isBypassChargingEnabled = bypassChargingEnabled,
                 onClick = { showChargingControlDialog = true }
             )
         }
@@ -1212,10 +1214,12 @@ fun IoSchedulerCard(
 fun BypassChargingCard(
     bypassChargingEnabled: Boolean,
     isBypassChargingAvailable: Boolean?,
+    isChargingControlEnabled: Boolean,
     onToggleBypassCharging: (Boolean) -> Unit,
 ) {
     // Treat null as false for UI purposes, preventing flicker during initial load
     val featureAvailable = isBypassChargingAvailable == true
+    val isEnabled = featureAvailable && !isChargingControlEnabled
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1224,7 +1228,7 @@ fun BypassChargingCard(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         onClick = {
-            if (featureAvailable) {
+            if (isEnabled) {
                 onToggleBypassCharging(!bypassChargingEnabled)
             }
         }
@@ -1243,7 +1247,7 @@ fun BypassChargingCard(
                     modifier = Modifier
                         .size(42.dp)
                         .background(
-                            color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            color = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -1251,7 +1255,7 @@ fun BypassChargingCard(
                     Icon(
                         imageVector = Icons.Default.BatteryChargingFull,
                         contentDescription = null,
-                        tint = if (featureAvailable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1261,18 +1265,20 @@ fun BypassChargingCard(
                         text = stringResource(id = R.string.bypass_charging),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.5f
                         )
                     )
                     Text(
-                        text = if (featureAvailable) {
+                        text = if (isChargingControlEnabled) {
+                            stringResource(id = R.string.charging_control_active_subtitle)
+                        } else if (featureAvailable) {
                             stringResource(id = R.string.bypass_charging_desc)
                         } else {
                             stringResource(id = R.string.feature_not_available)
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.5f
                         )
                     )
@@ -1281,7 +1287,7 @@ fun BypassChargingCard(
                 Switch(
                     checked = bypassChargingEnabled,
                     onCheckedChange = null,
-                    enabled = featureAvailable,
+                    enabled = isEnabled,
                     thumbContent = if (bypassChargingEnabled) {
                         {
                             Icon(
@@ -1346,16 +1352,22 @@ fun BypassChargingCard(
 fun ChargingControlCard(
     enabled: Boolean,
     isBatteryMonitorEnabled: Boolean,
+    isBypassChargingEnabled: Boolean,
     onClick: () -> Unit
 ) {
+    val isEnabled = isBatteryMonitorEnabled && !isBypassChargingEnabled
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        enabled = isBatteryMonitorEnabled,
-        onClick = onClick
+        onClick = {
+            if (isEnabled) {
+                onClick()
+            }
+        }
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -1371,7 +1383,7 @@ fun ChargingControlCard(
                     modifier = Modifier
                         .size(42.dp)
                         .background(
-                            color = if (isBatteryMonitorEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            color = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -1379,7 +1391,7 @@ fun ChargingControlCard(
                     Icon(
                         imageVector = Icons.Default.BatterySaver,
                         contentDescription = null,
-                        tint = if (isBatteryMonitorEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1389,22 +1401,33 @@ fun ChargingControlCard(
                         text = stringResource(id = R.string.charging_control_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
-                        color = if (isBatteryMonitorEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                     Text(
-                        text = if (isBatteryMonitorEnabled) {
+                        text = if (isBypassChargingEnabled) {
+                             stringResource(id = R.string.bypass_active_subtitle)
+                        } else if (isBatteryMonitorEnabled) {
                             stringResource(id = R.string.charging_control_desc)
                         } else {
                             stringResource(id = R.string.requires_battery_monitor)
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isBatteryMonitorEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
+                    
+                    if (isBatteryMonitorEnabled && !isBypassChargingEnabled) {
+                        Text(
+                            text = stringResource(id = R.string.charging_control_bypass_note),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Configure",
-                    tint = if (isBatteryMonitorEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    tint = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
             }
         }

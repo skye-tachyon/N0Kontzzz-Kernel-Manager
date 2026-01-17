@@ -189,7 +189,10 @@
 
     <string name="charging_control_title">Kontrol Pengisian Daya</string>
     <string name="charging_control_desc">Berhenti dan lanjutkan pengisian daya secara otomatis pada level baterai tertentu</string>
+    <string name="charging_control_bypass_note">Catatan: Fitur ini hanya berfungsi jika kernel mendukung Bypass Charging (menggunakan node kontrol yang sama).</string>
     <string name="enable_charging_control">Aktifkan Batas Pengisian</string>
+    <string name="bypass_active_subtitle">Dinonaktifkan: Bypass Charging aktif</string>
+    <string name="charging_control_active_subtitle">Dinonaktifkan: Kontrol Pengisian aktif</string>
     <string name="stop_charging_at">Berhenti mengisi pada: %d%%</string>
     <string name="resume_charging_at">Lanjutkan mengisi pada: %d%%</string>
     <string name="charging_status">Status: %s</string>
