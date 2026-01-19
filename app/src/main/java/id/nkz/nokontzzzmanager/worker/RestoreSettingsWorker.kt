@@ -15,6 +15,7 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import id.nkz.nokontzzzmanager.service.ThermalService
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 
 @HiltWorker
 class RestoreSettingsWorker @AssistedInject constructor(
@@ -40,7 +41,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
         return Result.success()
     }
 
-    private fun restoreCpuSettings() {
+    private suspend fun restoreCpuSettings() {
         if (!preferenceManager.isApplyCpuOnBoot()) {
             Log.d("RestoreSettingsWorker", "Skipping CPU restore (disabled by user)")
             return
@@ -50,16 +51,32 @@ class RestoreSettingsWorker @AssistedInject constructor(
         clusters.forEach { cluster ->
             // Restore Governor
             preferenceManager.getCpuGov(cluster)?.let { gov ->
-                tuningRepository.setCpuGov(cluster, gov)
-                Log.d("RestoreSettingsWorker", "Restored CPU Governor for $cluster: $gov")
+                var success = false
+                for (i in 1..5) {
+                    if (tuningRepository.setCpuGov(cluster, gov)) {
+                        success = true
+                        Log.d("RestoreSettingsWorker", "Restored CPU Governor for $cluster to $gov: success")
+                        break
+                    }
+                    delay(2000)
+                }
+                if (!success) Log.e("RestoreSettingsWorker", "Failed to restore CPU Gov for $cluster to $gov")
             }
 
             // Restore Frequencies
             val minFreq = preferenceManager.getCpuMinFreq(cluster)
             val maxFreq = preferenceManager.getCpuMaxFreq(cluster)
             if (minFreq != -1 && maxFreq != -1) {
-                tuningRepository.setCpuFreq(cluster, minFreq, maxFreq)
-                Log.d("RestoreSettingsWorker", "Restored CPU Frequencies for $cluster: $minFreq - $maxFreq")
+                var success = false
+                for (i in 1..5) {
+                    if (tuningRepository.setCpuFreq(cluster, minFreq, maxFreq)) {
+                        success = true
+                        Log.d("RestoreSettingsWorker", "Restored CPU Frequencies for $cluster to $minFreq - $maxFreq: success")
+                        break
+                    }
+                    delay(2000)
+                }
+                if (!success) Log.e("RestoreSettingsWorker", "Failed to restore CPU Freqs for $cluster")
             }
         }
     }
@@ -133,7 +150,7 @@ class RestoreSettingsWorker @AssistedInject constructor(
         }
     }
 
-    private fun restorePerformanceMode() {
+    private suspend fun restorePerformanceMode() {
         if (!preferenceManager.isApplyPerformanceModeOnBoot()) {
             Log.d("RestoreSettingsWorker", "Skipping Performance Mode restore (disabled by user)")
             return
@@ -148,18 +165,20 @@ class RestoreSettingsWorker @AssistedInject constructor(
         }
 
         val clusters = tuningRepository.getClusterLeaders()
-        var successCount = 0
-        
         clusters.forEach { cluster ->
-            if (tuningRepository.setCpuGov(cluster, governor)) {
-                successCount++
+            var success = false
+            for (i in 1..5) {
+                if (tuningRepository.setCpuGov(cluster, governor)) {
+                    success = true
+                    Log.d("RestoreSettingsWorker", "Restored Performance Mode ($mode -> $governor) on $cluster: success")
+                    break
+                }
+                delay(2000)
             }
         }
-        
-        Log.d("RestoreSettingsWorker", "Restored Performance Mode ($mode -> $governor) on $successCount clusters")
     }
 
-    private fun restoreGpuSettings() {
+    private suspend fun restoreGpuSettings() {
         if (!preferenceManager.isApplyGpuOnBoot()) {
             Log.d("RestoreSettingsWorker", "Skipping GPU restore (disabled by user)")
             return
@@ -167,35 +186,53 @@ class RestoreSettingsWorker @AssistedInject constructor(
 
         // Governor
         preferenceManager.getGpuGovernor()?.let { gov ->
-            if (tuningRepository.setGpuGov(gov)) {
-                Log.d("RestoreSettingsWorker", "Restored GPU Governor: $gov")
+            var success = false
+            for (i in 1..5) {
+                if (tuningRepository.setGpuGov(gov)) {
+                    success = true
+                    Log.d("RestoreSettingsWorker", "Restored GPU Governor to $gov: success")
+                    break
+                }
+                delay(2000)
             }
         }
 
         // Frequencies
         val minFreq = preferenceManager.getGpuMinFreq()
         if (minFreq != -1) {
-            tuningRepository.setGpuMinFreq(minFreq)
+            for (i in 1..5) {
+                if (tuningRepository.setGpuMinFreq(minFreq)) break
+                delay(2000)
+            }
         }
         
         val maxFreq = preferenceManager.getGpuMaxFreq()
         if (maxFreq != -1) {
-            tuningRepository.setGpuMaxFreq(maxFreq)
+            for (i in 1..5) {
+                if (tuningRepository.setGpuMaxFreq(maxFreq)) break
+                delay(2000)
+            }
         }
 
         // Power Level
         val powerLevel = preferenceManager.getGpuPowerLevel()
         if (powerLevel != -1) {
-            tuningRepository.setGpuPowerLevel(powerLevel.toFloat())
+            for (i in 1..5) {
+                if (tuningRepository.setGpuPowerLevel(powerLevel.toFloat())) break
+                delay(2000)
+            }
         }
 
         // Throttling
         preferenceManager.getGpuThrottling()?.let { enabled ->
-            systemRepository.setGpuThrottling(enabled)
+            for (i in 1..5) {
+                if (systemRepository.setGpuThrottling(enabled)) break
+                delay(2000)
+            }
         }
     }
 
-    private fun restoreRamSettings() {
+    private suspend fun restoreRamSettings() {
         if (!preferenceManager.isApplyRamOnBoot()) {
             Log.d("RestoreSettingsWorker", "Skipping RAM restore (disabled by user)")
             return
@@ -204,48 +241,72 @@ class RestoreSettingsWorker @AssistedInject constructor(
         // ZRAM Size
         val zramSize = preferenceManager.getZramDisksize()
         if (zramSize != -1L) {
-             tuningRepository.setZramDisksize(zramSize)
+             for (i in 1..5) {
+                if (tuningRepository.setZramDisksize(zramSize)) break
+                delay(2000)
+             }
         }
 
         // Compression Algo
         preferenceManager.getZramCompression()?.let { algo ->
-            tuningRepository.setCompressionAlgorithm(algo)
+            for (i in 1..5) {
+                if (tuningRepository.setCompressionAlgorithm(algo)) break
+                delay(2000)
+            }
         }
 
         // Swappiness
         val swappiness = preferenceManager.getSwappiness()
         if (swappiness != -1) {
-            tuningRepository.setSwappiness(swappiness)
+            for (i in 1..5) {
+                if (tuningRepository.setSwappiness(swappiness)) break
+                delay(2000)
+            }
         }
 
         // Dirty Ratio
         val dirtyRatio = preferenceManager.getDirtyRatio()
         if (dirtyRatio != -1) {
-            tuningRepository.setDirtyRatio(dirtyRatio)
+            for (i in 1..5) {
+                if (tuningRepository.setDirtyRatio(dirtyRatio)) break
+                delay(2000)
+            }
         }
 
         // Dirty Background Ratio
         val dirtyBgRatio = preferenceManager.getDirtyBackgroundRatio()
         if (dirtyBgRatio != -1) {
-            tuningRepository.setDirtyBackgroundRatio(dirtyBgRatio)
+            for (i in 1..5) {
+                if (tuningRepository.setDirtyBackgroundRatio(dirtyBgRatio)) break
+                delay(2000)
+            }
         }
 
         // Dirty Writeback
         val dirtyWriteback = preferenceManager.getDirtyWriteback()
         if (dirtyWriteback != -1) {
-            tuningRepository.setDirtyWriteback(dirtyWriteback * 100)
+            for (i in 1..5) {
+                if (tuningRepository.setDirtyWriteback(dirtyWriteback * 100)) break
+                delay(2000)
+            }
         }
 
         // Dirty Expire
         val dirtyExpire = preferenceManager.getDirtyExpire()
         if (dirtyExpire != -1) {
-            tuningRepository.setDirtyExpireCentisecs(dirtyExpire)
+            for (i in 1..5) {
+                if (tuningRepository.setDirtyExpireCentisecs(dirtyExpire)) break
+                delay(2000)
+            }
         }
 
         // Min Free Memory
         val minFree = preferenceManager.getMinFreeMemory()
         if (minFree != -1) {
-            tuningRepository.setMinFreeMemory(minFree * 1024)
+            for (i in 1..5) {
+                if (tuningRepository.setMinFreeMemory(minFree * 1024)) break
+                delay(2000)
+            }
         }
     }
 
@@ -259,22 +320,28 @@ class RestoreSettingsWorker @AssistedInject constructor(
         val lastSavedIndex = thermalPrefs.getInt("last_applied_thermal_index", -2)
 
         if (lastSavedIndex != -2) {
-             thermalRepository.setThermalModeIndex(lastSavedIndex).collect { success ->
-                 if (success) {
-                     Log.d("RestoreSettingsWorker", "Restored Thermal Profile Index: $lastSavedIndex")
-                     
-                     // Handle Dynamic Mode Service
-                     if (lastSavedIndex == 10) {
-                         val intent = Intent(applicationContext, ThermalService::class.java)
-                         intent.putExtra("thermal_mode", lastSavedIndex)
-                         try {
-                             ContextCompat.startForegroundService(applicationContext, intent)
-                         } catch (e: Exception) {
-                             Log.e("RestoreSettingsWorker", "Failed to start ThermalService", e)
-                         }
-                     }
-                 }
-             }
+            var success = false
+            for (i in 1..5) {
+                val ok = thermalRepository.setThermalModeIndex(lastSavedIndex).first()
+                if (ok) {
+                    success = true
+                    Log.d("RestoreSettingsWorker", "Restored Thermal Profile Index: $lastSavedIndex")
+                    
+                    // Handle Dynamic Mode Service
+                    if (lastSavedIndex == 10) {
+                        val intent = Intent(applicationContext, ThermalService::class.java)
+                        intent.putExtra("thermal_mode", lastSavedIndex)
+                        try {
+                            ContextCompat.startForegroundService(applicationContext, intent)
+                        } catch (e: Exception) {
+                            Log.e("RestoreSettingsWorker", "Failed to start ThermalService", e)
+                        }
+                    }
+                    break
+                }
+                delay(2000)
+            }
+            if (!success) Log.e("RestoreSettingsWorker", "Failed to restore Thermal Profile Index: $lastSavedIndex")
         }
     }
 }

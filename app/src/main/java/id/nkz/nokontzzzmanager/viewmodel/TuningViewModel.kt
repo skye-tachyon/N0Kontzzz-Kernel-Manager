@@ -312,21 +312,65 @@ class TuningViewModel @Inject constructor(
             fetchAllCpuData()
             refreshCoreStates()
             
-            // Self-healing: Check if active performance mode matches preference
-            // We need to wait a bit for flows to emit the just-fetched data
-            delay(100) 
-            val preferredMode = preferenceManager.getPerformanceMode()
-            // We can't access activePerformanceMode value directly easily as it is a Flow.
-            // But we can check the governors we just fetched.
-            val gov0 = _currentCpuGovernors["cpu0"]?.value
+            // Allow time for flows to emit initial values
+            delay(200) 
             
-            // Simple check: if preferred is Performance/Powersave but we see schedutil, re-apply.
-            if (preferredMode == "Performance" && gov0 != "performance") {
-                Log.d("TuningVM_SelfHeal", "Re-applying Performance Mode")
-                onPerformanceModeChange(preferredMode)
-            } else if (preferredMode == "Powersave" && gov0 != "powersave") {
-                Log.d("TuningVM_SelfHeal", "Re-applying Powersave Mode")
-                onPerformanceModeChange(preferredMode)
+            // 1. Self-healing for Performance Mode
+            if (preferenceManager.isApplyPerformanceModeOnBoot()) {
+                val preferredMode = preferenceManager.getPerformanceMode()
+                val gov0 = _currentCpuGovernors["cpu0"]?.value
+                
+                // Only act if we have valid governor data
+                if (gov0 != null && gov0 != "...") {
+                    if (preferredMode == "Performance" && gov0 != "performance") {
+                        Log.d("TuningVM_SelfHeal", "Re-applying Performance Mode")
+                        onPerformanceModeChange(preferredMode)
+                        return@withContext // Exit to avoid conflict with manual settings below
+                    } else if (preferredMode == "Powersave" && gov0 != "powersave") {
+                        Log.d("TuningVM_SelfHeal", "Re-applying Powersave Mode")
+                        onPerformanceModeChange(preferredMode)
+                        return@withContext
+                    }
+                }
+            }
+
+            // 2. Self-healing for Manual CPU Settings (Per-cluster)
+            if (preferenceManager.isApplyCpuOnBoot()) {
+                cpuClusters.forEach { cluster ->
+                    // Governor Check
+                    val prefGov = preferenceManager.getCpuGov(cluster)
+                    val currentGov = _currentCpuGovernors[cluster]?.value
+                    
+                    if (!prefGov.isNullOrEmpty() && currentGov != "..." && currentGov != prefGov) {
+                         Log.d("TuningVM_SelfHeal", "Re-applying CPU Gov for $cluster: $prefGov")
+                         setCpuGov(cluster, prefGov)
+                    }
+
+                    // Frequency Check
+                    val prefMin = preferenceManager.getCpuMinFreq(cluster)
+                    val prefMax = preferenceManager.getCpuMaxFreq(cluster)
+                    val currentFreqs = _currentCpuFrequencies[cluster]?.value ?: (0 to 0)
+                    val (currMin, currMax) = currentFreqs
+                    
+                    var needsUpdate = false
+                    // Determine target frequencies
+                    var targetMin = currMin
+                    var targetMax = currMax
+
+                    if (prefMin != -1 && prefMin != currMin) {
+                        targetMin = prefMin
+                        needsUpdate = true
+                    }
+                    if (prefMax != -1 && prefMax != currMax) {
+                        targetMax = prefMax
+                        needsUpdate = true
+                    }
+
+                    if (needsUpdate) {
+                         Log.d("TuningVM_SelfHeal", "Re-applying CPU Freqs for $cluster: $targetMin - $targetMax")
+                         setCpuFreq(cluster, targetMin, targetMax)
+                    }
+                }
             }
         }
     }
@@ -335,9 +379,28 @@ class TuningViewModel @Inject constructor(
         if (isGpuDataLoaded.getAndSet(true)) return
         Log.d("TuningVM_LazyLoad", "Loading GPU data...")
         withContext(Dispatchers.IO) {
-            launch { fetchGpuData() }
-            launch { fetchOpenGlesDriver() }
-            launch { fetchVulkanApiVersion() }
+            fetchGpuData()
+            fetchOpenGlesDriver()
+            fetchVulkanApiVersion()
+
+            // Self-healing for GPU
+            if (preferenceManager.isApplyGpuOnBoot()) {
+                val prefGov = preferenceManager.getGpuGovernor()
+                if (prefGov != null && _currentGpuGovernor.value != prefGov) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying GPU Governor: $prefGov")
+                    setGpuGovernor(prefGov)
+                }
+
+                val prefMin = preferenceManager.getGpuMinFreq()
+                val prefMax = preferenceManager.getGpuMaxFreq()
+                if ((prefMin != -1 && _currentGpuMinFreq.value != prefMin) || 
+                    (prefMax != -1 && _currentGpuMaxFreq.value != prefMax)) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying GPU Frequencies")
+                    if (prefMin != -1) repo.setGpuMinFreq(prefMin)
+                    if (prefMax != -1) repo.setGpuMaxFreq(prefMax)
+                    fetchGpuData()
+                }
+            }
         }
     }
 
@@ -346,6 +409,15 @@ class TuningViewModel @Inject constructor(
         Log.d("TuningVM_LazyLoad", "Loading RAM data...")
         withContext(Dispatchers.IO) {
             fetchRamControlData()
+
+            // Self-healing for RAM (Swappiness as example)
+            if (preferenceManager.isApplyRamOnBoot()) {
+                val prefSwappiness = preferenceManager.getSwappiness()
+                if (prefSwappiness != -1 && _swappiness.value != prefSwappiness) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying Swappiness: $prefSwappiness")
+                    setSwappiness(prefSwappiness)
+                }
+            }
         }
     }
 
@@ -360,17 +432,18 @@ class TuningViewModel @Inject constructor(
                 // A profile was previously saved by the user. Restore it.
                 val profile = thermalRepo.availableThermalProfiles.find { it.index == lastSavedIndex }
                 if (profile != null) {
-                    Log.d("TuningVM_Thermal", "Restoring saved thermal profile: ${profile.displayName}")
-                    // setThermalProfileInternal will handle writing to kernel and updating the state flow.
-                    setThermalProfileInternal(profile, isRestoring = true)
+                    // Check if current kernel mode matches
+                    val currentKernelIndex = thermalRepo.getCurrentThermalModeIndex().first()
+                    if (currentKernelIndex != lastSavedIndex) {
+                        Log.d("TuningVM_Thermal", "Restoring saved thermal profile (Self-heal): ${profile.displayName}")
+                        setThermalProfileInternal(profile, isRestoring = true)
+                    } else {
+                        _currentThermalModeIndex.value = currentKernelIndex
+                    }
                 } else {
-                    // The saved index is invalid for some reason, fall back to reading from kernel.
-                    Log.w("TuningVM_Thermal", "Invalid saved thermal index: $lastSavedIndex. Fetching from kernel.")
                     fetchCurrentThermalMode()
                 }
             } else {
-                // No setting was ever saved by the user. Just read the current kernel state.
-                Log.d("TuningVM_Thermal", "No saved thermal profile found. Fetching from kernel.")
                 fetchCurrentThermalMode()
             }
         }

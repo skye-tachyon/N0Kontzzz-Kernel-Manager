@@ -40,6 +40,7 @@ import id.nkz.nokontzzzmanager.viewmodel.TuningViewModel
 import kotlinx.coroutines.launch
 
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.nkz.nokontzzzmanager.R
 
 // Daftar fitur dengan terjemahannya
@@ -61,6 +62,12 @@ fun TuningScreen(
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val isLoading by viewModel.isLoading.collectAsState()
+    
+    val applyPerformanceOnBoot by viewModel.applyPerformanceModeOnBoot.collectAsStateWithLifecycle()
+    val applyCpuOnBoot by viewModel.applyCpuOnBoot.collectAsStateWithLifecycle()
+    val applyGpuOnBoot by viewModel.applyGpuOnBoot.collectAsStateWithLifecycle()
+    val applyThermalOnBoot by viewModel.applyThermalOnBoot.collectAsStateWithLifecycle()
+    val applyRamOnBoot by viewModel.applyRamOnBoot.collectAsStateWithLifecycle()
 
     // Data is now loaded lazily. The LaunchedEffect triggers data loading
     // after the UI is composed, making the screen appear instantly.
@@ -169,7 +176,12 @@ fun TuningScreen(
         if (showBootSettingsDialog) {
             BootSettingsDialog(
                 onDismiss = { showBootSettingsDialog = false },
-                viewModel = viewModel
+                viewModel = viewModel,
+                applyPerformance = applyPerformanceOnBoot,
+                applyCpu = applyCpuOnBoot,
+                applyGpu = applyGpuOnBoot,
+                applyThermal = applyThermalOnBoot,
+                applyRam = applyRamOnBoot
             )
         }
     }
@@ -665,14 +677,13 @@ fun BootSettingsCard(
 @Composable
 fun BootSettingsDialog(
     onDismiss: () -> Unit,
-    viewModel: TuningViewModel
+    viewModel: TuningViewModel,
+    applyPerformance: Boolean,
+    applyCpu: Boolean,
+    applyGpu: Boolean,
+    applyThermal: Boolean,
+    applyRam: Boolean
 ) {
-    val applyPerformance by viewModel.applyPerformanceModeOnBoot.collectAsState()
-    val applyCpu by viewModel.applyCpuOnBoot.collectAsState()
-    val applyGpu by viewModel.applyGpuOnBoot.collectAsState()
-    val applyThermal by viewModel.applyThermalOnBoot.collectAsState()
-    val applyRam by viewModel.applyRamOnBoot.collectAsState()
-
     BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
