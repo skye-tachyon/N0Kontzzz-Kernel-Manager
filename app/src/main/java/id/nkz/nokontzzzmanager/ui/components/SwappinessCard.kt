@@ -54,6 +54,7 @@ fun SwappinessCard(
     val dirtyWriteback by vm.dirtyWriteback.collectAsState()
     val dirtyExpireCentisecs by vm.dirtyExpireCentisecs.collectAsState()
     val minFreeMemory by vm.minFreeMemory.collectAsState()
+    val zramOperationInProgress by vm.zramOperationInProgress.collectAsState()
 
 
     // Dialog visibility states
@@ -94,7 +95,9 @@ fun SwappinessCard(
                 ) {
                     // ZRAM Toggle Section
                     RamZramToggleSection(
-                        zramEnabled = zramEnabled
+                        zramEnabled = zramEnabled,
+                        isBusy = zramOperationInProgress,
+                        onToggle = { vm.setZramEnabled(!zramEnabled) }
                     )
 
                     AnimatedVisibility(visible = zramEnabled) {
@@ -426,7 +429,9 @@ fun RamControlHeaderSection(
 
 @Composable
 fun RamZramToggleSection(
-    zramEnabled: Boolean
+    zramEnabled: Boolean,
+    isBusy: Boolean,
+    onToggle: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -439,6 +444,7 @@ fun RamZramToggleSection(
                     MaterialTheme.colorScheme.surfaceContainer
                 }
             )
+            .clickable(enabled = !isBusy, onClick = onToggle)
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -454,24 +460,59 @@ fun RamZramToggleSection(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Text(
-                text = if (zramEnabled) stringResource(id = R.string.zram_enabled_desc) else stringResource(id = R.string.zram_disabled_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            if (isBusy) {
+                Text(
+                    text = if (zramEnabled) stringResource(id = R.string.disabling_zram_wait) else stringResource(id = R.string.enabling_zram_wait),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                Text(
+                    text = if (zramEnabled) stringResource(id = R.string.zram_enabled_desc) else stringResource(id = R.string.zram_disabled_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
 
-        Text(
-            text = if (zramEnabled) stringResource(id = R.string.on) else stringResource(id = R.string.off),
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = FontWeight.Bold
-            ),
-            color = if (zramEnabled) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            }
-        )
+        if (isBusy) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(SwitchDefaults.IconSize),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        } else {
+            Switch(
+                checked = zramEnabled,
+                enabled = !isBusy,
+                onCheckedChange = { onToggle() },
+                thumbContent = if (zramEnabled) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                } else {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                            tint = MaterialTheme.colorScheme.surface
+                        )
+                    }
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.surface,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            )
+        }
     }
 }
 

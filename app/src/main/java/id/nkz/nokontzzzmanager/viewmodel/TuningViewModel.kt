@@ -146,6 +146,9 @@ class TuningViewModel @Inject constructor(
     private val _zramEnabled = MutableStateFlow(false)
     val zramEnabled: StateFlow<Boolean> = _zramEnabled.asStateFlow()
 
+    private val _zramOperationInProgress = MutableStateFlow(false)
+    val zramOperationInProgress: StateFlow<Boolean> = _zramOperationInProgress.asStateFlow()
+
     private val _zramDisksize = MutableStateFlow(536870912L) // 512 MB default
     val zramDisksize: StateFlow<Long> = _zramDisksize.asStateFlow()
 
@@ -566,7 +569,26 @@ class TuningViewModel @Inject constructor(
     }
 
     fun setZramEnabled(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
-        repo.setZramEnabled(enabled).collect { _zramEnabled.value = it }
+        _zramOperationInProgress.value = true
+        try {
+            repo.setZramEnabled(enabled).collect { isEnabled ->
+                _zramEnabled.value = isEnabled
+                if (isEnabled) {
+                    // When re-enabling, restore the user's preferred disk size if available
+                    val savedSize = preferenceManager.getZramDisksize()
+                    if (savedSize > 0) {
+                        if (repo.setZramDisksize(savedSize)) {
+                            repo.getZramDisksize().take(1).collect { _zramDisksize.value = it }
+                        }
+                    } else {
+                        // If no preference, just refresh the current value (likely default)
+                        repo.getZramDisksize().take(1).collect { _zramDisksize.value = it }
+                    }
+                }
+            }
+        } finally {
+            _zramOperationInProgress.value = false
+        }
     }
 
     fun setZramDisksize(sizeBytes: Long) = viewModelScope.launch(Dispatchers.IO) {

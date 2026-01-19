@@ -417,6 +417,8 @@
     <string name="zram_disabled_desc">RAM terkompresi nonaktif (dikelola oleh kernel)</string>
     <string name="on">AKTIF</string>
     <string name="off">NONAKTIF</string>
+    <string name="disabling_zram_wait">Sedang mematikan ZRAM, mohon tunggu…</string>
+    <string name="enabling_zram_wait">Sedang mengaktifkan ZRAM, mohon tunggu…</string>
 
     <!-- SwappinessCard Batch 4 -->
     <string name="configure">Konfigurasikan</string>
