@@ -92,19 +92,18 @@ private fun CpuHeaderSection(
     deviceCodename: String,
     info: RealtimeCpuInfo
 ) {
-    val displaySoc = remember(board, deviceCodename) {
+    val (marketingName, boardName) = remember(board, deviceCodename) {
         when (board.uppercase()) {
             "SM8250" -> {
-                // Check for known 870 devices that might report as SM8250
                 if (deviceCodename.lowercase() in listOf("munch", "alioth")) {
-                    "Qualcomm® Snapdragon™ 870 5G & SM8250-AC"
+                    "Qualcomm® Snapdragon™ 870 5G" to "SM8250-AC"
                 } else {
-                    "Qualcomm® Snapdragon™ 865 5G & SM8250"
+                    "Qualcomm® Snapdragon™ 865 5G" to "SM8250"
                 }
             }
-            "SM8250-AB" -> "Qualcomm® Snapdragon™ 865+ 5G & SM8250-AB"
-            "SM8250-AC" -> "Qualcomm® Snapdragon™ 870 5G & SM8250-AC"
-            else -> "Definitely not Kona family"
+            "SM8250-AB" -> "Qualcomm® Snapdragon™ 865+ 5G" to "SM8250-AB"
+            "SM8250-AC" -> "Qualcomm® Snapdragon™ 870 5G" to "SM8250-AC"
+            else -> "Definitely not Kona family" to ""
         }
     }
 
@@ -115,10 +114,20 @@ private fun CpuHeaderSection(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = displaySoc,
+                text = marketingName,
                 style = MaterialTheme.typography.headlineSmall, // M3 Typography
                 color = MaterialTheme.colorScheme.onSurface
             )
+            
+            if (boardName.isNotEmpty()) {
+                Text(
+                    text = boardName,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             Surface( // Using Surface for the label background
                 shape = RoundedCornerShape(8.dp),
