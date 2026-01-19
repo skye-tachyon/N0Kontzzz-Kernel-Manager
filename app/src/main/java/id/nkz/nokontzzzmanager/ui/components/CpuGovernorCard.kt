@@ -692,7 +692,7 @@ private fun CoreStatusDialog(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = getDialogListItemShape(index, coreStates.size),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                    containerColor = if (isOnline) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                 ),
                                 onClick = { onCoreToggled(index) }
                             ) {
