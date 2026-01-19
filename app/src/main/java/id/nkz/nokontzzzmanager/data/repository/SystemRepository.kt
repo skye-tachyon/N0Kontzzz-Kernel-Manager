@@ -143,8 +143,15 @@ class SystemRepository @Inject constructor(
         val governor = readFileToString("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", "CPU0 Governor") ?: VALUE_UNKNOWN
 
         val frequencies = List(cores) { coreIndex ->
-            val freqStr = readFileToString("/sys/devices/system/cpu/cpu$coreIndex/cpufreq/scaling_cur_freq", "CPU$coreIndex Current Freq")
-            (freqStr?.toLongOrNull()?.div(1000))?.toInt() ?: 0
+            val onlineStr = readFileToString("/sys/devices/system/cpu/cpu$coreIndex/online", "CPU$coreIndex Online Status", attemptSu = false)
+            val isOnline = onlineStr == null || onlineStr.trim() != "0"
+
+            if (isOnline) {
+                val freqStr = readFileToString("/sys/devices/system/cpu/cpu$coreIndex/cpufreq/scaling_cur_freq", "CPU$coreIndex Current Freq")
+                (freqStr?.toLongOrNull()?.div(1000))?.toInt() ?: 0
+            } else {
+                0
+            }
         }
 
         val tempStr = readFileToString("/sys/class/thermal/thermal_zone0/temp", "Thermal Zone0 Temp")
