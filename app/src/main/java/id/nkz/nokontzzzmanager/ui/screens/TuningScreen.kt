@@ -825,8 +825,7 @@ private fun BootOptionItem(
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = null,
-                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            modifier = Modifier.size(SwitchDefaults.IconSize)
                         )
                     }
                 } else {
@@ -834,17 +833,10 @@ private fun BootOptionItem(
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = null,
-                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                            tint = MaterialTheme.colorScheme.surface
+                            modifier = Modifier.size(SwitchDefaults.IconSize)
                         )
                     }
-                },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.surface,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                }
             )
         }
     }
