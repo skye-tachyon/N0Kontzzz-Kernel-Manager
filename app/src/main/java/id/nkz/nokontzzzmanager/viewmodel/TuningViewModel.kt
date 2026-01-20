@@ -371,6 +371,19 @@ class TuningViewModel @Inject constructor(
                          setCpuFreq(cluster, targetMin, targetMax)
                     }
                 }
+
+                // Self-healing for Core Online Status
+                (0..7).forEach { coreId ->
+                    val prefOnline = preferenceManager.getCpuCoreOnline(coreId)
+                    if (prefOnline != null) {
+                        val currentOnline = repo.getCoreOnline(coreId)
+                        if (currentOnline != prefOnline) {
+                            Log.d("TuningVM_SelfHeal", "Re-applying Core $coreId Status: $prefOnline")
+                            repo.setCoreOnline(coreId, prefOnline)
+                        }
+                    }
+                }
+                refreshCoreStates()
             }
         }
     }
@@ -582,6 +595,7 @@ class TuningViewModel @Inject constructor(
         if (repo.setCoreOnline(coreId, newState)) {
             newStates[coreId] = newState
             _coreStates.value = newStates
+            preferenceManager.setCpuCoreOnline(coreId, newState)
         } else {
             Log.e("TuningVM_CPU", "Failed toggle core $coreId")
         }

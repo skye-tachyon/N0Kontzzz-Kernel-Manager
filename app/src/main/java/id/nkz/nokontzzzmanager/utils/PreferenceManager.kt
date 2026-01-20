@@ -72,6 +72,7 @@ class PreferenceManager @Inject constructor(
         private const val KEY_CPU_GOV_PREFIX = "cpu_gov_"
         private const val KEY_CPU_MIN_FREQ_PREFIX = "cpu_min_freq_"
         private const val KEY_CPU_MAX_FREQ_PREFIX = "cpu_max_freq_"
+        private const val KEY_CPU_CORE_ONLINE_PREFIX = "cpu_core_online_"
 
         // Performance Mode
         private const val KEY_PERFORMANCE_MODE = "last_applied_performance_mode"
@@ -512,7 +513,8 @@ class PreferenceManager @Inject constructor(
             keys.filter { 
                 it.startsWith(KEY_CPU_GOV_PREFIX) || 
                 it.startsWith(KEY_CPU_MIN_FREQ_PREFIX) || 
-                it.startsWith(KEY_CPU_MAX_FREQ_PREFIX) 
+                it.startsWith(KEY_CPU_MAX_FREQ_PREFIX) ||
+                it.startsWith(KEY_CPU_CORE_ONLINE_PREFIX)
             }.forEach { remove(it) }
         }
     }
@@ -571,6 +573,21 @@ class PreferenceManager @Inject constructor(
         return credentialPrefs()?.getInt(KEY_CPU_MAX_FREQ_PREFIX + cluster, -1)
             ?.takeIf { it != -1 }
             ?: deviceProtectedPrefs().getInt(KEY_CPU_MAX_FREQ_PREFIX + cluster, -1)
+    }
+
+    fun setCpuCoreOnline(coreId: Int, online: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_CPU_CORE_ONLINE_PREFIX + coreId, online) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_CPU_CORE_ONLINE_PREFIX + coreId, online) }
+    }
+
+    fun getCpuCoreOnline(coreId: Int): Boolean? {
+        if (credentialPrefs()?.contains(KEY_CPU_CORE_ONLINE_PREFIX + coreId) == true) {
+            return credentialPrefs()?.getBoolean(KEY_CPU_CORE_ONLINE_PREFIX + coreId, true)
+        }
+        if (deviceProtectedPrefs().contains(KEY_CPU_CORE_ONLINE_PREFIX + coreId)) {
+            return deviceProtectedPrefs().getBoolean(KEY_CPU_CORE_ONLINE_PREFIX + coreId, true)
+        }
+        return null
     }
 
     // Performance Mode

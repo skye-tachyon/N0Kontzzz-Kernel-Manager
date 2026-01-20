@@ -47,6 +47,22 @@ class RestoreSettingsWorker @AssistedInject constructor(
             return
         }
 
+        // Restore Core Online Status
+        for (coreId in 0..7) {
+            preferenceManager.getCpuCoreOnline(coreId)?.let { online ->
+                var success = false
+                for (i in 1..5) {
+                    if (tuningRepository.setCoreOnline(coreId, online)) {
+                        success = true
+                        Log.d("RestoreSettingsWorker", "Restored Core $coreId online status to $online: success")
+                        break
+                    }
+                    delay(500)
+                }
+                if (!success) Log.e("RestoreSettingsWorker", "Failed to restore Core $coreId online status")
+            }
+        }
+
         val clusters = tuningRepository.getClusterLeaders()
         clusters.forEach { cluster ->
             // Restore Governor
