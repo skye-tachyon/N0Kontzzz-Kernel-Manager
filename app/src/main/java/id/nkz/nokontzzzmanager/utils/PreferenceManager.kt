@@ -441,10 +441,12 @@ class PreferenceManager @Inject constructor(
     // RAM
     fun setZramDisksize(size: Long) {
         credentialPrefs()?.edit { putLong(KEY_ZRAM_DISKSIZE, size) }
+        deviceProtectedPrefs().edit { putLong(KEY_ZRAM_DISKSIZE, size) }
     }
 
     fun getZramDisksize(): Long {
-        return credentialPrefs()?.getLong(KEY_ZRAM_DISKSIZE, -1L) ?: -1L
+        return credentialPrefs()?.getLong(KEY_ZRAM_DISKSIZE, -1L)
+            ?: deviceProtectedPrefs().getLong(KEY_ZRAM_DISKSIZE, -1L)
     }
 
     fun setZramCompression(algo: String?) {
@@ -452,94 +454,81 @@ class PreferenceManager @Inject constructor(
             if (algo == null) remove(KEY_ZRAM_COMPRESSION)
             else putString(KEY_ZRAM_COMPRESSION, algo)
         }
+        deviceProtectedPrefs().edit {
+            if (algo == null) remove(KEY_ZRAM_COMPRESSION)
+            else putString(KEY_ZRAM_COMPRESSION, algo)
+        }
     }
 
     fun getZramCompression(): String? {
         return credentialPrefs()?.getString(KEY_ZRAM_COMPRESSION, null)
+            ?: deviceProtectedPrefs().getString(KEY_ZRAM_COMPRESSION, null)
     }
 
     fun setSwappiness(value: Int) {
         credentialPrefs()?.edit { putInt(KEY_SWAPPINESS, value) }
+        deviceProtectedPrefs().edit { putInt(KEY_SWAPPINESS, value) }
     }
 
     fun getSwappiness(): Int {
-        return credentialPrefs()?.getInt(KEY_SWAPPINESS, -1) ?: -1
+        return credentialPrefs()?.getInt(KEY_SWAPPINESS, -1)
+            ?.takeIf { it != -1 }
+            ?: deviceProtectedPrefs().getInt(KEY_SWAPPINESS, -1)
     }
 
     fun setDirtyRatio(value: Int) {
         credentialPrefs()?.edit { putInt(KEY_DIRTY_RATIO, value) }
+        deviceProtectedPrefs().edit { putInt(KEY_DIRTY_RATIO, value) }
     }
 
     fun getDirtyRatio(): Int {
-        return credentialPrefs()?.getInt(KEY_DIRTY_RATIO, -1) ?: -1
+        return credentialPrefs()?.getInt(KEY_DIRTY_RATIO, -1)
+            ?.takeIf { it != -1 }
+            ?: deviceProtectedPrefs().getInt(KEY_DIRTY_RATIO, -1)
     }
 
     fun setDirtyBackgroundRatio(value: Int) {
         credentialPrefs()?.edit { putInt(KEY_DIRTY_BACKGROUND_RATIO, value) }
+        deviceProtectedPrefs().edit { putInt(KEY_DIRTY_BACKGROUND_RATIO, value) }
     }
 
     fun getDirtyBackgroundRatio(): Int {
-        return credentialPrefs()?.getInt(KEY_DIRTY_BACKGROUND_RATIO, -1) ?: -1
+        return credentialPrefs()?.getInt(KEY_DIRTY_BACKGROUND_RATIO, -1)
+            ?.takeIf { it != -1 }
+            ?: deviceProtectedPrefs().getInt(KEY_DIRTY_BACKGROUND_RATIO, -1)
     }
 
     fun setDirtyWriteback(value: Int) {
         credentialPrefs()?.edit { putInt(KEY_DIRTY_WRITEBACK, value) }
+        deviceProtectedPrefs().edit { putInt(KEY_DIRTY_WRITEBACK, value) }
     }
 
     fun getDirtyWriteback(): Int {
-        return credentialPrefs()?.getInt(KEY_DIRTY_WRITEBACK, -1) ?: -1
+        return credentialPrefs()?.getInt(KEY_DIRTY_WRITEBACK, -1)
+            ?.takeIf { it != -1 }
+            ?: deviceProtectedPrefs().getInt(KEY_DIRTY_WRITEBACK, -1)
     }
 
     fun setDirtyExpire(value: Int) {
         credentialPrefs()?.edit { putInt(KEY_DIRTY_EXPIRE, value) }
+        deviceProtectedPrefs().edit { putInt(KEY_DIRTY_EXPIRE, value) }
     }
 
     fun getDirtyExpire(): Int {
-        return credentialPrefs()?.getInt(KEY_DIRTY_EXPIRE, -1) ?: -1
+        return credentialPrefs()?.getInt(KEY_DIRTY_EXPIRE, -1)
+            ?.takeIf { it != -1 }
+            ?: deviceProtectedPrefs().getInt(KEY_DIRTY_EXPIRE, -1)
     }
 
     fun setMinFreeMemory(value: Int) {
         credentialPrefs()?.edit { putInt(KEY_MIN_FREE_MEMORY, value) }
+        deviceProtectedPrefs().edit { putInt(KEY_MIN_FREE_MEMORY, value) }
     }
 
     fun getMinFreeMemory(): Int {
-        return credentialPrefs()?.getInt(KEY_MIN_FREE_MEMORY, -1) ?: -1
-    }
-
-    // Reset Methods
-    fun clearCpuSettings() {
-        credentialPrefs()?.edit {
-            val keys = credentialPrefs()?.all?.keys ?: emptySet()
-            keys.filter { 
-                it.startsWith(KEY_CPU_GOV_PREFIX) || 
-                it.startsWith(KEY_CPU_MIN_FREQ_PREFIX) || 
-                it.startsWith(KEY_CPU_MAX_FREQ_PREFIX) ||
-                it.startsWith(KEY_CPU_CORE_ONLINE_PREFIX)
-            }.forEach { remove(it) }
-        }
-    }
-
-    fun clearGpuSettings() {
-        credentialPrefs()?.edit {
-            remove(KEY_GPU_GOVERNOR)
-            remove(KEY_GPU_MIN_FREQ)
-            remove(KEY_GPU_MAX_FREQ)
-            remove(KEY_GPU_POWER_LEVEL)
-            remove(KEY_GPU_THROTTLING)
-        }
-    }
-
-    fun clearRamSettings() {
-        credentialPrefs()?.edit {
-            remove(KEY_ZRAM_DISKSIZE)
-            remove(KEY_ZRAM_COMPRESSION)
-            remove(KEY_SWAPPINESS)
-            remove(KEY_DIRTY_RATIO)
-            remove(KEY_DIRTY_BACKGROUND_RATIO)
-            remove(KEY_DIRTY_WRITEBACK)
-            remove(KEY_DIRTY_EXPIRE)
-            remove(KEY_MIN_FREE_MEMORY)
-        }
+        return credentialPrefs()?.getInt(KEY_MIN_FREE_MEMORY, -1)
+            ?.takeIf { it != -1 }
+            ?: deviceProtectedPrefs().getInt(KEY_MIN_FREE_MEMORY, -1)
     }
 
     // CPU Per-cluster

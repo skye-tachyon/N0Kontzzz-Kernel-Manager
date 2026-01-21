@@ -422,13 +422,68 @@ class TuningViewModel @Inject constructor(
         Log.d("TuningVM_LazyLoad", "Loading RAM data...")
         withContext(Dispatchers.IO) {
             fetchRamControlData()
+            
+            // Allow a small delay for flows to update state
+            delay(150)
 
-            // Self-healing for RAM (Swappiness as example)
+            // Full Self-healing for RAM
             if (preferenceManager.isApplyRamOnBoot()) {
+                Log.d("TuningVM_SelfHeal", "Starting RAM Self-healing check")
+                
+                // 1. ZRAM Disksize
+                val prefZramSize = preferenceManager.getZramDisksize()
+                if (prefZramSize != -1L && _zramDisksize.value != prefZramSize) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying ZRAM Size: $prefZramSize")
+                    setZramDisksize(prefZramSize)
+                }
+
+                // 2. Compression Algorithm
+                val prefAlgo = preferenceManager.getZramCompression()
+                if (prefAlgo != null && _currentCompression.value != prefAlgo) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying Compression: $prefAlgo")
+                    setCompression(prefAlgo)
+                }
+
+                // 3. Swappiness
                 val prefSwappiness = preferenceManager.getSwappiness()
                 if (prefSwappiness != -1 && _swappiness.value != prefSwappiness) {
                     Log.d("TuningVM_SelfHeal", "Re-applying Swappiness: $prefSwappiness")
                     setSwappiness(prefSwappiness)
+                }
+
+                // 4. Dirty Ratio
+                val prefDirtyRatio = preferenceManager.getDirtyRatio()
+                if (prefDirtyRatio != -1 && _dirtyRatio.value != prefDirtyRatio) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying Dirty Ratio: $prefDirtyRatio")
+                    setDirtyRatio(prefDirtyRatio)
+                }
+
+                // 5. Dirty Background Ratio
+                val prefDirtyBg = preferenceManager.getDirtyBackgroundRatio()
+                if (prefDirtyBg != -1 && _dirtyBackgroundRatio.value != prefDirtyBg) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying Dirty Background Ratio: $prefDirtyBg")
+                    setDirtyBackgroundRatio(prefDirtyBg)
+                }
+
+                // 6. Dirty Writeback
+                val prefWriteback = preferenceManager.getDirtyWriteback()
+                if (prefWriteback != -1 && _dirtyWriteback.value != prefWriteback) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying Dirty Writeback: $prefWriteback")
+                    setDirtyWriteback(prefWriteback)
+                }
+
+                // 7. Dirty Expire
+                val prefExpire = preferenceManager.getDirtyExpire()
+                if (prefExpire != -1 && _dirtyExpireCentisecs.value != prefExpire) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying Dirty Expire: $prefExpire")
+                    setDirtyExpireCentisecs(prefExpire)
+                }
+
+                // 8. Min Free Memory
+                val prefMinFree = preferenceManager.getMinFreeMemory()
+                if (prefMinFree != -1 && _minFreeMemory.value != prefMinFree) {
+                    Log.d("TuningVM_SelfHeal", "Re-applying Min Free Memory: $prefMinFree")
+                    setMinFreeMemory(prefMinFree)
                 }
             }
         }
@@ -859,73 +914,4 @@ class TuningViewModel @Inject constructor(
 
     fun setThermalProfile(profile: ThermalRepository.ThermalProfile) =
         viewModelScope.launch { setThermalProfileInternal(profile, isRestoring = false) }
-
-    fun resetSettings(
-        resetCpu: Boolean,
-        resetGpu: Boolean,
-        resetThermal: Boolean,
-        resetRam: Boolean
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (resetCpu) {
-                preferenceManager.clearCpuSettings()
-                // Reset set on boot for CPU
-                preferenceManager.setApplyCpuOnBoot(false)
-                _applyCpuOnBoot.value = false
-                
-                // Performance Mode is now in main prefs, set to default
-                preferenceManager.setPerformanceMode("Balanced")
-                _performanceMode.value = "Balanced"
-                // Reset set on boot for Performance Mode
-                preferenceManager.setApplyPerformanceModeOnBoot(false)
-                _applyPerformanceModeOnBoot.value = false
-
-                // Attempt to revert to safe defaults (Schedutil)
-                val availableGovs = _generalAvailableCpuGovernors.value
-                val defaultGov = if (availableGovs.contains("schedutil")) "schedutil" else availableGovs.firstOrNull()
-                if (defaultGov != null) {
-                    cpuClusters.forEach { 
-                        repo.setCpuGov(it, defaultGov)
-                        repo.getCpuGov(it).take(1).collect { gov -> _currentCpuGovernors[it]?.value = gov }
-                    }
-                }
-            }
-
-            if (resetGpu) {
-                preferenceManager.clearGpuSettings()
-                // Reset set on boot for GPU
-                preferenceManager.setApplyGpuOnBoot(false)
-                _applyGpuOnBoot.value = false
-            }
-
-            if (resetThermal) {
-                thermalPrefs.edit { remove(KEY_LAST_APPLIED_THERMAL_INDEX) }
-                // Reset set on boot for Thermal
-                preferenceManager.setApplyThermalOnBoot(false)
-                _applyThermalOnBoot.value = false
-
-                // Try to find Dynamic (10) or Balanced (0)
-                val profiles = thermalRepo.getSupportedThermalProfiles().first()
-                val defaultProfile = profiles.find { it.index == 10 } ?: profiles.find { it.index == 0 }
-                
-                if (defaultProfile != null) {
-                    setThermalProfileInternal(defaultProfile, isRestoring = true)
-                }
-            }
-
-            if (resetRam) {
-                preferenceManager.clearRamSettings()
-                // Reset set on boot for RAM
-                preferenceManager.setApplyRamOnBoot(false)
-                _applyRamOnBoot.value = false
-
-                // Reset Swappiness to standard default 60
-                if (repo.setSwappiness(60)) {
-                    repo.getSwappiness().take(1).collect { _swappiness.value = it }
-                }
-            }
-
-            _rebootCommandFeedback.emit(application.getString(R.string.reset_success_toast))
-        }
-    }
 }
