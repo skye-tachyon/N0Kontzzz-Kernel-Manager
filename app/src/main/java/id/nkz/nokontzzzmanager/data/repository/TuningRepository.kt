@@ -4,9 +4,11 @@ import android.app.ActivityManager
 import android.content.Context
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.ceil
@@ -164,7 +166,8 @@ class TuningRepository @Inject constructor(
             else -> totalRamBytes / 4       // 25%
         }
     }
-    private fun resizeZramSafely(newSizeBytes: Long): Boolean {
+    
+    private suspend fun resizeZramSafely(newSizeBytes: Long): Boolean = withContext(NonCancellable) {
         val originalSelinuxMode = getSelinuxModeInternal()
         val needsSelinuxChange = originalSelinuxMode.equals("Enforcing", ignoreCase = true)
         var overallSuccess = true
@@ -182,7 +185,7 @@ class TuningRepository @Inject constructor(
         if (needsSelinuxChange) {
             setSelinuxModeInternal(true)
         }
-        return overallSuccess
+        overallSuccess
     }
 
     fun setZramEnabled(enabled: Boolean): Flow<Boolean> = flow {
@@ -190,7 +193,7 @@ class TuningRepository @Inject constructor(
         emit(readShellCommand("cat $zramInitStatePath").trim() == "1")
     }.flowOn(Dispatchers.IO)
 
-    fun setZramDisksize(sizeBytes: Long): Boolean {
+    suspend fun setZramDisksize(sizeBytes: Long): Boolean {
         return resizeZramSafely(sizeBytes)
     }
 
@@ -220,10 +223,10 @@ class TuningRepository @Inject constructor(
         emit(totalUsedKb * 1024) // Convert KB to Bytes
     }.flowOn(Dispatchers.IO)
 
-    fun setCompressionAlgorithm(algo: String): Boolean {
+    suspend fun setCompressionAlgorithm(algo: String): Boolean = withContext(NonCancellable) {
         val currentSize = readShellCommand("cat $zramDisksizePath").toLongOrNull() ?: 0L
         if (readShellCommand("if [ -e $zramControlPath ]; then echo 1; else echo 0; fi").trim() != "1") {
-            return false
+            return@withContext false
         }
 
         // Tangani SELinux untuk blok perintah ini
@@ -254,7 +257,7 @@ class TuningRepository @Inject constructor(
         if (needsSelinuxChange) {
             setSelinuxModeInternal(true)
         }
-        return success
+        success
     }
 
     fun getCompressionAlgorithms(): Flow<List<String>> = flow {
