@@ -59,6 +59,7 @@ class PreferenceManager @Inject constructor(
         private const val KEY_GPU_THROTTLING = "gpu_throttling"
 
         // RAM
+        private const val KEY_ZRAM_ENABLED_PREF = "zram_enabled_pref"
         private const val KEY_ZRAM_DISKSIZE = "zram_disksize"
         private const val KEY_ZRAM_COMPRESSION = "zram_compression"
         private const val KEY_SWAPPINESS = "swappiness"
@@ -439,6 +440,23 @@ class PreferenceManager @Inject constructor(
     }
 
     // RAM
+    fun setZramEnabledPref(enabled: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_ZRAM_ENABLED_PREF, enabled) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_ZRAM_ENABLED_PREF, enabled) }
+    }
+
+    fun isZramEnabledPref(): Boolean {
+        // Default to true if not set, or maybe false?
+        // Logic: If user never touched it, assume enabled if device has it?
+        // Safer default: true (so existing users don't lose ZRAM on update),
+        // but checking key existence is better.
+        val creds = credentialPrefs()
+        if (creds != null && creds.contains(KEY_ZRAM_ENABLED_PREF)) {
+            return creds.getBoolean(KEY_ZRAM_ENABLED_PREF, true)
+        }
+        return deviceProtectedPrefs().getBoolean(KEY_ZRAM_ENABLED_PREF, true)
+    }
+
     fun setZramDisksize(size: Long) {
         credentialPrefs()?.edit { putLong(KEY_ZRAM_DISKSIZE, size) }
         deviceProtectedPrefs().edit { putLong(KEY_ZRAM_DISKSIZE, size) }

@@ -763,6 +763,9 @@ class TuningViewModel @Inject constructor(
 
     fun setZramEnabled(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         _zramOperationInProgress.value = true
+        // Save preference immediately
+        preferenceManager.setZramEnabledPref(enabled)
+        
         try {
             repo.setZramEnabled(enabled).collect { isEnabled ->
                 _zramEnabled.value = isEnabled

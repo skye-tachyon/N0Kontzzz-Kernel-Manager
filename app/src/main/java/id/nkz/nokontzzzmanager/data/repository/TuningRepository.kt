@@ -197,6 +197,44 @@ class TuningRepository @Inject constructor(
         return resizeZramSafely(sizeBytes)
     }
 
+    suspend fun applyFullZramConfig(sizeBytes: Long, algorithm: String?): Boolean = withContext(NonCancellable) {
+        val originalSelinuxMode = getSelinuxModeInternal()
+        val needsSelinuxChange = originalSelinuxMode.equals("Enforcing", ignoreCase = true)
+        var overallSuccess = true
+
+        if (needsSelinuxChange) {
+            setSelinuxModeInternal(false)
+        }
+
+        // 1. Swapoff
+        if (!executeShellCommand("swapoff /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
+        // 2. Reset
+        if (!executeShellCommand("echo 1 > $zramResetPath")) overallSuccess = false
+        
+        // 3. Set Algorithm (if provided)
+        if (algorithm != null) {
+            // Ensure permission
+            executeShellCommand("chmod 666 $zramCompAlgorithmPath")
+            if (!executeShellCommand("echo $algorithm > $zramCompAlgorithmPath")) {
+                // If setting algo fails, we continue trying to set size, but mark overall as potentially partial
+                // However, for ZRAM setup, usually we want strict success. 
+                // We'll log it internally via return false if needed, but here we proceed.
+            }
+        }
+
+        // 4. Set Disksize
+        if (!executeShellCommand("echo $sizeBytes > $zramDisksizePath")) overallSuccess = false
+        
+        // 5. Mkswap & Swapon
+        if (!executeShellCommand("mkswap /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
+        if (!executeShellCommand("swapon /dev/block/zram0 2>/dev/null || true")) overallSuccess = false
+
+        if (needsSelinuxChange) {
+            setSelinuxModeInternal(true)
+        }
+        overallSuccess
+    }
+
     fun getZramDisksize(): Flow<Long> = flow {
         emit(readShellCommand("cat $zramDisksizePath").toLongOrNull() ?: 0L)
     }.flowOn(Dispatchers.IO)

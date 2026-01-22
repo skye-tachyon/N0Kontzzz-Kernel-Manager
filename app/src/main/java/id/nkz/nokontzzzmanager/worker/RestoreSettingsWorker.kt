@@ -254,21 +254,29 @@ class RestoreSettingsWorker @AssistedInject constructor(
             return
         }
 
-        // ZRAM Size
-        val zramSize = preferenceManager.getZramDisksize()
-        if (zramSize != -1L) {
-             for (i in 1..5) {
-                if (tuningRepository.setZramDisksize(zramSize)) break
-                delay(2000)
-             }
-        }
-
-        // Compression Algo
-        preferenceManager.getZramCompression()?.let { algo ->
-            for (i in 1..5) {
-                if (tuningRepository.setCompressionAlgorithm(algo)) break
-                delay(2000)
+        // 1. Check if ZRAM should be enabled
+        val shouldEnableZram = preferenceManager.isZramEnabledPref()
+        
+        if (shouldEnableZram) {
+            val zramSize = preferenceManager.getZramDisksize()
+            val zramAlgo = preferenceManager.getZramCompression()
+            
+            // Only proceed if we have at least a valid size setting
+            if (zramSize != -1L) {
+                 Log.d("RestoreSettingsWorker", "Restoring ZRAM: Size=${zramSize}, Algo=${zramAlgo ?: "default"}")
+                 for (i in 1..5) {
+                    if (tuningRepository.applyFullZramConfig(zramSize, zramAlgo)) {
+                        Log.d("RestoreSettingsWorker", "Restored ZRAM config: success")
+                        break
+                    }
+                    delay(2000)
+                 }
             }
+        } else {
+            // User explicitly disabled ZRAM. Ensure it's off.
+            Log.d("RestoreSettingsWorker", "ZRAM disabled by preference. Ensuring it is off.")
+            // We can just set size to 0 using existing method which handles swapoff/reset
+            tuningRepository.setZramEnabled(false).first()
         }
 
         // Swappiness
