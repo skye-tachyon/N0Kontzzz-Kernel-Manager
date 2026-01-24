@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 
@@ -115,48 +117,63 @@ fun KernelLogScreen(
                 )
             }
             
-            if (isLoading && logContent.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else if (error != null) {
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                if (isLoading && logContent.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else if (error != null) {
                     Column(
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = stringResource(R.string.kernel_log_error_fetch, error ?: "Unknown"), color = MaterialTheme.colorScheme.error)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { viewModel.loadLogs() }) {
-                        Text(stringResource(R.string.kernel_log_retry))
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(text = stringResource(R.string.kernel_log_error_fetch, error ?: "Unknown"), color = MaterialTheme.colorScheme.error)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { viewModel.loadLogs() }) {
+                            Text(stringResource(R.string.kernel_log_retry))
+                        }
+                    }
+                } else {
+                    if (logContent.isEmpty()) {
+                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = if (searchQuery.isNotEmpty()) "No logs match your search" else stringResource(R.string.kernel_log_empty)
+                            )
+                         }
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 8.dp)
+                                .alpha(if (isInitialLoad) 0f else 1f),
+                                contentPadding = PaddingValues(bottom = 100.dp)
+                        ) {
+                            items(logContent) { line ->
+                                Text(
+                                    text = line,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 11.sp,
+                                        lineHeight = 14.sp
+                                    ),
+                                    modifier = Modifier.padding(vertical = 1.dp)
+                                )
+                            }
+                        }
                     }
                 }
-            } else {
-                if (logContent.isEmpty()) {
-                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = if (searchQuery.isNotEmpty()) "No logs match your search" else stringResource(R.string.kernel_log_empty)
-                        )
-                     }
-                } else {
-                    LazyColumn(
-                        state = listState,
+                
+                // Overlay to mask the initial scroll jump
+                if (logContent.isNotEmpty() && isInitialLoad) {
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 8.dp),
-                            contentPadding = PaddingValues(bottom = 100.dp)
+                            .background(MaterialTheme.colorScheme.background),
+                        contentAlignment = Alignment.Center
                     ) {
-                        items(logContent) { line ->
-                            Text(
-                                text = line,
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 11.sp,
-                                    lineHeight = 14.sp
-                                ),
-                                modifier = Modifier.padding(vertical = 1.dp)
-                            )
-                        }
+                        CircularProgressIndicator()
                     }
                 }
             }
