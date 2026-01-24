@@ -77,6 +77,13 @@
 - **Efficient Architecture**  
   Built on a lightweight MVVM architecture to ensure optimal performance and minimal resource usage on rooted devices.
 
+- **Kernel Log**
+  View real-time kernel diagnostic messages (dmesg) directly within the app. Features include:
+  - **Live Monitoring**: Automatically updates as new logs are generated.
+  - **Search**: Filter logs by keyword to quickly find specific events.
+  - **Export**: Save the full log output to a file for sharing or debugging.
+  - **Optimized Performance**: Efficiently handles large logs with background processing and smart caching.
+
 - **Per-App Profiles**
   Automate your device's behavior by creating custom profiles that activate when specific applications are in the foreground.
   - **Performance Mode Integration**: Assign `Balanced`, `Performance`, or `Powersave` modes to specific apps.
@@ -115,7 +122,7 @@
 
 ## Requirements
 
-- Poco F4 (munch) device running N0Kontzzz, FusionX, Lunar, or E404R kernel.
+- Poco F4 (munch) device running N0Kontzzz, FusionX, Lunar, E404R, perf+, or Oxygen+ kernel.
 - Root access (Magisk or KernelSU supported).
 
 ---
