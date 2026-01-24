@@ -22,6 +22,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -237,7 +238,9 @@ class MainActivity : ComponentActivity() {
                                                     
                                                     DropdownMenu(
                                                         expanded = isMenuExpanded,
-                                                        onDismissRequest = { viewModel.setMenuExpanded(false) }
+                                                        onDismissRequest = { viewModel.setMenuExpanded(false) },
+                                                        modifier = Modifier.widthIn(min = 200.dp),
+                                                        shape = RoundedCornerShape(28.dp)
                                                     ) {
                                                         DropdownMenuItem(
                                                             text = { Text(stringResource(R.string.kernel_log_clear)) },
