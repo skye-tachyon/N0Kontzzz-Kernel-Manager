@@ -529,8 +529,12 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             val viewModel = hiltViewModel<KernelLogViewModel>()
-                            SideEffect {
+                            // Use DisposableEffect to manage the hoisted state safely
+                            DisposableEffect(viewModel) {
                                 kernelLogViewModel = viewModel
+                                onDispose {
+                                    kernelLogViewModel = null
+                                }
                             }
                             KernelLogScreen(navController = navController, viewModel = viewModel)
                         }

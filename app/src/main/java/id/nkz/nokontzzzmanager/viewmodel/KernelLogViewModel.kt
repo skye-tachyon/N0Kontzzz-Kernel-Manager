@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,7 +47,9 @@ class KernelLogViewModel @Inject constructor(
     // Filtered content based on search query
     val logContent: StateFlow<List<String>> = combine(_logContent, _searchQuery) { logs, query ->
         if (query.isBlank()) logs else logs.filter { it.contains(query, ignoreCase = true) }
-    }.stateIn(
+    }
+    .flowOn(Dispatchers.Default)
+    .stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
@@ -67,6 +70,7 @@ class KernelLogViewModel @Inject constructor(
 
     private var monitoringJob: kotlinx.coroutines.Job? = null
     private var isFirstLoad = true
+    private var lastLogRaw: String? = null
 
     fun startMonitoring() {
         if (monitoringJob?.isActive == true) return
@@ -136,14 +140,14 @@ class KernelLogViewModel @Inject constructor(
                 }
             }
             
-            if (result.isNotBlank()) {
-                val lines = result.lines()
-                // Only update if content has changed to avoid unnecessary recompositions
-                if (lines != _logContent.value) {
-                    _logContent.value = lines
+            // Optimization: Compare raw strings to avoid splitting and list comparison if unchanged
+            if (result != lastLogRaw) {
+                lastLogRaw = result
+                if (result.isNotBlank()) {
+                    _logContent.value = result.lines()
+                } else {
+                    _logContent.value = emptyList()
                 }
-            } else {
-                _logContent.value = emptyList()
             }
         } catch (e: Exception) {
             if (!quiet) {
@@ -164,6 +168,7 @@ class KernelLogViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     rootRepository.run("dmesg -C")
                 }
+                lastLogRaw = null // Reset cache
                 loadLogsInternal(quiet = false)
             } catch (e: Exception) {
                 _error.value = e.message
