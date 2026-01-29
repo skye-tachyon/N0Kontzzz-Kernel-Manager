@@ -208,7 +208,7 @@ fun SwappinessCard(
                         RamSettingItem(
                             icon = Icons.Default.Memory,
                             title = stringResource(id = R.string.min_free_memory),
-                            value = "${minFreeMemory}MB",
+                            value = "${minFreeMemory}KB",
                             description = stringResource(id = R.string.min_free_memory_desc),
                             color = MaterialTheme.colorScheme.primary,
                             onClick = { showMinFreeMemoryDialog = true },
@@ -344,9 +344,9 @@ fun SwappinessCard(
             icon = Icons.Default.Memory,
             explanation = stringResource(id = R.string.min_free_memory_explanation),
             currentValue = minFreeMemory,
-            valueSuffix = stringResource(id = R.string.unit_mb_suffix),
-            valueRange = 0f..1024f,
-            steps = 1023,
+            valueSuffix = stringResource(id = R.string.unit_kb_suffix),
+            valueRange = 0f..524288f,
+            steps = 511,
             onDismissRequest = { showMinFreeMemoryDialog = false },
             onApplyClicked = { newValue: Int ->
                 vm.setMinFreeMemory(newValue)

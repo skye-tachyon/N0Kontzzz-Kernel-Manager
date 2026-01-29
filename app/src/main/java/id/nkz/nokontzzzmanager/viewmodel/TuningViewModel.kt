@@ -214,7 +214,7 @@ class TuningViewModel @Inject constructor(
     private val _dirtyExpireCentisecs = MutableStateFlow(300)
     val dirtyExpireCentisecs: StateFlow<Int> = _dirtyExpireCentisecs.asStateFlow()
 
-    private val _minFreeMemory = MutableStateFlow(128)
+    private val _minFreeMemory = MutableStateFlow(131072)
     val minFreeMemory: StateFlow<Int> = _minFreeMemory.asStateFlow()
 
 
@@ -872,7 +872,7 @@ class TuningViewModel @Inject constructor(
     }
 
     fun setMinFreeMemory(value: Int) = viewModelScope.launch(Dispatchers.IO) {
-        if (repo.setMinFreeMemory(value * 1024)) {
+        if (repo.setMinFreeMemory(value)) {
             preferenceManager.setMinFreeMemory(value)
             repo.getMinFreeMemory().take(1).collect { _minFreeMemory.value = it }
         }
