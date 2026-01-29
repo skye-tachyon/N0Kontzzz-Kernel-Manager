@@ -535,6 +535,7 @@
     <!-- SwappinessCard Additional -->
     <string name="unit_sec"> det</string>
     <string name="unit_cs"> cs</string>
+    <string name="unit_kb_suffix"> KB</string>
     <string name="unit_mb_suffix"> MB</string>
     <string name="set_zram_size_title">Atur Ukuran ZRAM</string>
     <string name="choose_compression_algorithm">Pilih Algoritma Kompresi</string>
