@@ -32,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
@@ -81,6 +82,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import id.nkz.nokontzzzmanager.data.model.AppUsageInfo
+import id.nkz.nokontzzzmanager.data.model.BatteryMonitorStats
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -93,6 +95,7 @@ fun BatteryHistoryScreen(
     val appUsageList by viewModel.appUsageList.collectAsState()
     val hasUsagePermission by viewModel.hasUsagePermission.collectAsState()
     val isBatteryMonitorEnabled by viewModel.isBatteryMonitorEnabled.collectAsState()
+    val monitorStats by viewModel.monitorStats.collectAsState()
     
     var graphMode by remember { mutableStateOf(BatteryGraphMode.SPEED) }
     var showClearDialog by remember { mutableStateOf(false) }
@@ -295,6 +298,9 @@ fun BatteryHistoryScreen(
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 BatteryHistoryStatsCard(
                     data = historyData,
+                    monitorStats = monitorStats,
+                    currentFilter = currentFilter,
+                    isMonitorEnabled = isBatteryMonitorEnabled,
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
                 )
 
@@ -551,9 +557,12 @@ fun BatteryHistoryGraph(
 @Composable
 fun BatteryHistoryStatsCard(
     data: List<BatteryGraphEntry>,
+    monitorStats: BatteryMonitorStats?,
+    currentFilter: HistoryFilter,
+    isMonitorEnabled: Boolean,
     shape: Shape = CardDefaults.shape
 ) {
-    if (data.isEmpty()) return
+    if (data.isEmpty() && monitorStats == null) return
 
     val chargeEntries = data.filter { it.currentMa > 0 }
     val dischargeEntries = data.filter { it.currentMa < 0 }
@@ -570,59 +579,85 @@ fun BatteryHistoryStatsCard(
     val avgDischargeTemp = if (dischargeEntries.isNotEmpty()) dischargeEntries.map { it.temperature.toDouble() }.average() else 0.0
     val maxDischargeTemp = if (dischargeEntries.isNotEmpty()) dischargeEntries.maxOf { it.temperature } else 0f
 
-    val avgActiveDrain = if (data.isNotEmpty()) data.map { it.activeDrainRate.toDouble() }.average() else 0.0
-    val avgIdleDrain = if (data.isNotEmpty()) data.map { it.idleDrainRate.toDouble() }.average() else 0.0
-
-    // Calculate time and consumption stats
+    // Determine Drain Rates and Times
+    var avgActiveDrain = 0.0
+    var avgIdleDrain = 0.0
     var totalDischargeTimeMs = 0L
     var screenOnTimeMs = 0L
     var screenOffTimeMs = 0L
-    
-    var totalDischargeMah = 0.0
-    var screenOnMah = 0.0
-    var screenOffMah = 0.0
-
     var totalAwakeMs = 0L
     var totalDeepSleepMs = 0L
+    
+    // We only use Monitor Stats if filter is SINCE_UNPLUGGED (Session)
+    val useMonitorStats = (currentFilter == HistoryFilter.SINCE_UNPLUGGED && monitorStats != null)
 
-    // Sort data by timestamp just in case
-    val sortedData = data.sortedBy { it.timestamp }
-    for (i in 0 until sortedData.size - 1) {
-        val current = sortedData[i]
-        val next = sortedData[i + 1]
-        
-        // Skip if gap is too large (e.g. service killed), > 5 mins
-        val dt = next.timestamp - current.timestamp
-        if (dt > 5 * 60 * 1000) continue
-        
-        // Only consider discharging periods for these stats
-        if (current.currentMa < 0) {
-            val avgCurrentMa = (kotlin.math.abs(current.currentMa) + kotlin.math.abs(next.currentMa)) / 2.0
-            val mah = (avgCurrentMa * dt) / 3_600_000.0
-            
-            totalDischargeTimeMs += dt
-            totalDischargeMah += mah
-            
-            if (current.isScreenOn) {
-                screenOnTimeMs += dt
-                screenOnMah += mah
-            } else {
-                screenOffTimeMs += dt
-                screenOffMah += mah
-            }
+    if (useMonitorStats && monitorStats != null) {
+        avgActiveDrain = monitorStats.activeDrainRate.toDouble()
+        avgIdleDrain = monitorStats.idleDrainRate.toDouble()
+        screenOnTimeMs = monitorStats.screenOnMs
+        screenOffTimeMs = monitorStats.screenOffMs
+        totalDischargeTimeMs = screenOnTimeMs + screenOffTimeMs
+        totalAwakeMs = monitorStats.awakeMs
+        totalDeepSleepMs = monitorStats.deepSleepMs
+    } else {
+        avgActiveDrain = if (data.isNotEmpty()) data.map { it.activeDrainRate.toDouble() }.average() else 0.0
+        avgIdleDrain = if (data.isNotEmpty()) data.map { it.idleDrainRate.toDouble() }.average() else 0.0
 
-            if (current.uptime > 0 && next.uptime > 0) {
-                val dUptime = next.uptime - current.uptime
-                if (dUptime >= 0) {
-                    val segmentAwake = dUptime.coerceAtMost(dt)
-                    val segmentSleep = (dt - segmentAwake).coerceAtLeast(0)
-                    totalAwakeMs += segmentAwake
-                    totalDeepSleepMs += segmentSleep
+        // Calculate time and consumption stats from graph
+        val sortedData = data.sortedBy { it.timestamp }
+        for (i in 0 until sortedData.size - 1) {
+            val current = sortedData[i]
+            val next = sortedData[i + 1]
+            
+            // Skip if gap is too large (e.g. service killed), > 5 mins
+            val dt = next.timestamp - current.timestamp
+            if (dt > 5 * 60 * 1000) continue
+            
+            // Only consider discharging periods for these stats
+            if (current.currentMa < 0) {
+                totalDischargeTimeMs += dt
+                
+                if (current.isScreenOn) {
+                    screenOnTimeMs += dt
+                } else {
+                    screenOffTimeMs += dt
+                }
+
+                if (current.uptime > 0 && next.uptime > 0) {
+                    val dUptime = next.uptime - current.uptime
+                    if (dUptime >= 0) {
+                        val segmentAwake = dUptime.coerceAtMost(dt)
+                        val segmentSleep = (dt - segmentAwake).coerceAtLeast(0)
+                        totalAwakeMs += segmentAwake
+                        totalDeepSleepMs += segmentSleep
+                    }
                 }
             }
         }
     }
 
+    // Calculate mAh totals
+    var totalDischargeMah = 0.0
+    var screenOnMah = 0.0
+    var screenOffMah = 0.0
+
+    if (data.isNotEmpty()) {
+         val sortedData = data.sortedBy { it.timestamp }
+         for (i in 0 until sortedData.size - 1) {
+            val current = sortedData[i]
+            val next = sortedData[i + 1]
+            val dt = next.timestamp - current.timestamp
+            if (dt > 5 * 60 * 1000) continue
+            
+            if (current.currentMa < 0) {
+                val avgCurrentMa = (kotlin.math.abs(current.currentMa) + kotlin.math.abs(next.currentMa)) / 2.0
+                val mah = (avgCurrentMa * dt) / 3_600_000.0
+                totalDischargeMah += mah
+                if (current.isScreenOn) screenOnMah += mah else screenOffMah += mah
+            }
+         }
+    }
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = shape,
@@ -632,62 +667,192 @@ fun BatteryHistoryStatsCard(
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = stringResource(R.string.history_stats_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.history_stats_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                // Sync Status Badge
+                if (currentFilter == HistoryFilter.SINCE_UNPLUGGED) {
+                    val synced = isMonitorEnabled && monitorStats != null
+                    val labelText = if (synced) {
+                        stringResource(R.string.stats_synced)
+                    } else {
+                        stringResource(R.string.stats_manual)
+                    }
+                    val badgeColor = if (synced) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    }
+                    
+                    Surface(
+                        color = badgeColor.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, badgeColor.copy(alpha = 0.5f))
+                    ) {
+                        Text(
+                            text = labelText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = badgeColor,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
             
             if (totalDischargeTimeMs > 0) {
-                // Helper to format: "2h 30m • 45% (1200 mAh)"
-                // Note: % here is share of total observed drain
                 fun formatUsage(timeMs: Long, mah: Double): String {
                     val pct = if (totalDischargeMah > 0) (mah / totalDischargeMah * 100).toInt() else 0
                     val duration = formatDuration(timeMs)
                     return "$duration • $pct% (${mah.toInt()} mAh)"
                 }
 
-                StatRow(label = stringResource(R.string.stats_total_active_time), value = formatUsage(totalDischargeTimeMs, totalDischargeMah))
-                StatRow(label = stringResource(R.string.stats_screen_on_time), value = formatUsage(screenOnTimeMs, screenOnMah))
-                StatRow(label = stringResource(R.string.stats_screen_off_time), value = formatUsage(screenOffTimeMs, screenOffMah))
+                // Group: Usage Time
+                val usageItems = listOf(
+                    stringResource(R.string.stats_total_active_time) to formatUsage(totalDischargeTimeMs, totalDischargeMah),
+                    stringResource(R.string.stats_screen_on_time) to formatUsage(screenOnTimeMs, screenOnMah),
+                    stringResource(R.string.stats_screen_off_time) to formatUsage(screenOffTimeMs, screenOffMah)
+                )
 
-                if (totalAwakeMs > 0 || totalDeepSleepMs > 0) {
-                    val totalTracked = totalAwakeMs + totalDeepSleepMs
-                    val awakePct = if (totalTracked > 0) (totalAwakeMs * 100 / totalTracked) else 0
-                    val sleepPct = if (totalTracked > 0) (totalDeepSleepMs * 100 / totalTracked) else 0
-
-                    StatRow(
-                        label = stringResource(R.string.uptime),
-                        value = "${formatDuration(totalAwakeMs)} ($awakePct%)"
-                    )
-                    StatRow(
-                        label = stringResource(R.string.deep_sleep),
-                        value = "${formatDuration(totalDeepSleepMs)} ($sleepPct%)"
-                    )
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    usageItems.forEachIndexed { index, item ->
+                        StatItemCard(
+                            label = item.first,
+                            value = item.second,
+                            index = index,
+                            totalCount = usageItems.size
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                if (totalAwakeMs > 0 || totalDeepSleepMs > 0) {
+                    val totalTracked = (totalAwakeMs + totalDeepSleepMs).coerceAtLeast(1L)
+                    val awakePct = (totalAwakeMs * 100 / totalTracked)
+                    val sleepPct = (totalDeepSleepMs * 100 / totalTracked)
+
+                    val uptimeItems = listOf(
+                        stringResource(R.string.uptime) to "${formatDuration(totalAwakeMs)} ($awakePct%)",
+                        stringResource(R.string.deep_sleep) to "${formatDuration(totalDeepSleepMs)} ($sleepPct%)"
+                    )
+
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        uptimeItems.forEachIndexed { index, item ->
+                            StatItemCard(
+                                label = item.first,
+                                value = item.second,
+                                index = index,
+                                totalCount = uptimeItems.size
+                            )
+                        }
+                    }
+                }
             }
 
             if (avgCharge > 0) {
-                StatRow(label = stringResource(R.string.stats_avg_charge_speed), value = "%.0f mA".format(avgCharge))
-                StatRow(label = stringResource(R.string.stats_max_charge_speed), value = "%.0f mA".format(maxCharge))
-                StatRow(label = stringResource(R.string.stats_avg_charge_temp), value = "%.1f °C".format(avgChargeTemp))
-                StatRow(label = stringResource(R.string.stats_max_charge_temp), value = "%.1f °C".format(maxChargeTemp))
+                val chargeItems = listOf(
+                    stringResource(R.string.stats_avg_charge_speed) to "%.0f mA".format(avgCharge),
+                    stringResource(R.string.stats_max_charge_speed) to "%.0f mA".format(maxCharge),
+                    stringResource(R.string.stats_avg_charge_temp) to "%.1f °C".format(avgChargeTemp),
+                    stringResource(R.string.stats_max_charge_temp) to "%.1f °C".format(maxChargeTemp)
+                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    chargeItems.forEachIndexed { index, item ->
+                        StatItemCard(
+                            label = item.first,
+                            value = item.second,
+                            index = index,
+                            totalCount = chargeItems.size
+                        )
+                    }
+                }
             }
             
             if (avgDischarge > 0) {
-                StatRow(label = stringResource(R.string.stats_avg_discharge_speed), value = "-%.0f mA".format(avgDischarge))
-                StatRow(label = stringResource(R.string.stats_max_discharge_speed), value = "-%.0f mA".format(maxDischarge))
-                StatRow(label = stringResource(R.string.stats_avg_discharge_temp), value = "%.1f °C".format(avgDischargeTemp))
-                StatRow(label = stringResource(R.string.stats_max_discharge_temp), value = "%.1f °C".format(maxDischargeTemp))
+                val dischargeItems = listOf(
+                    stringResource(R.string.stats_avg_discharge_speed) to "-%.0f mA".format(avgDischarge),
+                    stringResource(R.string.stats_max_discharge_speed) to "-%.0f mA".format(maxDischarge),
+                    stringResource(R.string.stats_avg_discharge_temp) to "%.1f °C".format(avgDischargeTemp),
+                    stringResource(R.string.stats_max_discharge_temp) to "%.1f °C".format(maxDischargeTemp)
+                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    dischargeItems.forEachIndexed { index, item ->
+                        StatItemCard(
+                            label = item.first,
+                            value = item.second,
+                            index = index,
+                            totalCount = dischargeItems.size
+                        )
+                    }
+                }
             }
             
-            StatRow(label = stringResource(R.string.stats_avg_active_drain), value = "%.2f %%/hr".format(avgActiveDrain))
-            StatRow(label = stringResource(R.string.stats_avg_idle_drain), value = "%.2f %%/hr".format(avgIdleDrain))
+            val drainItems = listOf(
+                stringResource(R.string.stats_avg_active_drain) to "%.2f %%/hr".format(avgActiveDrain),
+                stringResource(R.string.stats_avg_idle_drain) to "%.2f %%/hr".format(avgIdleDrain)
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                drainItems.forEachIndexed { index, item ->
+                    StatItemCard(
+                        label = item.first,
+                        value = item.second,
+                        index = index,
+                        totalCount = drainItems.size
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StatItemCard(
+    label: String,
+    value: String,
+    index: Int,
+    totalCount: Int
+) {
+    val shape = when {
+        totalCount == 1 -> RoundedCornerShape(12.dp)
+        index == 0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+        index == totalCount - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 12.dp, bottomEnd = 12.dp)
+        else -> RoundedCornerShape(4.dp)
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
@@ -697,25 +862,6 @@ private fun formatDuration(ms: Long): String {
     val h = totalSec / 3600
     val m = (totalSec % 3600) / 60
     return if (h > 0) "${h}h ${m}m" else "${m}m"
-}
-
-@Composable
-fun StatRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
 }
 
 @Composable

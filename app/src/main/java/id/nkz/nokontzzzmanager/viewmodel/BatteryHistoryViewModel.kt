@@ -13,6 +13,8 @@ import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.database.BatteryGraphEntry
 import id.nkz.nokontzzzmanager.data.model.AppUsageInfo
 import id.nkz.nokontzzzmanager.data.repository.BatteryGraphRepository
+import id.nkz.nokontzzzmanager.data.repository.BatteryMonitorRepository
+import id.nkz.nokontzzzmanager.data.model.BatteryMonitorStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,6 +32,7 @@ import id.nkz.nokontzzzmanager.utils.PreferenceManager
 @HiltViewModel
 class BatteryHistoryViewModel @Inject constructor(
     private val repository: BatteryGraphRepository,
+    private val batteryMonitorRepository: BatteryMonitorRepository,
     private val preferenceManager: PreferenceManager,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -46,10 +49,14 @@ class BatteryHistoryViewModel @Inject constructor(
     private val _appUsageList = MutableStateFlow<List<AppUsageInfo>>(emptyList())
     val appUsageList: StateFlow<List<AppUsageInfo>> = _appUsageList.asStateFlow()
 
+    private val _monitorStats = MutableStateFlow<BatteryMonitorStats?>(null)
+    val monitorStats: StateFlow<BatteryMonitorStats?> = _monitorStats.asStateFlow()
+
     init {
         viewModelScope.launch {
             filter.collect {
                 loadAppUsageStats()
+                loadMonitorStats()
             }
         }
         checkBatteryMonitorState()
@@ -67,6 +74,18 @@ class BatteryHistoryViewModel @Inject constructor(
          }
     }
 
+    fun loadMonitorStats() {
+        viewModelScope.launch(Dispatchers.IO) {
+            // Monitor stats represent the current session (Since Unplugged/Reset).
+            // We only show them if the filter matches that context to avoid confusion.
+            if (_filter.value == HistoryFilter.SINCE_UNPLUGGED) {
+                _monitorStats.value = batteryMonitorRepository.getMonitorStats()
+            } else {
+                _monitorStats.value = null
+            }
+        }
+    }
+
     fun checkUsagePermission() {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = appOps.checkOpNoThrow(
@@ -79,6 +98,7 @@ class BatteryHistoryViewModel @Inject constructor(
 
     fun loadAppUsageStats() {
         viewModelScope.launch(Dispatchers.IO) {
+            loadMonitorStats() // Ensure monitor stats are refreshed too
             checkUsagePermission()
             if (!_hasUsagePermission.value) return@launch
 

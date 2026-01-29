@@ -221,6 +221,8 @@
     <string name="stats_max_discharge_temp">Maks Suhu Kuras</string>
     <string name="stats_avg_active_drain">Rata-rata Drain Aktif</string>
     <string name="stats_avg_idle_drain">Rata-rata Drain Idle</string>
+    <string name="stats_synced">Sinkron dengan Monitor</string>
+    <string name="stats_manual">Kalkulasi Manual</string>
     <string name="stats_total_active_time">Total Aktif</string>
     <string name="stats_screen_on_time">Layar Hidup</string>
     <string name="stats_screen_off_time">Layar Mati</string>
