@@ -80,7 +80,7 @@ fun CustomTunableEntryCard(
                 }
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Open Custom Tunable",
+                    contentDescription = stringResource(R.string.open_custom_tunable),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

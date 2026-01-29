@@ -663,4 +663,17 @@
     <string name="add_tunable">Add Tunable</string>
     <string name="edit_tunable">Edit Tunable</string>
     <string name="set_on_boot">Set on Boot</string>
+    <string name="tunable_path_label">Path (/proc/…, /sys/…)</string>
+    <string name="tunable_value_label">Value</string>
+    <string name="tunable_read_current">Read Current</string>
+    <string name="tunable_root_tip">Tip: Use the folder icon to browse root directories.</string>
+    <string name="tunable_path_required">Path is required</string>
+    <string name="tunable_value_read">Value Read</string>
+    <string name="tunable_target_prefix">Target:</string>
+    <string name="tunable_actual_prefix">Actual:</string>
+    <string name="file_picker_title">Pick a File</string>
+    <string name="file_picker_empty">Empty Directory or Access Denied</string>
+    <string name="delete_tunable_title">Delete Tunable?</string>
+    <string name="delete_tunable_confirm_msg">Are you sure you want to delete this tunable configuration?\n\nPath: %s</string>
+    <string name="open_custom_tunable">Open Custom Tunable</string>
 </resources>

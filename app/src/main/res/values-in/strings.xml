@@ -655,4 +655,24 @@
     <string name="kernel_log_clear">Hapus</string>
     <string name="kernel_log_retry">Coba Lagi</string>
     <string name="kernel_log_export">Ekspor Log</string>
+
+    <!-- Custom Tunable -->
+    <string name="custom_tunable_title">Custom Tunable</string>
+    <string name="custom_tunable_desc">Konfigurasi node kernel custom dan terapkan saat boot</string>
+    <string name="add_tunable">Tambah Tunable</string>
+    <string name="edit_tunable">Ubah Tunable</string>
+    <string name="set_on_boot">Set saat Boot</string>
+    <string name="tunable_path_label">Lokasi File (/proc/…, /sys/…)</string>
+    <string name="tunable_value_label">Nilai</string>
+    <string name="tunable_read_current">Baca Saat Ini</string>
+    <string name="tunable_root_tip">Tips: Gunakan ikon folder untuk menjelajahi direktori root.</string>
+    <string name="tunable_path_required">Lokasi file harus diisi</string>
+    <string name="tunable_value_read">Nilai Terbaca</string>
+    <string name="tunable_target_prefix">Target:</string>
+    <string name="tunable_actual_prefix">Aktual:</string>
+    <string name="file_picker_title">Pilih File</string>
+    <string name="file_picker_empty">Direktori Kosong atau Akses Ditolak</string>
+    <string name="delete_tunable_title">Hapus Tunable?</string>
+    <string name="delete_tunable_confirm_msg">Apakah Anda yakin ingin menghapus konfigurasi tunable ini?\n\nLokasi: %s</string>
+    <string name="open_custom_tunable">Buka Custom Tunable</string>
 </resources>
