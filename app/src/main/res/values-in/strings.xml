@@ -675,4 +675,8 @@
     <string name="delete_tunable_title">Hapus Tunable?</string>
     <string name="delete_tunable_confirm_msg">Apakah Anda yakin ingin menghapus konfigurasi tunable ini?\n\nLokasi: %s</string>
     <string name="open_custom_tunable">Buka Custom Tunable</string>
+    <string name="edit">Ubah</string>
+    <string name="pick_file">Pilih File</string>
+    <string name="up">Atas</string>
+    <string name="tunable_path_invalid">Lokasi file harus diawali dengan /</string>
 </resources>

@@ -89,7 +89,7 @@ fun RootFilePickerDialog(
                                 ) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Up",
+                                        contentDescription = stringResource(R.string.up),
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }

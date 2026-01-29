@@ -22,15 +22,26 @@ class CustomTunableViewModel @Inject constructor(
 ) : ViewModel() {
 
     // Combine DB data with real-time system read
+    private val _tunableValues = MutableStateFlow<Map<String, String>>(emptyMap())
+
     val tunables: StateFlow<List<CustomTunableUiState>> = repository.getAllTunables()
-        .map { list ->
+        .onEach { list -> refreshValues(list) }
+        .combine(_tunableValues) { list, values ->
             list.map { entity ->
-                val actual = repository.readTunable(entity.path)
-                CustomTunableUiState(entity, actual)
+                CustomTunableUiState(entity, values[entity.path])
             }
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private fun refreshValues(list: List<CustomTunableEntity>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val map = list.associate { 
+                it.path to repository.readTunable(it.path) 
+            }
+            _tunableValues.value = map
+        }
+    }
 
     private val _fileBrowserList = MutableStateFlow<List<FileItem>>(emptyList())
     val fileBrowserList: StateFlow<List<FileItem>> = _fileBrowserList.asStateFlow()

@@ -40,22 +40,11 @@ fun CustomTunableScreen(
 ) {
     val tunables by viewModel.tunables.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val mainActivity = remember(context) { context as? MainActivity }
 
     var showAddDialog by remember { mutableStateOf(false) }
     var editingTunable by remember { mutableStateOf<CustomTunableEntity?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deletingTunable by remember { mutableStateOf<CustomTunableEntity?>(null) }
-
-    DisposableEffect(Unit) {
-        mainActivity?.customTunableFabVisible?.value = true
-        mainActivity?.customTunableFabAction?.value = { showAddDialog = true }
-
-        onDispose {
-            mainActivity?.customTunableFabVisible?.value = false
-            mainActivity?.customTunableFabAction?.value = null
-        }
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -91,6 +80,17 @@ fun CustomTunableScreen(
             item {
                 Spacer(modifier = Modifier.height(80.dp)) // Space for FAB
             }
+        }
+
+        FloatingActionButton(
+            onClick = { showAddDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ) {
+            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_tunable))
         }
     }
 
@@ -195,7 +195,7 @@ fun CustomTunableCard(
                 
                 Row {
                     IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit), modifier = Modifier.size(20.dp))
                     }
                     IconButton(onClick = onDelete) {
                         Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
@@ -267,6 +267,7 @@ fun CustomTunableDialog(
     val context = LocalContext.current
     val valueReadMsg = stringResource(R.string.tunable_value_read)
     val pathRequiredMsg = stringResource(R.string.tunable_path_required)
+    val pathInvalidMsg = stringResource(R.string.tunable_path_invalid)
 
     if (showFilePicker) {
         val fileList by viewModel.fileBrowserList.collectAsStateWithLifecycle()
@@ -347,7 +348,7 @@ fun CustomTunableDialog(
                             modifier = Modifier.fillMaxWidth(),
                             trailingIcon = {
                                 IconButton(onClick = { showFilePicker = true }) {
-                                    Icon(Icons.Default.FolderOpen, contentDescription = "Pick File")
+                                    Icon(Icons.Default.FolderOpen, contentDescription = stringResource(R.string.pick_file))
                                 }
                             },
                             shape = RoundedCornerShape(12.dp)
@@ -435,10 +436,10 @@ fun CustomTunableDialog(
                         }
                         Button(
                             onClick = {
-                                if (path.isNotBlank()) {
+                                if (path.isNotBlank() && path.startsWith("/")) {
                                     onSave(path, value, applyOnBoot)
                                 } else {
-                                    Toast.makeText(context, pathRequiredMsg, Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, pathInvalidMsg, Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier.weight(1f),
