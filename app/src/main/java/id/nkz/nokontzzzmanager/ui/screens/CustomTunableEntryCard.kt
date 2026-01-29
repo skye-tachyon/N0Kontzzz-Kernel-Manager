@@ -28,11 +28,12 @@ import id.nkz.nokontzzzmanager.R
 
 @Composable
 fun CustomTunableEntryCard(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp)
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp),
+        shape = shape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),

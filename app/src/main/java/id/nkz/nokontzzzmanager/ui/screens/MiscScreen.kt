@@ -153,16 +153,61 @@ fun MiscScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        // Group 1: GPU & Power
+        // Group: Kernel
         item {
-            Text(stringResource(id = R.string.gpu_power), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+            Text(stringResource(id = R.string.kernel), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
         // Custom Tunable
         item {
             CustomTunableEntryCard(
-                onClick = { navController?.navigate("custom_tunable") }
+                onClick = { navController?.navigate("custom_tunable") },
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
             )
+        }
+        
+        // TCP Congestion Control Algorithm feature
+        item {
+            TcpCongestionControlCard(
+                tcpCongestionAlgorithm = tcpCongestionAlgorithm,
+                availableAlgorithms = availableTcpAlgorithms,
+                onAlgorithmChange = { algorithm ->
+                    viewModel.updateTcpCongestionAlgorithm(algorithm)
+                },
+                shape = RoundedCornerShape(8.dp)
+            )
+        }
+        
+        // I/O Scheduler feature
+        item {
+            IoSchedulerCard(
+                ioScheduler = ioScheduler,
+                availableSchedulers = availableIoSchedulers,
+                onSchedulerChange = { scheduler ->
+                    viewModel.updateIoScheduler(scheduler)
+                },
+                shape = RoundedCornerShape(8.dp)
+            )
+        }
+        
+        // Apply Network & Storage on Boot
+        item {
+            NetworkStorageOnBootCard(
+                applyOnBoot = applyNetworkStorageOnBoot,
+                onToggle = { enabled ->
+                    viewModel.setApplyNetworkStorageOnBoot(enabled)
+                }
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Group 1: GPU & Power
+        item {
+            Text(stringResource(id = R.string.gpu_power), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(8.dp))
         }
         // KGSL Skip Pool Zeroing feature
         item {
@@ -347,53 +392,8 @@ fun MiscScreen(
                 onClick = { navController?.navigate("kernel_log") }
             )
         }
-        
-        // Spacer between groups
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        // Group 2: Network & Storage
-        item {
-            Text(stringResource(id = R.string.network_storage), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-        
-        // TCP Congestion Control Algorithm feature
-        item {
-            TcpCongestionControlCard(
-                tcpCongestionAlgorithm = tcpCongestionAlgorithm,
-                availableAlgorithms = availableTcpAlgorithms,
-                onAlgorithmChange = { algorithm ->
-                    viewModel.updateTcpCongestionAlgorithm(algorithm)
-                }
-            )
-        }
-        
-        // I/O Scheduler feature
-        item {
-            IoSchedulerCard(
-                ioScheduler = ioScheduler,
-                availableSchedulers = availableIoSchedulers,
-                onSchedulerChange = { scheduler ->
-                    viewModel.updateIoScheduler(scheduler)
-                }
-            )
-        }
-        
-        // Apply Network & Storage on Boot
-        item {
-            NetworkStorageOnBootCard(
-                applyOnBoot = applyNetworkStorageOnBoot,
-                onToggle = { enabled ->
-                    viewModel.setApplyNetworkStorageOnBoot(enabled)
-                }
-            )
-        }
     }
 }
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1063,12 +1063,13 @@ fun TcpCongestionControlCard(
     tcpCongestionAlgorithm: String?,
     availableAlgorithms: List<String>,
     onAlgorithmChange: (String) -> Unit,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(8.dp)
 ) {
     var showDialog by remember { mutableStateOf(false) }
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
+        shape = shape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
@@ -1145,12 +1146,13 @@ fun IoSchedulerCard(
     ioScheduler: String?,
     availableSchedulers: List<String>,
     onSchedulerChange: (String) -> Unit,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(8.dp)
 ) {
     var showDialog by remember { mutableStateOf(false) }
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = shape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
