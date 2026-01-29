@@ -16,7 +16,7 @@
 > **Use this application at your own risk.**
 > This utility performs advanced system-level operations and kernel tuning that may impact device stability, cause data loss, or potentially damage hardware if misconfigured. The developers assume no responsibility for any issues or damages resulting from the use of this software.
 
-**N0Kontzzz Kernel Manager** is a sophisticated Android application designed for rooted devices. Developed using Kotlin and Jetpack Compose, this utility offers comprehensive real-time monitoring and tuning capabilities for CPU performance, thermal management, and battery statistics. It is specifically optimized for the Poco F4 (munch) utilizing the N0Kontzzz or N0kernel custom kernels.
+**N0Kontzzz Kernel Manager** is a sophisticated Android application designed for rooted devices. Developed using Kotlin and Jetpack Compose, this utility offers comprehensive real-time monitoring and tuning capabilities for CPU performance, thermal management, and battery statistics. It is specifically optimized for the Poco F4 (munch) utilizing the N0Kontzzz custom kernels.
 
 ## Features
 
@@ -122,7 +122,7 @@
 
 ## Requirements
 
-- Poco F4 (munch) device running N0Kontzzz, N0kernel, FusionX, Lunar, E404R, perf+, or Oxygen+ kernel.
+- Kona (SM8250) devices running N0Kontzzz, N0kernel, FusionX, Lunar, E404R, perf+, or Oxygen+ kernel.
 - Root access (Magisk or KernelSU supported).
 
 ---
