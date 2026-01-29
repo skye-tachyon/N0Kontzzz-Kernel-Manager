@@ -243,7 +243,7 @@ fun MiscScreen(
             )
         }
 
-        // Force Fast Charge feature
+        // USB Fast Charge feature
         item {
             ForceFastChargeCard(
                 forceFastChargeEnabled = forceFastChargeEnabled,

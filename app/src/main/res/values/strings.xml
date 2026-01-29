@@ -181,10 +181,10 @@
     <string name="bypass_charging_activated">Bypass Charging Activated</string>
     <string name="bypass_charging_active_desc">Bypass charging is active. The battery is not charging.</string>
 
-    <string name="force_fast_charge">Force Fast Charge</string>
-    <string name="force_fast_charge_desc">Forces the device to charge at a faster rate. Use with caution as it may increase heat. Ensure your kernel supports this feature.</string>
-    <string name="force_fast_charge_activated">Force Fast Charge Activated</string>
-    <string name="force_fast_charge_active_desc">Force fast charge is active. Your device is charging faster.</string>
+    <string name="force_fast_charge">USB Fast Charge</string>
+    <string name="force_fast_charge_desc">Forces the device to charge at a faster rate when connected to a USB port (e.g., laptop). Use with caution as it may increase heat. Ensure your kernel supports this feature.</string>
+    <string name="force_fast_charge_activated">USB Fast Charge Activated</string>
+    <string name="force_fast_charge_active_desc">USB fast charge is active. Your device is charging faster from USB.</string>
 
     <string name="charging_control_title">Charging Control</string>
     <string name="charging_control_desc">Automatically stop and resume charging at specific battery levels</string>
@@ -587,7 +587,7 @@
     <string name="category_other">Other Settings</string>
     <string name="desc_tuning">Includes Thermal Mode, CPU Governor, and Max Frequency settings.</string>
     <string name="desc_network_storage">Includes TCP Congestion Algorithm and I/O Scheduler.</string>
-    <string name="desc_battery">Includes Bypass Charging, Force Fast Charge, Charging Control limits, and Battery Monitor state.</string>
+    <string name="desc_battery">Includes Bypass Charging, USB Fast Charge, Charging Control limits, and Battery Monitor state.</string>
     <string name="desc_other">Includes KGSL Skip Pool Zeroing and Notification Icon style.</string>
     <string name="backup_success">Backup created successfully</string>
     <string name="restore_success">Settings restored successfully</string>

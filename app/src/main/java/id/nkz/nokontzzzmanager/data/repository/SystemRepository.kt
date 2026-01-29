@@ -1390,17 +1390,17 @@ class SystemRepository @Inject constructor(
         if (file.exists()) {
             return true
         }
-        return readFileToString(forceFastChargePath, "Force Fast Charge Check") != null
+        return readFileToString(forceFastChargePath, "USB Fast Charge Check") != null
     }
 
     fun getForceFastCharge(): Boolean {
-        val value = readFileToString(forceFastChargePath, "Force Fast Charge Status")
+        val value = readFileToString(forceFastChargePath, "USB Fast Charge Status")
         return value?.trim() == "1"
     }
 
     fun setForceFastCharge(enabled: Boolean): Boolean {
         val value = if (enabled) "1" else "0"
-        return writeStringToFile(forceFastChargePath, value, "Force Fast Charge")
+        return writeStringToFile(forceFastChargePath, value, "USB Fast Charge")
     }
 
     // TCP Congestion Control Algorithm functions

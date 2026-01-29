@@ -151,7 +151,7 @@ class MiscViewModel @Inject constructor(
                 _bypassChargingEnabled.value = false
             }
 
-            // Check force fast charge
+            // Check USB Fast Charge
             val fastChargeAvailable = systemRepository.isForceFastChargeAvailable()
             _isForceFastChargeAvailable.value = fastChargeAvailable
             if (fastChargeAvailable) {
