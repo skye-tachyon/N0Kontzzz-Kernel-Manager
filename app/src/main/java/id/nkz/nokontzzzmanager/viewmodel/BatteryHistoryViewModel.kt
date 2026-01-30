@@ -131,8 +131,12 @@ class BatteryHistoryViewModel @Inject constructor(
                 val next = relevantEntries[i + 1]
                 val dt = next.timestamp - current.timestamp
 
-                // Skip large gaps (> 5 mins)
-                if (dt > 5 * 60 * 1000) continue
+                // Check for valid uptime continuity (detect reboot)
+                if (current.uptime > 0 && next.uptime > 0) {
+                    if (next.uptime < current.uptime) continue
+                } else {
+                    if (dt > 60 * 60 * 1000) continue
+                }
 
                 if (current.currentMa < 0) {
                     val avgCurrent = (kotlin.math.abs(current.currentMa) + kotlin.math.abs(next.currentMa)) / 2.0
@@ -299,7 +303,13 @@ class BatteryHistoryViewModel @Inject constructor(
                 val current = sortedData[i]
                 val next = sortedData[i + 1]
                 val dt = next.timestamp - current.timestamp
-                if (dt > 5 * 60 * 1000) continue
+
+                // Check for valid uptime continuity (detect reboot)
+                if (current.uptime > 0 && next.uptime > 0) {
+                    if (next.uptime < current.uptime) continue
+                } else {
+                    if (dt > 60 * 60 * 1000) continue
+                }
 
                 if (current.currentMa < 0) {
                     totalDischargeTimeMs += dt
@@ -328,7 +338,13 @@ class BatteryHistoryViewModel @Inject constructor(
                 val current = sortedData[i]
                 val next = sortedData[i + 1]
                 val dt = next.timestamp - current.timestamp
-                if (dt > 5 * 60 * 1000) continue
+
+                // Check for valid uptime continuity (detect reboot)
+                if (current.uptime > 0 && next.uptime > 0) {
+                    if (next.uptime < current.uptime) continue
+                } else {
+                    if (dt > 60 * 60 * 1000) continue
+                }
 
                 if (current.currentMa < 0) {
                     val avgCurrentMa = (kotlin.math.abs(current.currentMa) + kotlin.math.abs(next.currentMa)) / 2.0
