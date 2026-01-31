@@ -422,8 +422,8 @@
     <string name="zram_active_template">ZRAM: %dMB Aktif</string>
     <string name="zram_disabled">ZRAM: Nonaktif</string>
     <string name="zram_state">Status ZRAM</string>
-    <string name="zram_enabled_desc">RAM terkompresi aktif (dikelola oleh kernel)</string>
-    <string name="zram_disabled_desc">RAM terkompresi nonaktif (dikelola oleh kernel)</string>
+    <string name="zram_enabled_desc">RAM terkompresi aktif</string>
+    <string name="zram_disabled_desc">RAM terkompresi nonaktif</string>
     <string name="on">AKTIF</string>
     <string name="off">NONAKTIF</string>
     <string name="disabling_zram_wait">Sedang mematikan ZRAM, mohon tunggu…</string>
@@ -540,7 +540,7 @@
     <string name="set_zram_size_title">Atur Ukuran ZRAM</string>
     <string name="choose_compression_algorithm">Pilih Algoritma Kompresi</string>
     <string name="zram_performance_settings_subtitle">Pengaturan Performa ZRAM</string>
-    <string name="compression_feature_explanation">Algoritma kompresi yang digunakan oleh ZRAM untuk mengompres data di memori. LZ4 memprioritaskan kecepatan, ZSTD efisiensi tinggi, LZO keseimbangan optimal antara kecepatan dan rasio kompresi. (Status ZRAM dikendalikan oleh kernel Anda dan tidak dapat diubah)</string>
+    <string name="compression_feature_explanation">Algoritma kompresi yang digunakan oleh ZRAM untuk mengompres data di memori. LZ4 memprioritaskan kecepatan, ZSTD efisiensi tinggi, LZO keseimbangan optimal antara kecepatan dan rasio kompresi.</string>
     <!-- Process Monitor -->
     <string name="process_monitor_title">Monitor Proses</string>
     <string name="process_monitor_desc">Pantau penggunaan CPU dan RAM proses yang berjalan</string>

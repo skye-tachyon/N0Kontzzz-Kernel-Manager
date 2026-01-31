@@ -421,8 +421,8 @@
     <string name="zram_active_template">ZRAM: %dMB Active</string>
     <string name="zram_disabled">ZRAM: Disabled</string>
     <string name="zram_state">ZRAM State</string>
-    <string name="zram_enabled_desc">Compressed RAM enabled (controlled by kernel)</string>
-    <string name="zram_disabled_desc">Compressed RAM disabled (controlled by kernel)</string>
+    <string name="zram_enabled_desc">Compressed RAM enabled</string>
+    <string name="zram_disabled_desc">Compressed RAM disabled</string>
     <string name="on">ON</string>
     <string name="off">OFF</string>
     <string name="disabling_zram_wait">Disabling ZRAM, please wait…</string>
@@ -540,7 +540,7 @@
     <string name="set_zram_size_title">Set ZRAM Size</string>
     <string name="choose_compression_algorithm">Choose Compression Algorithm</string>
     <string name="zram_performance_settings_subtitle">ZRAM Performance Settings</string>
-    <string name="compression_feature_explanation">The compression algorithm used by ZRAM to compress data in memory. LZ4 prioritizes speed, ZSTD high efficiency, LZO optimal balance between speed and compression ratio. (ZRAM state is controlled by your kernel and cannot be changed)</string>
+    <string name="compression_feature_explanation">The compression algorithm used by ZRAM to compress data in memory. LZ4 prioritizes speed, ZSTD high efficiency, LZO optimal balance between speed and compression ratio.</string>
     <!-- Process Monitor -->
     <string name="process_monitor_title">Process Monitor</string>
     <string name="process_monitor_desc">Monitor running processes CPU and RAM usage</string>
