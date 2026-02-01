@@ -95,10 +95,11 @@ private fun CpuHeaderSection(
     val (marketingName, boardName) = remember(board, deviceCodename) {
         when (board.uppercase()) {
             "SM8250" -> {
-                if (deviceCodename.lowercase() in listOf("munch", "alioth")) {
-                    "Qualcomm® Snapdragon™ 870 5G" to "SM8250-AC"
-                } else {
-                    "Qualcomm® Snapdragon™ 865 5G" to "SM8250"
+                val codename = deviceCodename.lowercase()
+                when (codename) {
+                    in listOf("munch", "alioth") -> "Qualcomm® Snapdragon™ 870 5G" to "SM8250-AC"
+                    in listOf("apollo", "lmi") -> "Qualcomm® Snapdragon™ 865 5G" to "SM8250"
+                    else -> "Sus... Are you spoofing? \u0D9E" to "SM8250 (Impostor)"
                 }
             }
             "SM8250-AB" -> "Qualcomm® Snapdragon™ 865+ 5G" to "SM8250-AB"
