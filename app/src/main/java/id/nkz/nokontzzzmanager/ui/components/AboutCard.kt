@@ -57,7 +57,8 @@ val leadDeveloper = Developer(R.string.viasco, R.string.nkm_developer, "bimoalfa
 val individualContributors = listOf(
     Developer(R.string.gustyx_power, R.string.xkm_developer, "Gustyx-Power", R.drawable.gustyx_power),
     Developer(R.string.radika, R.string.rvkm_developer, "Rve27", R.drawable.radika),
-    Developer(R.string.danda, R.string.help_and_support, "Danda420", R.drawable.danda)
+    Developer(R.string.danda, R.string.help_and_support, "Danda420", R.drawable.danda),
+    Developer(R.string.kenskuyy, R.string.nkm_contributor, "kenaidi01", R.drawable.kenksuyy)
 )
 
 val repositoryContributors = listOf(
