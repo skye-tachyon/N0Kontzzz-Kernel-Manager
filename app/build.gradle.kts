@@ -14,8 +14,8 @@ configure <com.android.build.api.dsl.ApplicationExtension> {
         applicationId = "id.nkz.nokontzzzmanager"
         minSdk = 31
         targetSdk = 36
-        versionCode = 80
-        versionName = "1.6.0"
+        versionCode = 81
+        versionName = "1.6.1-test"
     }
     buildTypes {
         release {
@@ -36,6 +36,7 @@ configure <com.android.build.api.dsl.ApplicationExtension> {
 configurations.all {
     resolutionStrategy {
         force(libs.guava)
+        force(libs.listenablefuture)
     }
     exclude(group = "com.google.guava", module = "listenablefuture")
 }
@@ -95,6 +96,7 @@ dependencies {
     implementation(libs.guava) {
         exclude(group = "com.google.guava", module = "listenablefuture")
     }
+    implementation(libs.listenablefuture)
 
     // Testing
     testImplementation(libs.junit)

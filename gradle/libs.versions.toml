@@ -21,7 +21,8 @@ kotlinx-collections-immutable = "0.4.0"
 work-runtime-ktx = "2.11.1"
 libsu = "6.0.0"
 coil-compose = "2.7.0"
-guava = "33.5.0-jre"
+guava = "33.5.0-android"
+listenablefuture = "9999.0-empty-to-avoid-conflict-with-guava"
 junit = "4.13.2"
 androidx-test-core = "1.7.0"
 mockito-core = "5.21.0"
@@ -75,6 +76,7 @@ libsu = { group = "com.github.topjohnwu.libsu", name = "core", version.ref = "li
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil-compose" }
 accompanist-drawablepainter = { group = "com.google.accompanist", name = "accompanist-drawablepainter", version.ref = "accompanist" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+listenablefuture = { group = "com.google.guava", name = "listenablefuture", version.ref = "listenablefuture" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
