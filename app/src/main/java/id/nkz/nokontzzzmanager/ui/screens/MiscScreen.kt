@@ -134,11 +134,27 @@ fun MiscScreen(
     }
 
     val context = LocalContext.current
+
+    val checkBatteryOptimizationAndEnable = {
+        val pm = context.getSystemService(PowerManager::class.java)
+        // Request ignore battery optimizations if not whitelisted (Android 6.0+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && pm != null && !pm.isIgnoringBatteryOptimizations(context.packageName)) {
+            try {
+                val i = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    data = ("package:" + context.packageName).toUri()
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(i)
+            } catch (_: Exception) { }
+        }
+        viewModel.toggleBatteryMonitor(true)
+    }
+
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) {
-            viewModel.toggleBatteryMonitor(true)
+            checkBatteryOptimizationAndEnable()
         }
     }
 
@@ -280,29 +296,24 @@ fun MiscScreen(
             BatteryMonitorCard(
                 enabled = batteryMonitorEnabled,
                 onToggle = { enabled ->
-                    if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        val granted = ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.POST_NOTIFICATIONS
-                        ) == PackageManager.PERMISSION_GRANTED
-                        if (!granted) {
-                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        } else {
-                            // Prompt ignore battery optimizations jika belum di-whitelist
-                            val pm = context.getSystemService(PowerManager::class.java)
-                            if (pm != null && !pm.isIgnoringBatteryOptimizations(context.packageName)) {
-                                try {
-                                    val i = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                        data = ("package:" + context.packageName).toUri()
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    }
-                                    context.startActivity(i)
-                                } catch (_: Exception) { }
+                    if (enabled) {
+                        var hasPermission = true
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            val granted = ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.POST_NOTIFICATIONS
+                            ) == PackageManager.PERMISSION_GRANTED
+                            if (!granted) {
+                                hasPermission = false
+                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                             }
-                            viewModel.toggleBatteryMonitor(true)
+                        }
+
+                        if (hasPermission) {
+                            checkBatteryOptimizationAndEnable()
                         }
                     } else {
-                        viewModel.toggleBatteryMonitor(enabled)
+                        viewModel.toggleBatteryMonitor(false)
                     }
                 }
             )
