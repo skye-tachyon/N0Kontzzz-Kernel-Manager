@@ -30,6 +30,10 @@ class BatteryMonitorRepository @Inject constructor(
         val savedWindowAccum = prefs.getLong("window_accum_ms", 0L)
         val savedWindowStartUptime = prefs.getLong("window_start_uptime", -1L)
         val savedAwakeAccum = prefs.getLong("awake_accum_ms", 0L)
+        
+        // Migration heuristic: If awake history is missing (from old version bug) but we have screen on history,
+        // use Screen On as the minimum Awake time.
+        val effectiveSavedAwake = if (savedAwakeAccum == 0L && savedAccum > 0L) savedAccum else savedAwakeAccum
 
         // Drain rates
         val savedOnDrop = java.lang.Double.longBitsToDouble(prefs.getLong("on_percent_drop_bits", 0L))
@@ -45,14 +49,14 @@ class BatteryMonitorRepository @Inject constructor(
 
         // If reboot detected and service hasn't restored yet, return snapshot
         val (totalWindowMs, totalAwakeMs) = if (isReboot) {
-            Pair(savedWindowAccum, savedAwakeAccum)
+            Pair(savedWindowAccum, effectiveSavedAwake)
         } else {
             // Live calculation assuming continuous session
             val currentSessionWindowMs = if (savedWindowStart >= 0) (now - savedWindowStart).coerceAtLeast(0L) else 0L
             val totalWindow = savedWindowAccum + currentSessionWindowMs
             
             val currentSessionAwakeMs = if (savedWindowStartUptime >= 0) (nowUptime - savedWindowStartUptime).coerceAtLeast(0L) else 0L
-            val totalAwake = savedAwakeAccum + currentSessionAwakeMs
+            val totalAwake = effectiveSavedAwake + currentSessionAwakeMs
             
             Pair(totalWindow, totalAwake)
         }

@@ -935,6 +935,10 @@ class BatteryMonitorService : Service() {
         val savedWindowAccum = prefs.getLong("window_accum_ms", 0L)
         val savedAwakeAccum = prefs.getLong("awake_accum_ms", 0L)
         
+        // Migration heuristic: If awake history is missing (from old version bug) but we have screen on history,
+        // assume Awake >= Screen On to prevent "Deep Sleep > Screen Off" paradox.
+        val effectiveSavedAwake = if (savedAwakeAccum == 0L && savedAccum > 0L) savedAccum else savedAwakeAccum
+        
         // Restore drain stats
         val savedConsumedOn = prefs.getLong("consumed_on_uah", 0L)
         val savedConsumedOff = prefs.getLong("consumed_off_uah", 0L)
@@ -967,7 +971,7 @@ class BatteryMonitorService : Service() {
                 // For awake duration: add the uptime duration from the previous session
                 val prevSessionAwake = if (savedWindowStartUptime >= 0 && lastUptime >= savedWindowStartUptime) 
                     (lastUptime - savedWindowStartUptime) else 0L
-                awakeAccumMs = savedAwakeAccum + prevSessionAwake
+                awakeAccumMs = effectiveSavedAwake + prevSessionAwake
                 
                 // Reset start time to now for the new session
                 windowStartElapsed = now
@@ -983,7 +987,7 @@ class BatteryMonitorService : Service() {
             // Normal restore (service restart, no reboot)
             screenOnAccumMs = savedAccum
             windowAccumMs = savedWindowAccum
-            awakeAccumMs = savedAwakeAccum
+            awakeAccumMs = effectiveSavedAwake
             windowStartElapsed = savedWindowStart
             windowStartUptime = savedWindowStartUptime
             
