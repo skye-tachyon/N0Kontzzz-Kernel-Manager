@@ -8,11 +8,19 @@ data class BackupData(
     val networkStorage: NetworkStorageSettings? = null,
     val battery: BatterySettings? = null,
     val other: OtherSettings? = null,
+    val customTunables: List<CustomTunableBackupItem>? = null,
     val timestamp: Long = System.currentTimeMillis()
 ) {
     val isValid: Boolean
-        get() = tuning != null || networkStorage != null || battery != null || other != null
+        get() = tuning != null || networkStorage != null || battery != null || other != null || customTunables != null
 }
+
+@Serializable
+data class CustomTunableBackupItem(
+    val path: String,
+    val value: String,
+    val applyOnBoot: Boolean
+)
 
 @Serializable
 data class TuningSettings(
@@ -25,7 +33,8 @@ data class TuningSettings(
 @Serializable
 data class NetworkStorageSettings(
     val tcpCongestion: String? = null,
-    val ioScheduler: String? = null
+    val ioScheduler: String? = null,
+    val applyOnBoot: Boolean? = null
 )
 
 @Serializable
@@ -35,14 +44,24 @@ data class BatterySettings(
     val chargingControlEnabled: Boolean? = null,
     val stopLevel: Int? = null,
     val resumeLevel: Int? = null,
-    val batteryMonitorEnabled: Boolean? = null
+    val batteryMonitorEnabled: Boolean? = null,
+    // History Auto-Reset
+    val autoResetOnReboot: Boolean? = null,
+    val autoResetOnCharging: Boolean? = null,
+    val autoResetAtLevel: Boolean? = null,
+    val autoResetTargetLevel: Int? = null,
+    // Monitor Auto-Reset
+    val monitorAutoResetOnReboot: Boolean? = null,
+    val monitorAutoResetOnCharging: Boolean? = null,
+    val monitorAutoResetAtLevel: Boolean? = null,
+    val monitorAutoResetTargetLevel: Int? = null
 )
 
 @Serializable
 data class OtherSettings(
     val kgslSkipZeroing: Boolean? = null,
-    val notificationIconStyle: Int? = null,
-    // Auto reset settings could go here too
+    val avoidDirtyPte: Boolean? = null,
+    val notificationIconStyle: Int? = null
 )
 
 data class BackupPreview(
@@ -50,5 +69,6 @@ data class BackupPreview(
     val hasNetwork: Boolean,
     val hasBattery: Boolean,
     val hasOther: Boolean,
+    val hasCustomTunables: Boolean,
     val timestamp: Long
 )

@@ -21,7 +21,8 @@ class BackupRepository @Inject constructor(
     private val preferenceManager: PreferenceManager,
     private val persistentSettingsManager: PersistentSettingsManager,
     private val systemRepository: SystemRepository,
-    private val tuningRepository: TuningRepository
+    private val tuningRepository: TuningRepository,
+    private val customTunableRepository: CustomTunableRepository
 ) {
     private val json = Json { prettyPrint = true; ignoreUnknownKeys = true }
 
@@ -30,7 +31,8 @@ class BackupRepository @Inject constructor(
         includeTuning: Boolean,
         includeNetwork: Boolean,
         includeBattery: Boolean,
-        includeOther: Boolean
+        includeOther: Boolean,
+        includeCustomTunables: Boolean
     ): Result<String> {
         return try {
             val tuningSettings = if (includeTuning) {
@@ -45,7 +47,8 @@ class BackupRepository @Inject constructor(
             val networkSettings = if (includeNetwork) {
                 NetworkStorageSettings(
                     tcpCongestion = preferenceManager.getTcpCongestionAlgorithm(),
-                    ioScheduler = preferenceManager.getIoScheduler()
+                    ioScheduler = preferenceManager.getIoScheduler(),
+                    applyOnBoot = preferenceManager.isApplyNetworkStorageOnBoot()
                 )
             } else null
 
@@ -56,22 +59,40 @@ class BackupRepository @Inject constructor(
                     chargingControlEnabled = preferenceManager.isChargingControlEnabled(),
                     stopLevel = preferenceManager.getChargingControlStopLevel(),
                     resumeLevel = preferenceManager.getChargingControlResumeLevel(),
-                    batteryMonitorEnabled = preferenceManager.isBatteryMonitorEnabled()
+                    batteryMonitorEnabled = preferenceManager.isBatteryMonitorEnabled(),
+                    // History Auto-Reset
+                    autoResetOnReboot = preferenceManager.isAutoResetOnReboot(),
+                    autoResetOnCharging = preferenceManager.isAutoResetOnCharging(),
+                    autoResetAtLevel = preferenceManager.isAutoResetAtLevel(),
+                    autoResetTargetLevel = preferenceManager.getAutoResetTargetLevel(),
+                    // Monitor Auto-Reset
+                    monitorAutoResetOnReboot = preferenceManager.isMonitorAutoResetOnReboot(),
+                    monitorAutoResetOnCharging = preferenceManager.isMonitorAutoResetOnCharging(),
+                    monitorAutoResetAtLevel = preferenceManager.isMonitorAutoResetAtLevel(),
+                    monitorAutoResetTargetLevel = preferenceManager.getMonitorAutoResetTargetLevel()
                 )
             } else null
 
             val otherSettings = if (includeOther) {
                 OtherSettings(
                     kgslSkipZeroing = preferenceManager.getKgslSkipZeroing(),
+                    avoidDirtyPte = preferenceManager.getAvoidDirtyPte(),
                     notificationIconStyle = preferenceManager.getNotificationIconStyle()
                 )
+            } else null
+            
+            val customTunables = if (includeCustomTunables) {
+                customTunableRepository.getAllTunables().first().map {
+                    CustomTunableBackupItem(it.path, it.value, it.applyOnBoot)
+                }
             } else null
 
             val backupData = BackupData(
                 tuning = tuningSettings,
                 networkStorage = networkSettings,
                 battery = batterySettings,
-                other = otherSettings
+                other = otherSettings,
+                customTunables = customTunables
             )
 
             val jsonString = json.encodeToString(backupData)
@@ -92,7 +113,8 @@ class BackupRepository @Inject constructor(
             restoreTuning: Boolean,
             restoreNetwork: Boolean,
             restoreBattery: Boolean,
-            restoreOther: Boolean
+            restoreOther: Boolean,
+            restoreCustomTunables: Boolean
         ): Result<Boolean> {
             return try {
                 val jsonString = context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -166,6 +188,7 @@ class BackupRepository @Inject constructor(
                             Log.w("BackupRepository", "Skipping unsupported I/O scheduler: $it")
                         }
                     }
+                    backupData.networkStorage.applyOnBoot?.let { preferenceManager.setApplyNetworkStorageOnBoot(it) }
                 }
     
                 if (restoreBattery && backupData.battery != null) {
@@ -185,6 +208,18 @@ class BackupRepository @Inject constructor(
                     backupData.battery.stopLevel?.let { preferenceManager.setChargingControlStopLevel(it) }
                     backupData.battery.resumeLevel?.let { preferenceManager.setChargingControlResumeLevel(it) }
                     
+                    // History Auto-Reset
+                    backupData.battery.autoResetOnReboot?.let { preferenceManager.setAutoResetOnReboot(it) }
+                    backupData.battery.autoResetOnCharging?.let { preferenceManager.setAutoResetOnCharging(it) }
+                    backupData.battery.autoResetAtLevel?.let { preferenceManager.setAutoResetAtLevel(it) }
+                    backupData.battery.autoResetTargetLevel?.let { preferenceManager.setAutoResetTargetLevel(it) }
+                    
+                    // Monitor Auto-Reset
+                    backupData.battery.monitorAutoResetOnReboot?.let { preferenceManager.setMonitorAutoResetOnReboot(it) }
+                    backupData.battery.monitorAutoResetOnCharging?.let { preferenceManager.setMonitorAutoResetOnCharging(it) }
+                    backupData.battery.monitorAutoResetAtLevel?.let { preferenceManager.setMonitorAutoResetAtLevel(it) }
+                    backupData.battery.monitorAutoResetTargetLevel?.let { preferenceManager.setMonitorAutoResetTargetLevel(it) }
+                    
                     backupData.battery.batteryMonitorEnabled?.let { 
                         preferenceManager.setBatteryMonitorEnabled(it)
                         if (it) {
@@ -201,10 +236,27 @@ class BackupRepository @Inject constructor(
                             preferenceManager.setKgslSkipZeroing(it)
                         }
                     }
+                    backupData.other.avoidDirtyPte?.let { 
+                        if (systemRepository.setAvoidDirtyPte(it)) {
+                            preferenceManager.setAvoidDirtyPte(it)
+                        }
+                    }
                     // Notification icon is UI preference, always safe to restore
                     backupData.other.notificationIconStyle?.let { 
                         preferenceManager.setNotificationIconStyle(it)
                         BatteryMonitorService.updateIcon(context)
+                    }
+                }
+                
+                if (restoreCustomTunables && !backupData.customTunables.isNullOrEmpty()) {
+                    backupData.customTunables.forEach { item ->
+                        customTunableRepository.insertTunable(
+                            id.nkz.nokontzzzmanager.data.database.CustomTunableEntity(
+                                path = item.path,
+                                value = item.value,
+                                applyOnBoot = item.applyOnBoot
+                            )
+                        )
                     }
                 }
     
@@ -232,6 +284,7 @@ class BackupRepository @Inject constructor(
                     hasNetwork = data.networkStorage != null,
                     hasBattery = data.battery != null,
                     hasOther = data.other != null,
+                    hasCustomTunables = !data.customTunables.isNullOrEmpty(),
                     timestamp = data.timestamp
                 )
             )
