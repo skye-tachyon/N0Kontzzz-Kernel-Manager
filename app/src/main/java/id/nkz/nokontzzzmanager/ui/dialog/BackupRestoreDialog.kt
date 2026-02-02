@@ -25,9 +25,9 @@ import id.nkz.nokontzzzmanager.data.model.BackupPreview
 @Composable
 fun BackupRestoreDialog(
     onDismiss: () -> Unit,
-    onBackup: (Boolean, Boolean, Boolean, Boolean) -> Unit,
+    onBackup: (Boolean, Boolean, Boolean, Boolean, Boolean) -> Unit,
     onSelectFile: () -> Unit,
-    onRestore: (Boolean, Boolean, Boolean, Boolean) -> Unit,
+    onRestore: (Boolean, Boolean, Boolean, Boolean, Boolean) -> Unit,
     preview: BackupPreview? = null
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0 for Backup, 1 for Restore
@@ -37,6 +37,7 @@ fun BackupRestoreDialog(
     var includeNetwork by remember { mutableStateOf(true) }
     var includeBattery by remember { mutableStateOf(true) }
     var includeOther by remember { mutableStateOf(true) }
+    var includeCustomTunables by remember { mutableStateOf(true) }
 
     // Sync checkboxes with preview when it arrives
     LaunchedEffect(preview) {
@@ -46,6 +47,7 @@ fun BackupRestoreDialog(
             includeNetwork = preview.hasNetwork
             includeBattery = preview.hasBattery
             includeOther = preview.hasOther
+            includeCustomTunables = preview.hasCustomTunables
         }
     }
 
@@ -164,6 +166,15 @@ fun BackupRestoreDialog(
                                     shape = RoundedCornerShape(8.dp)
                                 )
                             }
+                            if (selectedTab == 0 || preview?.hasCustomTunables == true) {
+                                BackupCheckboxItem(
+                                    label = stringResource(R.string.custom_tunable_title),
+                                    description = stringResource(R.string.custom_tunable_desc),
+                                    checked = includeCustomTunables,
+                                    onCheckedChange = { includeCustomTunables = it },
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                            }
                             if (selectedTab == 0 || preview?.hasOther == true) {
                                 BackupCheckboxItem(
                                     label = stringResource(R.string.category_other),
@@ -188,15 +199,15 @@ fun BackupRestoreDialog(
                             Text(stringResource(R.string.cancel))
                         }
                         
-                        val isRestoreReady = selectedTab == 1 && preview != null && (includeTuning || includeNetwork || includeBattery || includeOther)
-                        val isBackupReady = selectedTab == 0 && (includeTuning || includeNetwork || includeBattery || includeOther)
+                        val isRestoreReady = selectedTab == 1 && preview != null && (includeTuning || includeNetwork || includeBattery || includeOther || includeCustomTunables)
+                        val isBackupReady = selectedTab == 0 && (includeTuning || includeNetwork || includeBattery || includeOther || includeCustomTunables)
 
                         Button(
                             onClick = {
                                 if (selectedTab == 0) {
-                                    onBackup(includeTuning, includeNetwork, includeBattery, includeOther)
+                                    onBackup(includeTuning, includeNetwork, includeBattery, includeOther, includeCustomTunables)
                                 } else {
-                                    onRestore(includeTuning, includeNetwork, includeBattery, includeOther)
+                                    onRestore(includeTuning, includeNetwork, includeBattery, includeOther, includeCustomTunables)
                                 }
                             },
                             modifier = Modifier.weight(1f),

@@ -56,6 +56,7 @@ private data class PendingBackupOptions(
     val network: Boolean,
     val battery: Boolean,
     val other: Boolean,
+    val customTunables: Boolean
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,7 +101,7 @@ fun SettingsScreen(
     ) { uri ->
         if (uri != null && pendingOptions != null) {
             val ops = pendingOptions!!
-            viewModel.backupSettings(uri, ops.tuning, ops.network, ops.battery, ops.other)
+            viewModel.backupSettings(uri, ops.tuning, ops.network, ops.battery, ops.other, ops.customTunables)
         }
         pendingOptions = null
     }
@@ -459,8 +460,8 @@ fun SettingsScreen(
                 showBackupDialog = false
                 viewModel.clearBackupPreview()
             },
-            onBackup = { tuning, network, battery, other ->
-                pendingOptions = PendingBackupOptions(tuning, network, battery, other)
+            onBackup = { tuning, network, battery, other, customTunables ->
+                pendingOptions = PendingBackupOptions(tuning, network, battery, other, customTunables)
                 showBackupDialog = false
                 backupLauncher.launch(backupFileName)
             },
@@ -468,9 +469,9 @@ fun SettingsScreen(
                 showBackupDialog = false
                 restoreFilePickerLauncher.launch(arrayOf("application/json"))
             },
-            onRestore = { tuning, network, battery, other ->
+            onRestore = { tuning, network, battery, other, customTunables ->
                 selectedRestoreUri?.let { uri ->
-                    viewModel.restoreSettings(uri, tuning, network, battery, other)
+                    viewModel.restoreSettings(uri, tuning, network, battery, other, customTunables)
                 }
                 showBackupDialog = false
             },

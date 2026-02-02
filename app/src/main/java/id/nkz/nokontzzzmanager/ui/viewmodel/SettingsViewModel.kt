@@ -113,9 +113,9 @@ class SettingsViewModel @Inject constructor(
         _selectedRestoreUri.value = null
     }
 
-    fun backupSettings(uri: Uri, includeTuning: Boolean, includeNetwork: Boolean, includeBattery: Boolean, includeOther: Boolean) {
+    fun backupSettings(uri: Uri, includeTuning: Boolean, includeNetwork: Boolean, includeBattery: Boolean, includeOther: Boolean, includeCustomTunables: Boolean) {
         viewModelScope.launch {
-            val result = backupRepository.createBackup(uri, includeTuning, includeNetwork, includeBattery, includeOther)
+            val result = backupRepository.createBackup(uri, includeTuning, includeNetwork, includeBattery, includeOther, includeCustomTunables)
             if (result.isSuccess) {
                 _backupRestoreEvent.emit(context.getString(R.string.backup_success))
             } else {
@@ -124,9 +124,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun restoreSettings(uri: Uri, restoreTuning: Boolean, restoreNetwork: Boolean, restoreBattery: Boolean, restoreOther: Boolean) {
+    fun restoreSettings(uri: Uri, restoreTuning: Boolean, restoreNetwork: Boolean, restoreBattery: Boolean, restoreOther: Boolean, restoreCustomTunables: Boolean) {
         viewModelScope.launch {
-            val result = backupRepository.restoreBackup(uri, restoreTuning, restoreNetwork, restoreBattery, restoreOther)
+            val result = backupRepository.restoreBackup(uri, restoreTuning, restoreNetwork, restoreBattery, restoreOther, restoreCustomTunables)
             if (result.isSuccess) {
                 _backupRestoreEvent.emit(context.getString(R.string.restore_success))
                 // Refresh local states if needed
