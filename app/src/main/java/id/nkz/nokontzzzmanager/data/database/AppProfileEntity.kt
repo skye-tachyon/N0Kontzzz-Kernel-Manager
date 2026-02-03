@@ -12,5 +12,15 @@ data class AppProfileEntity(
     val kgslSkipZeroing: Boolean = false,
     val bypassCharging: Boolean = false,
     val allowDirtyPte: Boolean = false,
+    val cpuConfigJson: String? = null,
     val isEnabled: Boolean = true
-)
+) {
+    fun getCpuConfig(): id.nkz.nokontzzzmanager.data.model.CpuProfileConfig {
+        if (cpuConfigJson.isNullOrBlank()) return id.nkz.nokontzzzmanager.data.model.CpuProfileConfig()
+        return try {
+            kotlinx.serialization.json.Json.decodeFromString(cpuConfigJson)
+        } catch (e: Exception) {
+            id.nkz.nokontzzzmanager.data.model.CpuProfileConfig()
+        }
+    }
+}

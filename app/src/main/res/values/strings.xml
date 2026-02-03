@@ -490,6 +490,9 @@
     <string name="app_profiles_powersave">Powersave</string>
     <string name="app_profiles_balanced">Balanced</string>
     <string name="app_profiles_performance">Performance</string>
+    <string name="app_profiles_cpu_tuning">CPU Tuning</string>
+    <string name="app_profiles_gpu_tuning">GPU Tuning</string>
+    <string name="app_profiles_thermal_tuning">Thermal Tuning</string>
     <string name="app_profiles_kgsl_skip_zeroing">KGSL Skip Pool Zeroing</string>
     <string name="app_profiles_bypass_charging">Bypass Charging</string>
     <string name="app_profiles_allow_dirty_pte">Allow Dirty PTE</string>
@@ -500,6 +503,9 @@
     <string name="app_profiles_dirty_pte_prefix"> • Dirty PTE: </string>
     <string name="app_profiles_on">On</string>
     <string name="app_profiles_off">Off</string>
+    <string name="app_profiles_custom">Custom</string>
+    <string name="app_profiles_custom_tuning_active">Custom Tuning Active</string>
+    <string name="reset_to_default">Reset to Default</string>
 
     <!-- Battery History Config Dialog -->
     <string name="battery_history_config_title">History Auto-Reset</string>

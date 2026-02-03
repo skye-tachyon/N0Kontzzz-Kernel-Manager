@@ -491,6 +491,9 @@
     <string name="app_profiles_powersave">Hemat Daya</string>
     <string name="app_profiles_balanced">Seimbang</string>
     <string name="app_profiles_performance">Performa</string>
+    <string name="app_profiles_cpu_tuning">CPU Tuning</string>
+    <string name="app_profiles_gpu_tuning">GPU Tuning</string>
+    <string name="app_profiles_thermal_tuning">Thermal Tuning</string>
     <string name="app_profiles_kgsl_skip_zeroing">KGSL Skip Pool Zeroing</string>
     <string name="app_profiles_bypass_charging">Bypass Charging</string>
     <string name="app_profiles_allow_dirty_pte">Izinkan Dirty PTE</string>
@@ -501,6 +504,9 @@
     <string name="app_profiles_dirty_pte_prefix"> • Dirty PTE: </string>
     <string name="app_profiles_on">Aktif</string>
     <string name="app_profiles_off">Nonaktif</string>
+    <string name="app_profiles_custom">Kustom</string>
+    <string name="app_profiles_custom_tuning_active">Tuning Kustom Aktif</string>
+    <string name="reset_to_default">Reset ke Awal</string>
 
     <!-- Battery History Config Dialog -->
     <string name="battery_history_config_title">Reset Otomatis Riwayat</string>

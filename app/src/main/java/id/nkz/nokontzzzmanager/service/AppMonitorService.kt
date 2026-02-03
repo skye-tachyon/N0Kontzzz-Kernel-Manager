@@ -12,6 +12,7 @@ import id.nkz.nokontzzzmanager.data.repository.AppProfileRepository
 import id.nkz.nokontzzzmanager.data.repository.SystemRepository
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 import id.nkz.nokontzzzmanager.data.repository.TuningRepository
@@ -137,6 +138,9 @@ class AppMonitorService : Service() {
 
         // 4. Dirty PTE
         systemRepository.setAvoidDirtyPte(profile.allowDirtyPte)
+
+        // 5. CPU Tuning
+        applyCpuConfig(profile.getCpuConfig())
     }
 
     private suspend fun applyGlobalSettings() {
@@ -157,6 +161,67 @@ class AppMonitorService : Service() {
         // 4. Dirty PTE
         val globalDirtyPte = preferenceManager.getAvoidDirtyPte()
         systemRepository.setAvoidDirtyPte(globalDirtyPte)
+
+        // 5. Revert CPU Tuning to Global Prefs
+        revertCpuConfig()
+    }
+
+    private fun applyCpuConfig(config: id.nkz.nokontzzzmanager.data.model.CpuProfileConfig) {
+        serviceScope.launch {
+            // Apply Cluster Configs
+            config.clusterConfigs.forEach { (cluster, clusterConfig) ->
+                if (!clusterConfig.governor.isNullOrBlank()) {
+                    tuningRepository.setCpuGov(cluster, clusterConfig.governor)
+                }
+                
+                if (clusterConfig.minFreq != null || clusterConfig.maxFreq != null) {
+                    val currentFreqs = tuningRepository.getCpuFreq(cluster).first()
+                    val targetMin = clusterConfig.minFreq ?: currentFreqs.first
+                    val targetMax = clusterConfig.maxFreq ?: currentFreqs.second
+                    tuningRepository.setCpuFreq(cluster, targetMin, targetMax)
+                }
+            }
+
+            // Apply Core Online Status
+            config.coreOnlineStatus.forEach { (coreId, online) ->
+                tuningRepository.setCoreOnline(coreId, online)
+            }
+        }
+    }
+
+    private fun revertCpuConfig() {
+        serviceScope.launch {
+            // Revert clusters to global preferences
+            val clusterNodes = tuningRepository.getClusterLeaders()
+            clusterNodes.forEach { cluster ->
+                val globalGov = preferenceManager.getCpuGov(cluster)
+                if (globalGov != null) tuningRepository.setCpuGov(cluster, globalGov)
+
+                val globalMin = preferenceManager.getCpuMinFreq(cluster)
+                val globalMax = preferenceManager.getCpuMaxFreq(cluster)
+                
+                if (globalMin != -1 || globalMax != -1) {
+                    val currentFreqs = tuningRepository.getCpuFreq(cluster).first()
+                    val targetMin = if (globalMin != -1) globalMin else currentFreqs.first
+                    val targetMax = if (globalMax != -1) globalMax else currentFreqs.second
+                    tuningRepository.setCpuFreq(cluster, targetMin, targetMax)
+                }
+            }
+
+            // Revert cores
+            val cores = Runtime.getRuntime().availableProcessors()
+            for (i in 0 until cores) {
+                val globalOnline = preferenceManager.getCpuCoreOnline(i)
+                // If explicit pref exists, use it. Otherwise assume online (true) or just leave it?
+                // Safer to default to true if we don't know, to avoid stuck offline cores.
+                if (globalOnline != null) {
+                    tuningRepository.setCoreOnline(i, globalOnline)
+                } else {
+                    // If no global pref, ensure it's online to be safe
+                    tuningRepository.setCoreOnline(i, true)
+                }
+            }
+        }
     }
 
     private fun applyPerformanceMode(mode: String) {

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.ButtonGroupDefaults
@@ -42,6 +43,10 @@ import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.database.AppProfileEntity
 import id.nkz.nokontzzzmanager.viewmodel.AppInfo
 import id.nkz.nokontzzzmanager.viewmodel.AppProfilesViewModel
+import id.nkz.nokontzzzmanager.ui.dialog.CpuTuningDialog
+import id.nkz.nokontzzzmanager.data.model.CpuProfileConfig
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -405,13 +410,24 @@ fun AppProfileConfigDialog(
     isAvoidDirtyPteAvailable: Boolean,
     isPowersaveAvailable: Boolean,
     onDismiss: () -> Unit,
-    onSave: (AppProfileEntity) -> Unit
+    onSave: (AppProfileEntity) -> Unit,
+    viewModel: AppProfilesViewModel = hiltViewModel()
 ) {
     var performanceMode by remember { mutableStateOf(profile.performanceMode) }
     var kgslSkipZeroing by remember { mutableStateOf(profile.kgslSkipZeroing) }
     var bypassCharging by remember { mutableStateOf(profile.bypassCharging) }
     var allowDirtyPte by remember { mutableStateOf(profile.allowDirtyPte) }
     var isEnabled by remember { mutableStateOf(profile.isEnabled) }
+    
+    // CPU Tuning State
+    var showCpuTuningDialog by remember { mutableStateOf(false) }
+    var cpuConfig by remember { mutableStateOf(profile.getCpuConfig()) }
+
+    val hasCustomCpu = remember(cpuConfig) {
+        cpuConfig.clusterConfigs.values.any { 
+            !it.governor.isNullOrBlank() || it.minFreq != null || it.maxFreq != null 
+        } || cpuConfig.coreOnlineStatus.isNotEmpty()
+    }
 
     val options = remember(isPowersaveAvailable) {
         if (isPowersaveAvailable) {
@@ -419,6 +435,19 @@ fun AppProfileConfigDialog(
         } else {
             listOf("Balanced", "Performance")
         }
+    }
+
+    if (showCpuTuningDialog) {
+        CpuTuningDialog(
+            appName = profile.appName,
+            initialConfig = cpuConfig,
+            viewModel = viewModel,
+            onDismiss = { showCpuTuningDialog = false },
+            onSave = { newConfig ->
+                cpuConfig = newConfig
+                showCpuTuningDialog = false
+            }
+        )
     }
 
     BasicAlertDialog(
@@ -524,14 +553,24 @@ fun AppProfileConfigDialog(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = stringResource(R.string.app_profiles_performance_mode),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.app_profiles_performance_mode),
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    if (hasCustomCpu) {
+                                        Text(
+                                            text = stringResource(R.string.app_profiles_custom_tuning_active),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
                                 
-                                val selectedText = when (performanceMode) {
-                                    "Powersave" -> stringResource(R.string.app_profiles_powersave)
-                                    "Balanced" -> stringResource(R.string.app_profiles_balanced)
+                                val selectedText = when {
+                                    hasCustomCpu -> stringResource(R.string.app_profiles_custom)
+                                    performanceMode == "Powersave" -> stringResource(R.string.app_profiles_powersave)
+                                    performanceMode == "Balanced" -> stringResource(R.string.app_profiles_balanced)
                                     else -> stringResource(R.string.app_profiles_performance)
                                 }
                                 
@@ -539,7 +578,7 @@ fun AppProfileConfigDialog(
                                     Text(
                                         text = text,
                                         style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = if (hasCustomCpu) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -550,14 +589,14 @@ fun AppProfileConfigDialog(
                                 horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
                             ) {
                                 options.forEachIndexed { index, option ->
-                                    val isSelected = performanceMode == option
+                                    val isSelected = !hasCustomCpu && performanceMode == option
                                     ToggleButton(
                                         checked = isSelected,
                                         onCheckedChange = { performanceMode = option },
                                         modifier = Modifier
                                             .weight(1f)
                                             .semantics { role = Role.RadioButton },
-                                        enabled = isEnabled,
+                                        enabled = isEnabled && !hasCustomCpu,
                                         shapes = when (index) {
                                             0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                                             options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
@@ -574,6 +613,86 @@ fun AppProfileConfigDialog(
                                             modifier = Modifier.size(24.dp)
                                         )
                                     }
+                                }
+                            }
+                        }
+
+                        // Tuning Placeholders
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            // CPU Tuning
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showCpuTuningDialog = true },
+                                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Icon(Icons.Default.Memory, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                        Column {
+                                            Text(stringResource(R.string.app_profiles_cpu_tuning))
+                                            // Optional: Show status (e.g., "Configured" or "Default")
+                                        }
+                                    }
+                                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+
+                            // GPU Tuning
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Icon(Icons.Default.DeveloperBoard, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                        Text(stringResource(R.string.app_profiles_gpu_tuning))
+                                    }
+                                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+
+                            // Thermal Tuning
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        Icon(Icons.Default.Thermostat, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                        Text(stringResource(R.string.app_profiles_thermal_tuning))
+                                    }
+                                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -726,6 +845,7 @@ fun AppProfileConfigDialog(
                                         kgslSkipZeroing = kgslSkipZeroing,
                                         bypassCharging = bypassCharging,
                                         allowDirtyPte = allowDirtyPte,
+                                        cpuConfigJson = Json.encodeToString(cpuConfig),
                                         isEnabled = isEnabled
                                     )
                                 )

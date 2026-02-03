@@ -12,6 +12,8 @@ import id.nkz.nokontzzzmanager.data.repository.AppProfileRepository
 import id.nkz.nokontzzzmanager.service.AppMonitorService
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -85,6 +87,21 @@ class AppProfilesViewModel @Inject constructor(
     private val _isLoadingApps = MutableStateFlow(false)
     val isLoadingApps: StateFlow<Boolean> = _isLoadingApps.asStateFlow()
     
+    // CPU Tuning Data
+    val cpuClusters = tuningRepository.getClusterLeaders()
+    
+    val coreStates = flow {
+        while (true) {
+            val numCores = tuningRepository.getNumberOfCores()
+            val states = (0 until numCores).map { tuningRepository.getCoreOnline(it) }
+            emit(states)
+            delay(2000) // Refresh every 2 seconds
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun getAvailableCpuGovernors(cluster: String) = tuningRepository.getAvailableCpuGovernors(cluster)
+    fun getAvailableCpuFrequencies(cluster: String) = tuningRepository.getAvailableCpuFrequencies(cluster)
+    
     // Check if service is running or permissions granted? 
     // We can check usage stats permission here.
     
@@ -144,6 +161,7 @@ class AppProfilesViewModel @Inject constructor(
                 kgslSkipZeroing = false,
                 bypassCharging = false,
                 allowDirtyPte = false,
+                cpuConfigJson = null,
                 isEnabled = true
             )
             appProfileRepository.insertProfile(profile)
