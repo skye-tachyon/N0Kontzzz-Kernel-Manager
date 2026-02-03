@@ -25,6 +25,7 @@ import javax.inject.Inject
 
 import id.nkz.nokontzzzmanager.data.repository.TuningRepository
 import id.nkz.nokontzzzmanager.data.repository.SystemRepository
+import id.nkz.nokontzzzmanager.data.repository.ThermalRepository
 import kotlinx.coroutines.flow.first
 
 @HiltViewModel
@@ -33,7 +34,8 @@ class AppProfilesViewModel @Inject constructor(
     private val appProfileRepository: AppProfileRepository,
     private val preferenceManager: PreferenceManager,
     private val systemRepository: SystemRepository,
-    private val tuningRepository: TuningRepository
+    private val tuningRepository: TuningRepository,
+    private val thermalRepository: ThermalRepository
 ) : AndroidViewModel(application) {
 
     val profiles = appProfileRepository.getAllProfiles()
@@ -107,6 +109,9 @@ class AppProfilesViewModel @Inject constructor(
     val availableGpuFrequencies = tuningRepository.getAvailableGpuFrequencies()
     val gpuPowerLevelRange = tuningRepository.getGpuPowerLevelRange()
 
+    // Thermal Tuning Data
+    val availableThermalProfiles = thermalRepository.availableThermalProfiles
+
     // Check if service is running or permissions granted? 
     // We can check usage stats permission here.
     
@@ -168,6 +173,7 @@ class AppProfilesViewModel @Inject constructor(
                 allowDirtyPte = false,
                 cpuConfigJson = null,
                 gpuConfigJson = null,
+                thermalProfile = null,
                 isEnabled = true
             )
             appProfileRepository.insertProfile(profile)

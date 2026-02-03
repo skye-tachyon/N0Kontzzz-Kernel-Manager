@@ -430,7 +430,12 @@ fun AppProfileConfigDialog(
     var showGpuTuningDialog by remember { mutableStateOf(false) }
     var gpuConfig by remember { mutableStateOf(profile.getGpuConfig()) }
 
-    val hasCustomTuning = remember(cpuConfig, gpuConfig) {
+    // Thermal Tuning State
+    var showThermalDialog by remember { mutableStateOf(false) }
+    var thermalProfile by remember { mutableStateOf(profile.thermalProfile) }
+    val availableThermalProfiles = viewModel.availableThermalProfiles
+
+    val hasCustomTuning = remember(cpuConfig, gpuConfig, thermalProfile) {
         val customCpu = cpuConfig.clusterConfigs.values.any { 
             !it.governor.isNullOrBlank() || it.minFreq != null || it.maxFreq != null 
         } || cpuConfig.coreOnlineStatus.isNotEmpty()
@@ -440,8 +445,10 @@ fun AppProfileConfigDialog(
                        gpuConfig.maxFreq != null || 
                        gpuConfig.powerLevel != null || 
                        gpuConfig.throttlingEnabled != null
+        
+        val customThermal = thermalProfile != null
                        
-        customCpu || customGpu
+        customCpu || customGpu || customThermal
     }
 
     val options = remember(isPowersaveAvailable) {
@@ -475,6 +482,32 @@ fun AppProfileConfigDialog(
                 gpuConfig = newConfig
                 showGpuTuningDialog = false
             }
+        )
+    }
+
+    if (showThermalDialog) {
+        // Prepare list with "Default" option
+        val dialogItems = remember(availableThermalProfiles) {
+            val defaultOption = id.nkz.nokontzzzmanager.data.repository.ThermalRepository.ThermalProfile(
+                displayName = "Default", // Will be replaced by string resource in itemLabel
+                index = -999 // Special index for Default (null)
+            )
+            listOf(defaultOption) + availableThermalProfiles
+        }
+
+        id.nkz.nokontzzzmanager.ui.dialog.SelectionDialog(
+            title = stringResource(R.string.app_profiles_thermal_tuning),
+            subtitle = stringResource(R.string.select_thermal_profile),
+            items = dialogItems,
+            selectedItem = dialogItems.find { it.index == (thermalProfile ?: -999) },
+            itemLabel = { profile -> 
+                if (profile.index == -999) stringResource(R.string.app_profiles_default) else profile.displayName 
+            },
+            onItemSelected = { selected ->
+                thermalProfile = if (selected.index == -999) null else selected.index
+                showThermalDialog = false
+            },
+            onDismiss = { showThermalDialog = false }
         )
     }
 
@@ -704,7 +737,9 @@ fun AppProfileConfigDialog(
 
                             // Thermal Tuning
                             Card(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showThermalDialog = true },
                                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
                             ) {
@@ -720,7 +755,18 @@ fun AppProfileConfigDialog(
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
                                         Icon(Icons.Default.Thermostat, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                        Text(stringResource(R.string.app_profiles_thermal_tuning))
+                                        Column {
+                                            Text(stringResource(R.string.app_profiles_thermal_tuning))
+                                            val currentProfileName = remember(thermalProfile, availableThermalProfiles) {
+                                                if (thermalProfile == null) null
+                                                else availableThermalProfiles.find { it.index == thermalProfile }?.displayName
+                                            }
+                                            Text(
+                                                text = currentProfileName ?: stringResource(R.string.app_profiles_default),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
                                     }
                                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
@@ -877,6 +923,7 @@ fun AppProfileConfigDialog(
                                         allowDirtyPte = allowDirtyPte,
                                         cpuConfigJson = Json.encodeToString(cpuConfig),
                                         gpuConfigJson = Json.encodeToString(gpuConfig),
+                                        thermalProfile = thermalProfile,
                                         isEnabled = isEnabled
                                     )
                                 )

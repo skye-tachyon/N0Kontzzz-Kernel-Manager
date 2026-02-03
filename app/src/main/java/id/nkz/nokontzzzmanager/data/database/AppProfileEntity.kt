@@ -14,6 +14,7 @@ data class AppProfileEntity(
     val allowDirtyPte: Boolean = false,
     val cpuConfigJson: String? = null,
     val gpuConfigJson: String? = null,
+    val thermalProfile: Int? = null,
     val isEnabled: Boolean = true
 ) {
     fun getCpuConfig(): id.nkz.nokontzzzmanager.data.model.CpuProfileConfig {

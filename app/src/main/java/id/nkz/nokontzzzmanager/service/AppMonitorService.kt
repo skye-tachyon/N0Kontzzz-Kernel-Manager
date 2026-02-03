@@ -17,6 +17,8 @@ import javax.inject.Inject
 
 import id.nkz.nokontzzzmanager.data.repository.TuningRepository
 
+import id.nkz.nokontzzzmanager.data.repository.ThermalRepository
+
 @AndroidEntryPoint
 class AppMonitorService : Service() {
 
@@ -28,6 +30,9 @@ class AppMonitorService : Service() {
 
     @Inject
     lateinit var tuningRepository: TuningRepository
+
+    @Inject
+    lateinit var thermalRepository: ThermalRepository
 
     @Inject
     lateinit var preferenceManager: PreferenceManager
@@ -144,6 +149,11 @@ class AppMonitorService : Service() {
 
         // 6. GPU Tuning
         applyGpuConfig(profile.getGpuConfig())
+
+        // 7. Thermal Profile
+        if (profile.thermalProfile != null) {
+            applyThermalProfile(profile.thermalProfile)
+        }
     }
 
     private suspend fun applyGlobalSettings() {
@@ -170,6 +180,22 @@ class AppMonitorService : Service() {
 
         // 6. Revert GPU Tuning to Global Prefs
         revertGpuConfig()
+
+        // 7. Revert Thermal Profile
+        revertThermalProfile()
+    }
+
+    private fun applyThermalProfile(profileIndex: Int) {
+        serviceScope.launch {
+            thermalRepository.setThermalModeIndex(profileIndex).collect {}
+        }
+    }
+
+    private fun revertThermalProfile() {
+        serviceScope.launch {
+            val savedMode = thermalRepository.getSavedThermalMode()
+            thermalRepository.setThermalModeIndex(savedMode).collect {}
+        }
     }
 
     private fun applyGpuConfig(config: id.nkz.nokontzzzmanager.data.model.GpuProfileConfig) {
