@@ -62,7 +62,7 @@ class AppProfilesViewModel @Inject constructor(
     }
 
     private suspend fun checkPowersaveAvailability() {
-        val clusters = listOf("cpu0", "cpu4", "cpu7") // Typical clusters
+        val clusters = tuningRepository.getClusterLeaders()
         var available = false
         for (cluster in clusters) {
             try {

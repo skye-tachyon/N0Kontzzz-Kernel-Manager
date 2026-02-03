@@ -384,6 +384,16 @@ class TuningRepository @Inject constructor(
         return chmodMinSuccess && chmodMaxSuccess && setMinSuccess && setMaxSuccess
     }
 
+    suspend fun resetCpuFreq(cluster: String): Boolean {
+        val freqs = getAvailableCpuFrequencies(cluster).firstOrNull()
+        if (!freqs.isNullOrEmpty()) {
+            val min = freqs.first()
+            val max = freqs.last()
+            return setCpuFreq(cluster, min, max)
+        }
+        return false
+    }
+
     fun getAvailableCpuGovernors(cluster: String): Flow<List<String>> = flow {
         emit(readShellCommand("cat ${cpuAvailableGovsPath.format(cluster)}")
             .split(" ")
@@ -524,6 +534,16 @@ class TuningRepository @Inject constructor(
 
     fun setGpuMaxFreq(freqMHz: Int): Boolean {
         return runTuningCommand("echo ${freqMHz * 1000000} > $gpuMaxFreqPath")
+    }
+
+    suspend fun resetGpuFreq(): Boolean {
+        val freqs = getAvailableGpuFrequencies().firstOrNull()
+        if (!freqs.isNullOrEmpty()) {
+            val min = freqs.first()
+            val max = freqs.last()
+            return setGpuMinFreq(min) && setGpuMaxFreq(max)
+        }
+        return false
     }
 
 

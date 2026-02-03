@@ -216,15 +216,19 @@ class AppMonitorService : Service() {
         }
     }
 
-    private fun revertGpuConfig() {
+    private suspend fun revertGpuConfig() {
         val globalGov = preferenceManager.getGpuGovernor()
         if (globalGov != null) tuningRepository.setGpuGov(globalGov)
 
         val globalMin = preferenceManager.getGpuMinFreq()
-        if (globalMin != -1) tuningRepository.setGpuMinFreq(globalMin)
-
         val globalMax = preferenceManager.getGpuMaxFreq()
-        if (globalMax != -1) tuningRepository.setGpuMaxFreq(globalMax)
+
+        if (globalMin != -1 || globalMax != -1) {
+            if (globalMin != -1) tuningRepository.setGpuMinFreq(globalMin)
+            if (globalMax != -1) tuningRepository.setGpuMaxFreq(globalMax)
+        } else {
+            tuningRepository.resetGpuFreq()
+        }
 
         val globalPwr = preferenceManager.getGpuPowerLevel()
         if (globalPwr != -1) tuningRepository.setGpuPowerLevel(globalPwr.toFloat())
@@ -276,6 +280,8 @@ class AppMonitorService : Service() {
                     val targetMin = if (globalMin != -1) globalMin else currentFreqs.first
                     val targetMax = if (globalMax != -1) globalMax else currentFreqs.second
                     tuningRepository.setCpuFreq(cluster, targetMin, targetMax)
+                } else {
+                    tuningRepository.resetCpuFreq(cluster)
                 }
             }
 
@@ -295,8 +301,8 @@ class AppMonitorService : Service() {
         }
     }
 
-    private fun applyPerformanceMode(mode: String) {
-        val governor = when (mode) {
+    private suspend fun applyPerformanceMode(mode: String) {
+        val targetGovernor = when (mode) {
             "Performance" -> "performance"
             "Powersave" -> "powersave"
             else -> "schedutil"
@@ -305,7 +311,19 @@ class AppMonitorService : Service() {
         // Dynamically get cluster leaders instead of hardcoding
         val clusterNodes = tuningRepository.getClusterLeaders()
         clusterNodes.forEach { cluster ->
-             tuningRepository.setCpuGov(cluster, governor)
+             val available = tuningRepository.getAvailableCpuGovernors(cluster).first()
+             if (available.contains(targetGovernor)) {
+                 tuningRepository.setCpuGov(cluster, targetGovernor)
+             } else if (mode == "Balanced") {
+                 // Fallback for Balanced if schedutil is missing
+                 when {
+                     available.contains("walt") -> tuningRepository.setCpuGov(cluster, "walt")
+                     available.contains("interactive") -> tuningRepository.setCpuGov(cluster, "interactive")
+                     available.contains("pixutil") -> tuningRepository.setCpuGov(cluster, "pixutil")
+                     // If none match, we simply don't touch it, or we could leave it as is.
+                     // But we should try to move away from performance/powersave if that was the previous state.
+                 }
+             }
         }
     }
 }
