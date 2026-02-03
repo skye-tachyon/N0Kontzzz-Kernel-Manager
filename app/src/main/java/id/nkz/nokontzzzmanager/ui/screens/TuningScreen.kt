@@ -76,21 +76,6 @@ fun TuningScreen(
         viewModel.loadAllData()
     }
 
-    // Listen for destination changes to reset scroll state
-    DisposableEffect(navController) {
-        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-            if (destination.route == "tuning") {
-                coroutineScope.launch {
-                    lazyListState.scrollToItem(0)
-                }
-            }
-        }
-        navController?.addOnDestinationChangedListener(listener)
-        onDispose {
-            navController?.removeOnDestinationChangedListener(listener)
-        }
-    }
-
     if (isLoading) {
         Box(
             modifier = Modifier

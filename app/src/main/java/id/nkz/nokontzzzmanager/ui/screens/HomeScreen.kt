@@ -78,21 +78,6 @@ fun HomeScreen(
     val lazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Listen for destination changes to reset scroll state
-    DisposableEffect(navController) {
-        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-            if (destination.route == "home") {
-                coroutineScope.launch {
-                    lazyListState.scrollToItem(0)
-                }
-            }
-        }
-        navController.addOnDestinationChangedListener(listener)
-        onDispose {
-            navController.removeOnDestinationChangedListener(listener)
-        }
-    }
-
     // Notify the ViewModel about the scroll state to pause data updates during scroll
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.isScrollInProgress }
