@@ -506,6 +506,9 @@
     <string name="app_profiles_custom">Custom</string>
     <string name="app_profiles_custom_tuning_active">Custom Tuning Active</string>
     <string name="reset_to_default">Reset to Default</string>
+    <string name="app_profiles_default">Default</string>
+    <string name="app_profiles_cores_override">%d Cores Override</string>
+    <string name="app_profiles_mhz_suffix">%s MHz</string>
 
     <!-- Battery History Config Dialog -->
     <string name="battery_history_config_title">History Auto-Reset</string>

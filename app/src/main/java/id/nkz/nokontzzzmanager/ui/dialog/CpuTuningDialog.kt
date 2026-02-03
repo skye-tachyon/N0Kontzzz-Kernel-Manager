@@ -186,7 +186,7 @@ fun CpuTuningDialog(
                                             )
                                             if (config.coreOnlineStatus.isNotEmpty()) {
                                                 Text(
-                                                    text = "${config.coreOnlineStatus.size} Cores Override",
+                                                    text = stringResource(R.string.app_profiles_cores_override, config.coreOnlineStatus.size),
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = MaterialTheme.colorScheme.primary
                                                 )
@@ -310,7 +310,7 @@ fun CpuTuningDialog(
             subtitle = cluster,
             items = availableFreqs,
             selectedItem = current,
-            itemLabel = { "${it / 1000} MHz" },
+            itemLabel = { stringResource(R.string.app_profiles_mhz_suffix, it / 1000) },
             onItemSelected = { selected ->
                 val currentConfig = config.clusterConfigs[cluster] ?: ClusterConfig()
                 val newMap = config.clusterConfigs.toMutableMap()
@@ -332,7 +332,7 @@ fun CpuTuningDialog(
             subtitle = cluster,
             items = availableFreqs,
             selectedItem = current,
-            itemLabel = { "${it / 1000} MHz" },
+            itemLabel = { stringResource(R.string.app_profiles_mhz_suffix, it / 1000) },
             onItemSelected = { selected ->
                 val currentConfig = config.clusterConfigs[cluster] ?: ClusterConfig()
                 val newMap = config.clusterConfigs.toMutableMap()
@@ -440,7 +440,7 @@ fun CpuProfileClusterCard(
                     CpuProfileSettingItem(
                         icon = Icons.Default.Tune,
                         title = stringResource(R.string.cpu_governor_label),
-                        value = config.governor ?: stringResource(R.string.default_governor_desc, "Default"),
+                        value = config.governor ?: stringResource(R.string.default_governor_desc, stringResource(R.string.app_profiles_default)),
                         onClick = onGovernorClick,
                         isSet = config.governor != null,
                         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
@@ -448,7 +448,7 @@ fun CpuProfileClusterCard(
                     CpuProfileSettingItem(
                         icon = Icons.Default.Speed,
                         title = stringResource(R.string.min_frequency),
-                        value = config.minFreq?.let { "${it / 1000} MHz" } ?: "Default",
+                        value = config.minFreq?.let { stringResource(R.string.app_profiles_mhz_suffix, it / 1000) } ?: stringResource(R.string.app_profiles_default),
                         onClick = onMinFrequencyClick,
                         isSet = config.minFreq != null,
                         shape = RoundedCornerShape(4.dp)
@@ -456,7 +456,7 @@ fun CpuProfileClusterCard(
                     CpuProfileSettingItem(
                         icon = Icons.Default.Speed,
                         title = stringResource(R.string.max_frequency),
-                        value = config.maxFreq?.let { "${it / 1000} MHz" } ?: "Default",
+                        value = config.maxFreq?.let { stringResource(R.string.app_profiles_mhz_suffix, it / 1000) } ?: stringResource(R.string.app_profiles_default),
                         onClick = onMaxFrequencyClick,
                         isSet = config.maxFreq != null,
                         shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
@@ -519,7 +519,7 @@ fun <T> SelectionDialog(
     subtitle: String,
     items: List<T>,
     selectedItem: T?,
-    itemLabel: (T) -> String,
+    itemLabel: @Composable (T) -> String,
     onItemSelected: (T) -> Unit,
     onDismiss: () -> Unit
 ) {

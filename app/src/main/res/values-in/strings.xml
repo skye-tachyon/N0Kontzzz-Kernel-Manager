@@ -507,6 +507,9 @@
     <string name="app_profiles_custom">Kustom</string>
     <string name="app_profiles_custom_tuning_active">Tuning Kustom Aktif</string>
     <string name="reset_to_default">Reset ke Awal</string>
+    <string name="app_profiles_default">Bawaan</string>
+    <string name="app_profiles_cores_override">%d Inti Diubah</string>
+    <string name="app_profiles_mhz_suffix">%s MHz</string>
 
     <!-- Battery History Config Dialog -->
     <string name="battery_history_config_title">Reset Otomatis Riwayat</string>
