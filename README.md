@@ -87,7 +87,10 @@
 - **Per-App Profiles**
   Automate your device's behavior by creating custom profiles that activate when specific applications are in the foreground.
   - **Performance Mode Integration**: Assign `Balanced`, `Performance`, or `Powersave` modes to specific apps.
-  - **Graphics Optimization**: Toggle `KGSL Skip Pool Zeroing` for specific games to boost FPS.
+  - **CPU Tuning**: Customize CPU governor and frequency settings for Little, Big, and Prime clusters.
+  - **GPU Tuning**: Set GPU frequency limits, governor, and power levels per application.
+  - **Thermal Tuning**: Apply specific thermal profiles to manage heat dissipation during intensive tasks.
+  - **Graphics Optimization**: Toggle `KGSL Skip Pool Zeroing` and `Avoid Dirty PTE` for specific games to boost FPS.
   - **Battery Protection**: Automatically enable `Bypass Charging` for intensive apps to prevent battery wear and heat.
 
 - **Bypass Charging**  
@@ -111,6 +114,13 @@
 
 - **I/O Scheduler Tuning**
   Optimize storage read/write performance by choosing the most suitable kernel I/O scheduler for your workload. Preferences return to system defaults after a restart unless the **Apply on Boot** option is enabled.
+
+- **Custom Tunables**
+  Gain full control over kernel parameters by adding your own custom tunables.
+  - **Path Selection**: Easily navigate the root file system to select any writable kernel node (e.g., `/proc/...` or `/sys/...`).
+  - **Value Configuration**: Read the current value of any node and set your desired custom value.
+  - **Boot Persistence**: Choose whether to apply your custom values automatically on device boot, ensuring your tweaks persist across restarts.
+  - **Verification**: The interface displays both the target value and the actual current value, allowing you to verify if your settings have been applied successfully or overridden by the system.
 
 - **Dexopt (App Optimization)**
   Manually trigger Android's Dalvik Executable Optimization process to improve application launch speeds and overall system smoothness.
