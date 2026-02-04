@@ -333,7 +333,7 @@ fun GpuTuningDialog(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text(stringResource(R.string.app_profiles_cancel))
+                            Text(stringResource(R.string.app_profiles_close))
                         }
                         Button(
                             onClick = { onSave(config) },
