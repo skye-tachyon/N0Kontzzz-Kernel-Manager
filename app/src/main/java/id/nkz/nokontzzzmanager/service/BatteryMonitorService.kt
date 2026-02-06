@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.util.Log
 import android.content.Context
 import android.content.BroadcastReceiver
 import android.content.Intent
@@ -63,6 +64,9 @@ class BatteryMonitorService : Service() {
 
     private var lastUpdate = System.currentTimeMillis()
     private var lastHistorySaveTime = 0L
+    private var lastCleanupTime = 0L
+    private val HISTORY_RETENTION_DAYS = 7
+    private val CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000L // 24 hours
     private var lastCurrent = 0f
     private var designCapacityUah = 0L // autodetected; no hardcoded fallback
     private var realtimeUsedMah = 0.0
@@ -410,6 +414,16 @@ class BatteryMonitorService : Service() {
                                 uptime = SystemClock.uptimeMillis()
                             )
                         )
+
+                        // Periodic cleanup (once every 24 hours)
+                        if (nowMs - lastCleanupTime >= CLEANUP_INTERVAL_MS) {
+                            val cutoff = nowMs - (HISTORY_RETENTION_DAYS * 24 * 60 * 60 * 1000L)
+                            val deletedCount = batteryGraphRepository.deleteOldEntries(cutoff)
+                            if (deletedCount > 0) {
+                                Log.d("BatteryMonitorService", "Auto-cleanup: deleted $deletedCount entries older than $HISTORY_RETENTION_DAYS days")
+                            }
+                            lastCleanupTime = nowMs
+                        }
                     } catch (_: Exception) { }
                 }
             }
@@ -959,6 +973,7 @@ class BatteryMonitorService : Service() {
             .putLong("consumed_off_uah", consumedOffUah)
             .putLong("on_percent_drop_bits", java.lang.Double.doubleToRawLongBits(onPercentDrop))
             .putLong("off_percent_drop_bits", java.lang.Double.doubleToRawLongBits(offPercentDrop))
+            .putLong("last_cleanup_time", lastCleanupTime)
         
         if (sync) {
             editor.apply()
@@ -1037,6 +1052,7 @@ class BatteryMonitorService : Service() {
             onPercentDrop = savedOnDrop
             offPercentDrop = savedOffDrop
         }
+        lastCleanupTime = prefs.getLong("last_cleanup_time", 0L)
     }
 
     companion object {
