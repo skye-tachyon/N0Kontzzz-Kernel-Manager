@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -44,8 +45,11 @@ class KernelLogViewModel @Inject constructor(
     private val _isMenuExpanded = MutableStateFlow(false)
     val isMenuExpanded: StateFlow<Boolean> = _isMenuExpanded.asStateFlow()
 
-    // Filtered content based on search query
-    val logContent: StateFlow<List<String>> = combine(_logContent, _searchQuery) { logs, query ->
+    // Filtered content based on search query with debounce
+    val logContent: StateFlow<List<String>> = combine(
+        _logContent,
+        _searchQuery.debounce(300)
+    ) { logs, query ->
         if (query.isBlank()) logs else logs.filter { it.contains(query, ignoreCase = true) }
     }
     .flowOn(Dispatchers.Default)
@@ -144,7 +148,9 @@ class KernelLogViewModel @Inject constructor(
             if (result != lastLogRaw) {
                 lastLogRaw = result
                 if (result.isNotBlank()) {
-                    _logContent.value = result.lines()
+                    val lines = result.lines()
+                    // Limit to latest 2000 lines to preserve RAM
+                    _logContent.value = if (lines.size > 2000) lines.takeLast(2000) else lines
                 } else {
                     _logContent.value = emptyList()
                 }
