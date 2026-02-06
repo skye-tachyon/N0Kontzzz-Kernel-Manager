@@ -268,6 +268,12 @@ fun CustomTunableDialog(
     val valueReadMsg = stringResource(R.string.tunable_value_read)
     val pathRequiredMsg = stringResource(R.string.tunable_path_required)
     val pathInvalidMsg = stringResource(R.string.tunable_path_invalid)
+    val unsafeInputMsg = stringResource(R.string.tunable_unsafe_input)
+
+    fun isInputSafe(input: String): Boolean {
+        val unsafeChars = listOf(";", "|", "&&", "$", "`", "\n", "(", ")", ">", "<", "\\")
+        return unsafeChars.none { input.contains(it) }
+    }
 
     if (showFilePicker) {
         val fileList by viewModel.fileBrowserList.collectAsStateWithLifecycle()
@@ -437,7 +443,11 @@ fun CustomTunableDialog(
                         Button(
                             onClick = {
                                 if (path.isNotBlank() && path.startsWith("/")) {
-                                    onSave(path, value, applyOnBoot)
+                                    if (isInputSafe(path) && isInputSafe(value)) {
+                                        onSave(path, value, applyOnBoot)
+                                    } else {
+                                        Toast.makeText(context, unsafeInputMsg, Toast.LENGTH_LONG).show()
+                                    }
                                 } else {
                                     Toast.makeText(context, pathInvalidMsg, Toast.LENGTH_SHORT).show()
                                 }

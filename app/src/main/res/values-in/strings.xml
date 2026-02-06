@@ -698,4 +698,5 @@
     <string name="pick_file">Pilih File</string>
     <string name="up">Atas</string>
     <string name="tunable_path_invalid">Lokasi file harus diawali dengan /</string>
+    <string name="tunable_unsafe_input">Input mengandung karakter berbahaya (; | &amp;&amp; $ ` ( ) &gt; &lt; \\)</string>
 </resources>

@@ -699,4 +699,5 @@
     <string name="pick_file">Pick File</string>
     <string name="up">Up</string>
     <string name="tunable_path_invalid">Path must start with /</string>
+    <string name="tunable_unsafe_input">Input contains unsafe characters (; | &amp;&amp; $ ` ( ) &gt; &lt; \\)</string>
 </resources>

@@ -24,13 +24,24 @@ class CustomTunableRepository @Inject constructor(
 
     private fun isPathSafe(path: String): Boolean {
         // Prevent basic shell injection characters
-        val blockList = listOf(";", "|", "&&", "$", "`", "\n")
+        val blockList = listOf(";", "|", "&&", "$", "`", "\n", "(", ")", ">", "<", "\\")
         return blockList.none { path.contains(it) }
+    }
+
+    private fun isValueSafe(value: String): Boolean {
+        // Values for kernel nodes should typically be simple strings or numbers.
+        // We block characters that can be used to escape the 'echo' command or chain other commands.
+        val blockList = listOf(";", "|", "&&", "$", "`", "\n", "(", ")", ">", "<", "\\")
+        return blockList.none { value.contains(it) }
     }
 
     suspend fun applyTunable(path: String, value: String): Boolean {
         if (!isPathSafe(path)) {
             Log.e(TAG, "Unsafe path blocked: $path")
+            return false
+        }
+        if (!isValueSafe(value)) {
+            Log.e(TAG, "Unsafe value blocked: $value")
             return false
         }
         return try {
