@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -73,7 +74,7 @@ class SystemRepository @Inject constructor(
         }
     }
 
-    private fun readFileToString(filePath: String, fileDescription: String, attemptSu: Boolean = true): String? {
+    private suspend fun readFileToString(filePath: String, fileDescription: String, attemptSu: Boolean = true): String? {
         val file = File(filePath)
         try {
             if (file.exists() && file.canRead()) {
@@ -106,7 +107,7 @@ class SystemRepository @Inject constructor(
         return null
     }
 
-    private fun writeStringToFile(filePath: String, content: String, fileDescription: String, attemptSu: Boolean = true): Boolean {
+    private suspend fun writeStringToFile(filePath: String, content: String, fileDescription: String, attemptSu: Boolean = true): Boolean {
         val file = File(filePath)
         try {
             if (file.exists() && file.canWrite()) {
@@ -172,7 +173,7 @@ class SystemRepository @Inject constructor(
         )
     }
 
-    private fun calculateCpuLoadPercentage(): Float? {
+    private suspend fun calculateCpuLoadPercentage(): Float? {
         try {
             // Membaca data CPU dari /proc/stat
             val cpuStat = readFileToString("/proc/stat", "CPU Stat")?.lines()?.firstOrNull { it.startsWith("cpu ") }
@@ -228,7 +229,7 @@ class SystemRepository @Inject constructor(
         } else -1
     }
 
-    private fun getBatteryInfoInternal(statusFromIntent: Int = -1): BatteryInfo {
+    private suspend fun getBatteryInfoInternal(statusFromIntent: Int = -1): BatteryInfo {
         val batteryDir = "/sys/class/power_supply/battery"
         val batteryLevelStr = readFileToString("$batteryDir/capacity", "Battery Level Percent from File")
         val finalLevel = batteryLevelStr?.toIntOrNull() ?: getBatteryLevelFromApi().let { if (it == -1) 0 else it }
@@ -501,7 +502,7 @@ class SystemRepository @Inject constructor(
     }
 
     fun getBatteryInfo(): BatteryInfo {
-        return getBatteryInfoInternal()
+        return runBlocking { getBatteryInfoInternal() }
     }
 
     private suspend fun getMemoryInfoInternal(): MemoryInfo {
@@ -917,11 +918,11 @@ class SystemRepository @Inject constructor(
         return runBlocking { getCachedSystemInfo() }
     }
 
-    fun getBootId(): String? {
+    suspend fun getBootId(): String? {
         return readFileToString("/proc/sys/kernel/random/boot_id", "Boot ID")
     }
 
-    fun getKernelInfo(): KernelInfo {
+    suspend fun getKernelInfo(): KernelInfo {
 
         // Get kernel version
         val version = readFileToString("/proc/version", "Kernel Version")
@@ -968,41 +969,47 @@ class SystemRepository @Inject constructor(
         }
 
         // Get scheduler information with better fallback paths
-        val scheduler = readFileToString("/sys/block/sda/queue/scheduler", "I/O Scheduler")
+        var scheduler = readFileToString("/sys/block/sda/queue/scheduler", "I/O Scheduler")
             ?.let { schedulerLine ->
                 // Extract currently active scheduler (marked with brackets)
                 val activeSchedulerRegex = """\[([^]]+)]""".toRegex()
                 activeSchedulerRegex.find(schedulerLine)?.groupValues?.get(1) ?: schedulerLine.trim()
-            } ?: run {
-                // Try alternative block devices
-                val alternativeDevices = listOf("mmcblk0", "nvme0n1", "sdb", "sdc")
-                for (device in alternativeDevices) {
-                    val altScheduler = readFileToString("/sys/block/$device/queue/scheduler", "I/O Scheduler ($device)")
-                    if (altScheduler != null) {
-                        val activeSchedulerRegex = """\[([^]]+)]""".toRegex()
-                        val result = activeSchedulerRegex.find(altScheduler)?.groupValues?.get(1) ?: altScheduler.trim()
-                        if (result.isNotBlank()) return@run result
-                    }
-                }
-                "Unknown"
             }
 
+        if (scheduler == null) {
+            // Try alternative block devices
+            val alternativeDevices = listOf("mmcblk0", "nvme0n1", "sdb", "sdc")
+            for (device in alternativeDevices) {
+                val altScheduler = readFileToString("/sys/block/$device/queue/scheduler", "I/O Scheduler ($device)")
+                if (altScheduler != null) {
+                    val activeSchedulerRegex = """\[([^]]+)]""".toRegex()
+                    scheduler = activeSchedulerRegex.find(altScheduler)?.groupValues?.get(1) ?: altScheduler.trim()
+                    if (scheduler.isNotBlank()) break
+                }
+            }
+        }
+        if (scheduler.isNullOrBlank()) scheduler = "Unknown"
+
         // Get SELinux status
-        val selinuxStatus = readFileToString("/sys/fs/selinux/enforce", "SELinux Status")
+        var selinuxStatus = readFileToString("/sys/fs/selinux/enforce", "SELinux Status")
             ?.let { enforceValue ->
                 when (enforceValue.trim()) {
                     "1" -> "Enforcing"
                     "0" -> "Permissive"
                     else -> "Unknown"
                 }
-            } ?: run {
+            }
+
+        if (selinuxStatus == null) {
             // Fallback: try getenforce command
-            try {
-                val process = Runtime.getRuntime().exec("getenforce")
-                val result = BufferedReader(InputStreamReader(process.inputStream)).readLine()?.trim()
-                process.waitFor()
-                process.destroy()
-                result ?: "Unknown"
+            selinuxStatus = try {
+                withContext(Dispatchers.IO) {
+                    val process = Runtime.getRuntime().exec("getenforce")
+                    val result = BufferedReader(InputStreamReader(process.inputStream)).readLine()?.trim()
+                    process.waitFor()
+                    process.destroy()
+                    result ?: "Unknown"
+                }
             } catch (e: Exception) {
                 "Unknown"
             }
@@ -1046,7 +1053,7 @@ class SystemRepository @Inject constructor(
             // Method 4: Try various detection methods
             else -> {
                 // Helper function for additional KernelSU checks
-                fun checkOtherKsuMethods(): String {
+                suspend fun checkOtherKsuMethods(): String {
                     // Check kernel cmdline
                     val cmdline = readFileToString("/proc/cmdline", "Kernel Command Line")
                     if (cmdline?.contains("ksu", ignoreCase = true) == true) {
@@ -1078,11 +1085,9 @@ class SystemRepository @Inject constructor(
                         } else {
                             val common = listOf("/system/bin/$cmd", "/system/xbin/$cmd", "/vendor/bin/$cmd")
                             if (common.any { File(it).exists() }) return true
-                            val p = Runtime.getRuntime().exec(arrayOf("sh", "-c", "command -v $cmd"))
-                            val out = BufferedReader(InputStreamReader(p.inputStream)).readLine()?.trim()
-                            val code = p.waitFor()
-                            p.destroy()
-                            code == 0 && !out.isNullOrEmpty()
+                            
+                            // For simplicity in this context, we'll stick to a more direct check or assume false if not in common paths
+                            false
                         }
                     } catch (_: Exception) {
                         false
@@ -1090,60 +1095,62 @@ class SystemRepository @Inject constructor(
                 }
 
                 // Enhanced function to execute KernelSU commands dengan error handling lebih aman
-                fun executeKsuCommand(command: Array<String>, description: String): String? {
-                    var process: Process? = null
-                    try {
-                        // Hindari IOException: No such file or directory saat binary tidak ada
-                        if (command.isNotEmpty()) {
-                            val bin = command[0]
-                            val notFound = when {
-                                bin == "ksu" -> !binaryExists("ksu")
-                                bin.startsWith("/") -> !File(bin).exists()
-                                else -> false
+                suspend fun executeKsuCommand(command: Array<String>, description: String): String? {
+                    return withContext(Dispatchers.IO) {
+                        var process: Process? = null
+                        try {
+                            // Hindari IOException: No such file or directory saat binary tidak ada
+                            if (command.isNotEmpty()) {
+                                val bin = command[0]
+                                val notFound = when {
+                                    bin == "ksu" -> !binaryExists("ksu")
+                                    bin.startsWith("/") -> !File(bin).exists()
+                                    else -> false
+                                }
+                                if (notFound) {
+                                    return@withContext null
+                                }
                             }
-                            if (notFound) {
-                                return null
+
+                            process = Runtime.getRuntime().exec(command)
+                            val reader = BufferedReader(InputStreamReader(process.inputStream))
+                            val errorReader = BufferedReader(InputStreamReader(process.errorStream))
+
+                            val output = StringBuilder()
+                            val errorOutput = StringBuilder()
+                            var line: String?
+
+                            // Read output
+                            while (reader.readLine().also { line = it } != null) {
+                                output.append(line).append("\n")
                             }
+
+                            // Read error stream
+                            while (errorReader.readLine().also { line = it } != null) {
+                                errorOutput.append(line).append("\n")
+                            }
+
+                            val exitCode = process.waitFor()
+
+                            if (errorOutput.isNotEmpty()) {
+                                Log.w("SystemRepository", "KSU Command Error: $errorOutput")
+                            }
+
+                            reader.close()
+                            errorReader.close()
+
+                            if (exitCode == 0) {
+                                val result = output.toString().trim()
+                                return@withContext result.ifBlank { null }
+                            }
+
+                        } catch (e: Exception) {
+                            // Jangan spam stacktrace untuk ENOENT; cukup log ringkas
+                        } finally {
+                            process?.destroy()
                         }
-
-                        process = Runtime.getRuntime().exec(command)
-                        val reader = BufferedReader(InputStreamReader(process.inputStream))
-                        val errorReader = BufferedReader(InputStreamReader(process.errorStream))
-
-                        val output = StringBuilder()
-                        val errorOutput = StringBuilder()
-                        var line: String?
-
-                        // Read output
-                        while (reader.readLine().also { line = it } != null) {
-                            output.append(line).append("\n")
-                        }
-
-                        // Read error stream
-                        while (errorReader.readLine().also { line = it } != null) {
-                            errorOutput.append(line).append("\n")
-                        }
-
-                        val exitCode = process.waitFor()
-
-                        if (errorOutput.isNotEmpty()) {
-                            Log.w("SystemRepository", "KSU Command Error: $errorOutput")
-                        }
-
-                        reader.close()
-                        errorReader.close()
-
-                        if (exitCode == 0) {
-                            val result = output.toString().trim()
-                            return result.ifBlank { null }
-                        }
-
-                    } catch (e: Exception) {
-                        // Jangan spam stacktrace untuk ENOENT; cukup log ringkas
-                    } finally {
-                        process?.destroy()
+                        null
                     }
-                    return null
                 }
 
                 // Try ksu -V command first
@@ -1222,7 +1229,7 @@ class SystemRepository @Inject constructor(
     }
 
     // Helper function to determine which KGSL path is available
-    private fun getAvailableKgslPath(): String? {
+    private suspend fun getAvailableKgslPath(): String? {
         val paths = listOf(
             "/sys/kernel/e404/kgsl_skip_zeroing",
             "/sys/kernel/lunar_attributes/kgsl_skip_zeroing",
@@ -1260,7 +1267,7 @@ class SystemRepository @Inject constructor(
         return null
     }
 
-    fun getKgslSkipZeroing(): Boolean {
+    suspend fun getKgslSkipZeroing(): Boolean {
         val path = getAvailableKgslPath()
         if (path != null) {
             val value = readFileToString(path, "KGSL Skip Pool Zeroing")
@@ -1269,7 +1276,7 @@ class SystemRepository @Inject constructor(
         return false
     }
 
-    fun setKgslSkipZeroing(enabled: Boolean): Boolean {
+    suspend fun setKgslSkipZeroing(enabled: Boolean): Boolean {
         val path = getAvailableKgslPath()
         if (path != null) {
             val value = if (enabled) "1" else "0"
@@ -1278,7 +1285,7 @@ class SystemRepository @Inject constructor(
         return false
     }
 
-    fun isKgslFeatureAvailable(): Boolean {
+    suspend fun isKgslFeatureAvailable(): Boolean {
         // Try to get an available path
         val path = getAvailableKgslPath()
         if (path != null) {
@@ -1314,7 +1321,7 @@ class SystemRepository @Inject constructor(
         return value?.toIntOrNull() == 1
     }
 
-    private fun getAvailableAvoidDirtyPtePath(): String? {
+    private suspend fun getAvailableAvoidDirtyPtePath(): String? {
         val paths = listOf(
             "/sys/kernel/n0kz_attributes/avoid_dirty_pte",
             "/sys/kernel/e404/avoid_dirty_pte"
@@ -1328,11 +1335,11 @@ class SystemRepository @Inject constructor(
         return null
     }
 
-    fun isAvoidDirtyPteAvailable(): Boolean {
+    suspend fun isAvoidDirtyPteAvailable(): Boolean {
         return getAvailableAvoidDirtyPtePath() != null
     }
 
-    fun getAvoidDirtyPte(): Boolean {
+    suspend fun getAvoidDirtyPte(): Boolean {
         val path = getAvailableAvoidDirtyPtePath()
         if (path != null) {
             val value = readFileToString(path, "Avoid Dirty PTE Status")
@@ -1341,7 +1348,7 @@ class SystemRepository @Inject constructor(
         return false
     }
 
-    fun setAvoidDirtyPte(enabled: Boolean): Boolean {
+    suspend fun setAvoidDirtyPte(enabled: Boolean): Boolean {
         val path = getAvailableAvoidDirtyPtePath()
         if (path != null) {
             val value = if (enabled) "1" else "0"
@@ -1364,7 +1371,7 @@ class SystemRepository @Inject constructor(
 
     private val bypassChargingPath = "/sys/class/power_supply/battery/input_suspend"
 
-    fun isBypassChargingAvailable(): Boolean {
+    suspend fun isBypassChargingAvailable(): Boolean {
         val file = File(bypassChargingPath)
         if (file.exists()) {
             return true
@@ -1374,19 +1381,19 @@ class SystemRepository @Inject constructor(
         return readFileToString(bypassChargingPath, "Bypass Charging Status Check") != null
     }
 
-    fun getBypassCharging(): Boolean {
+    suspend fun getBypassCharging(): Boolean {
         val value = readFileToString(bypassChargingPath, "Bypass Charging Status")
         return value?.trim() == "1"
     }
 
-    fun setBypassCharging(enabled: Boolean): Boolean {
+    suspend fun setBypassCharging(enabled: Boolean): Boolean {
         val value = if (enabled) "1" else "0"
         return writeStringToFile(bypassChargingPath, value, "Bypass Charging")
     }
 
     private val forceFastChargePath = "/sys/kernel/fast_charge/force_fast_charge"
 
-    fun isForceFastChargeAvailable(): Boolean {
+    suspend fun isForceFastChargeAvailable(): Boolean {
         val file = File(forceFastChargePath)
         if (file.exists()) {
             return true
@@ -1394,33 +1401,33 @@ class SystemRepository @Inject constructor(
         return readFileToString(forceFastChargePath, "USB Fast Charge Check") != null
     }
 
-    fun getForceFastCharge(): Boolean {
+    suspend fun getForceFastCharge(): Boolean {
         val value = readFileToString(forceFastChargePath, "USB Fast Charge Status")
         return value?.trim() == "1"
     }
 
-    fun setForceFastCharge(enabled: Boolean): Boolean {
+    suspend fun setForceFastCharge(enabled: Boolean): Boolean {
         val value = if (enabled) "1" else "0"
         return writeStringToFile(forceFastChargePath, value, "USB Fast Charge")
     }
 
     // TCP Congestion Control Algorithm functions
 
-    private fun getCurrentTcpCongestionAlgorithm(): String? {
+    private suspend fun getCurrentTcpCongestionAlgorithm(): String? {
         return readFileToString("/proc/sys/net/ipv4/tcp_congestion_control", "TCP Congestion Control Algorithm")
     }
 
-    private fun getAvailableTcpCongestionAlgorithms(): List<String> {
+    private suspend fun getAvailableTcpCongestionAlgorithms(): List<String> {
         val available = readFileToString("/proc/sys/net/ipv4/tcp_available_congestion_control", "Available TCP Congestion Control Algorithms")
         // Notice: here we use a regular space, and not double-escaped
         return available?.split("\\s+".toRegex())?.filter { it.isNotBlank() } ?: emptyList()
     }
 
-    fun getTcpCongestionAlgorithm(): String {
+    suspend fun getTcpCongestionAlgorithm(): String {
         return getCurrentTcpCongestionAlgorithm() ?: "Unknown"
     }
 
-    fun setTcpCongestionAlgorithm(algorithm: String): Boolean {
+    suspend fun setTcpCongestionAlgorithm(algorithm: String): Boolean {
         // First check if the algorithm is available
         val availableAlgorithms = getAvailableTcpCongestionAlgorithms()
         if (!availableAlgorithms.contains(algorithm)) {
@@ -1430,12 +1437,12 @@ class SystemRepository @Inject constructor(
         return writeStringToFile("/proc/sys/net/ipv4/tcp_congestion_control", algorithm, "TCP Congestion Control Algorithm")
     }
 
-    fun getAvailableTcpCongestionAlgorithmsList(): List<String> {
+    suspend fun getAvailableTcpCongestionAlgorithmsList(): List<String> {
         return getAvailableTcpCongestionAlgorithms()
     }
 
     // GPU Throttling functions
-    private fun getGpuThrottlingStatus(): Boolean? {
+    private suspend fun getGpuThrottlingStatus(): Boolean? {
         val result = readFileToString("/sys/class/kgsl/kgsl-3d0/throttling", "GPU Throttling Status")
         return when (result?.trim()) {
             "1", "Y", "yes", "on", "enabled" -> true
@@ -1444,17 +1451,17 @@ class SystemRepository @Inject constructor(
         }
     }
 
-    fun isGpuThrottlingEnabled(): Boolean {
+    suspend fun isGpuThrottlingEnabled(): Boolean {
         return getGpuThrottlingStatus() ?: false
     }
 
-    fun setGpuThrottling(enabled: Boolean): Boolean {
+    suspend fun setGpuThrottling(enabled: Boolean): Boolean {
         val value = if (enabled) "1" else "0"
         return writeStringToFile("/sys/class/kgsl/kgsl-3d0/throttling", value, "GPU Throttling")
     }
 
     // I/O Scheduler functions
-    private fun getCurrentIoScheduler(): String {
+    private suspend fun getCurrentIoScheduler(): String {
         // Try multiple possible paths for different devices
         val paths = listOf(
             "/sys/block/sda/queue/scheduler",  // Common path
@@ -1474,7 +1481,7 @@ class SystemRepository @Inject constructor(
         return "N/A"
     }
 
-    private fun getAvailableIoSchedulers(): List<String> {
+    private suspend fun getAvailableIoSchedulers(): List<String> {
         // Try multiple possible paths for different devices
         val paths = listOf(
             "/sys/block/sda/queue/scheduler",
@@ -1502,11 +1509,11 @@ class SystemRepository @Inject constructor(
         return emptyList()
     }
 
-    fun getIoScheduler(): String {
+    suspend fun getIoScheduler(): String {
         return getCurrentIoScheduler()
     }
 
-    fun setIoScheduler(scheduler: String): Boolean {
+    suspend fun setIoScheduler(scheduler: String): Boolean {
         // First, verify that the scheduler is available
         val availableSchedulers = getAvailableIoSchedulers()
         if (!availableSchedulers.contains(scheduler)) {
@@ -1532,11 +1539,11 @@ class SystemRepository @Inject constructor(
         return false
     }
 
-    fun getAvailableIoSchedulersList(): List<String> {
+    suspend fun getAvailableIoSchedulersList(): List<String> {
         return getAvailableIoSchedulers()
     }
 
-    fun getCpuClusters(): List<CpuCluster> {
+    suspend fun getCpuClusters(): List<CpuCluster> {
 
         val clusters = mutableListOf<CpuCluster>()
         val cores = Runtime.getRuntime().availableProcessors()

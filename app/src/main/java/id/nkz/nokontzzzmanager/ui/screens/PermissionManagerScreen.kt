@@ -26,16 +26,32 @@ import android.app.AppOpsManager
 import android.os.Build
 import android.os.PowerManager
 import id.nkz.nokontzzzmanager.data.repository.RootRepository
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PermissionManagerViewModel @Inject constructor(
     private val rootRepository: RootRepository
 ) : ViewModel() {
-    fun checkRoot(): Boolean = rootRepository.checkRootFresh()
+    private val _isRooted = MutableStateFlow(false)
+    val isRooted: StateFlow<Boolean> = _isRooted.asStateFlow()
+
+    init {
+        checkRoot()
+    }
+
+    fun checkRoot() {
+        viewModelScope.launch {
+            _isRooted.value = rootRepository.checkRootFresh()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +61,8 @@ fun PermissionManagerScreen(
     viewModel: PermissionManagerViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val permissionsList = remember(context) { getRelevantPermissions(context, viewModel) }
+    val isRooted by viewModel.isRooted.collectAsState()
+    val permissionsList = remember(context, isRooted) { getRelevantPermissions(context, isRooted) }
 
     LazyColumn(
         modifier = Modifier
@@ -67,6 +84,7 @@ fun PermissionManagerScreen(
 
 @Composable
 fun PermissionItem(permissionInfo: AppPermissionInfo, shape: RoundedCornerShape) {
+// ... (rest of PermissionItem remains same)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = shape,
@@ -206,10 +224,8 @@ data class AppPermissionInfo(
     val isInstallTime: Boolean = false
 )
 
-private fun getRelevantPermissions(context: Context, viewModel: PermissionManagerViewModel): List<AppPermissionInfo> {
+private fun getRelevantPermissions(context: Context, hasRoot: Boolean): List<AppPermissionInfo> {
     val list = mutableListOf<AppPermissionInfo>()
-    val hasRoot = viewModel.checkRoot()
-
     // 1. Root Access
     list.add(AppPermissionInfo(R.string.perm_root_title, R.string.perm_root_desc, hasRoot))
 

@@ -52,8 +52,10 @@ class AppProfilesViewModel @Inject constructor(
     
     init {
         // Check if features are available
-        _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
-        _isAvoidDirtyPteAvailable.value = systemRepository.isAvoidDirtyPteAvailable()
+        viewModelScope.launch {
+            _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
+            _isAvoidDirtyPteAvailable.value = systemRepository.isAvoidDirtyPteAvailable()
+        }
         
         // Check if Powersave governor is available
         viewModelScope.launch {

@@ -11,11 +11,121 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.util.Log
 
+import id.nkz.nokontzzzmanager.data.repository.RootRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val systemRepository: SystemRepository,
-    private val preferenceManager: PreferenceManager
+    private val preferenceManager: PreferenceManager,
+    private val rootRepo: RootRepository
 ) : ViewModel() {
+
+    private val _isRootAvailable = MutableStateFlow<Boolean?>(null)
+    val isRootAvailable = _isRootAvailable.asStateFlow()
+
+    private val _isKernelSupported = MutableStateFlow<Boolean?>(null)
+    val isKernelSupported = _isKernelSupported.asStateFlow()
+
+    suspend fun checkRootAndKernel() {
+        val rooted = rootRepo.checkRootFresh()
+        _isRootAvailable.value = rooted
+        
+        if (rooted) {
+            _isKernelSupported.value = verifyKernelSupport()
+        }
+    }
+
+    private suspend fun verifyKernelSupport(): Boolean {
+        val supportedSignatures = listOf(
+            "Lunar",
+            "N0Kontzzz",
+            "N0kernel",
+            "FusionX",
+            "perf+",
+            "Oxygen+"
+        )
+
+        val lunarSupportedHosts = listOf(
+            "Kenskuyy@Github",
+            "andrian@ServerHive",
+            "build-user@build-host"
+        )
+
+        val fusionXSupportedHosts = listOf(
+            "andriann@ServerHive",
+            "andrian@ServerHive",
+            "build-user@build-host",
+            "senx@ubuntu",
+            "sensei@ServerHive"
+        )
+
+        val n0KontzzzSupportedHosts = listOf(
+            "bimoalfarrabi@github.com",
+            "build-user@build-host"
+        )
+
+        val n0kernelSupportedHosts = listOf(
+            "Impqxr@github.com",
+            "build-user@build-host"
+        )
+
+        val perfSupportedHosts = listOf(
+            "rohmanurip@Github"
+        )
+
+        val oxygenSupportedHosts = listOf(
+            "danda@pavilion"
+        )
+
+        return try {
+            val versionLine = rootRepo.run("cat /proc/version")
+
+            if (versionLine.isNotBlank()) {
+                // Special check for E404R kernel
+                if (versionLine.contains("4.19.404R", ignoreCase = true) && 
+                    versionLine.contains("vyn@zorin", ignoreCase = true)) {
+                    return true
+                }
+
+                for (signature in supportedSignatures) {
+                    if (versionLine.contains(signature, ignoreCase = true)) {
+                        return when (signature.lowercase()) {
+                            "fusionx" -> {
+                                fusionXSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
+                            }
+                            
+                            "lunar" -> {
+                                lunarSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
+                            }
+
+                            "n0kontzzz" -> {
+                                n0KontzzzSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
+                            }
+
+                            "n0kernel" -> {
+                                n0kernelSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
+                            }
+
+                            "perf+" -> {
+                                perfSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
+                            }
+
+                            "oxygen+" -> {
+                                oxygenSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
+                            }
+
+                            else -> true
+                        }
+                    }
+                }
+            }
+            false
+        } catch (e: Exception) {
+            false
+        }
+    }
 
     fun runFailsafeNetworkStorageRestore() {
         if (!preferenceManager.isApplyNetworkStorageOnBoot()) return

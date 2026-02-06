@@ -24,19 +24,22 @@ class ThermalWorker(appContext: Context, params: WorkerParameters) : CoroutineWo
         }
 
         // Apply with robust permissions and SELinux context handling
+        // Some kernels/engines lock this node with 0444
         Shell.cmd("chcon u:object_r:sysfs_thermal:s0 $thermalSysfsNode").exec()
-        Shell.cmd("chmod 0666 $thermalSysfsNode").exec()
-        Shell.cmd("echo $modeIndex > $thermalSysfsNode").exec()
-        // Lock with read-only permissions and do NOT restorecon
+        Shell.cmd("chmod 0644 $thermalSysfsNode").exec()
+        val result = Shell.cmd("echo $modeIndex > $thermalSysfsNode").exec()
+        // Lock with read-only permissions to prevent system override
         Shell.cmd("chmod 0444 $thermalSysfsNode").exec()
 
-        val verifyValue = Shell.cmd("cat $thermalSysfsNode").exec().out.joinToString("").trim().toIntOrNull() ?: -1
-        if (verifyValue == modeIndex) {
-            Log.i(TAG, "ThermalWorker: Successfully applied mode $modeIndex")
-            Result.success()
-        } else {
-            Log.e(TAG, "ThermalWorker: Failed to apply mode $modeIndex")
-            Result.retry()
+        if (result.isSuccess) {
+            val verifyValue = Shell.cmd("cat $thermalSysfsNode").exec().out.joinToString("").trim().toIntOrNull() ?: -1
+            if (verifyValue == modeIndex) {
+                Log.i(TAG, "ThermalWorker: Successfully applied mode $modeIndex")
+                return@withContext Result.success()
+            }
         }
+        
+        Log.e(TAG, "ThermalWorker: Failed to apply mode $modeIndex")
+        Result.retry()
     }
 }

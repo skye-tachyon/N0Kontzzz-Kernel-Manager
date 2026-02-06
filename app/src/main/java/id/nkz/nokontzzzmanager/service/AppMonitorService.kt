@@ -198,7 +198,7 @@ class AppMonitorService : Service() {
         }
     }
 
-    private fun applyGpuConfig(config: id.nkz.nokontzzzmanager.data.model.GpuProfileConfig) {
+    private suspend fun applyGpuConfig(config: id.nkz.nokontzzzmanager.data.model.GpuProfileConfig) {
         if (!config.governor.isNullOrBlank()) {
             tuningRepository.setGpuGov(config.governor)
         }

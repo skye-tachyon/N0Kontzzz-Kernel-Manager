@@ -47,40 +47,30 @@ class ThermalRepository @Inject constructor(
     private var userSetGovernor: String? = null
     private var monitoringJob: Job? = null
 
-    private fun executeRootCommand(cmd: String, logTag: String = TAG): Shell.Result {
-        if (!rootRepository.isRootStillAvailable()) {
+    private suspend fun executeRootCommand(cmd: String, logTag: String = TAG): Boolean {
+        if (!rootRepository.checkRootFresh()) {
             Log.e(logTag, "Root access not available for command: $cmd")
-            return Shell.cmd("false").exec()
+            return false
         }
         return try {
-            val result = Shell.cmd(cmd).exec()
-            if (result.isSuccess) {
-                Log.i(logTag, "Root Command Success: '$cmd'")
-            } else {
-                Log.e(logTag, "Root Command Failed: '$cmd'. Err: ${result.err.joinToString("\n")}")
-            }
-            result
+            rootRepository.run(cmd)
+            Log.i(logTag, "Root Command Success: '$cmd'")
+            true
         } catch (e: Exception) {
             Log.e(logTag, "Exception during root command: '$cmd'", e)
-            Shell.cmd("false").exec()
+            false
         }
     }
 
-    private fun readRootCommand(cmd: String, logTag: String = TAG): String? {
-        if (!rootRepository.isRootStillAvailable()) {
+    private suspend fun readRootCommand(cmd: String, logTag: String = TAG): String? {
+        if (!rootRepository.checkRootFresh()) {
             Log.e(logTag, "Root access not available for command: $cmd")
             return null
         }
         return try {
-            val result = Shell.cmd(cmd).exec()
-            if (result.isSuccess) {
-                val output = result.out.joinToString("\n").trim()
-                Log.i(logTag, "Read Root Command Success: '$cmd'. Output: $output")
-                output
-            } else {
-                Log.e(logTag, "Read Root Command Failed: '$cmd'. Err: ${result.err.joinToString("\n")}")
-                null
-            }
+            val result = rootRepository.run(cmd)
+            Log.i(logTag, "Read Root Command Success: '$cmd'. Output: $result")
+            result.trim()
         } catch (e: Exception) {
             Log.e(logTag, "Exception during read root command: '$cmd'", e)
             null
@@ -98,12 +88,13 @@ class ThermalRepository @Inject constructor(
 
             # Set SELinux context for thermal access
             chcon u:object_r:sysfs_thermal:s0 $thermalSysfsNode
+            chmod 0644 $thermalSysfsNode
 
             # Apply thermal mode
             echo "$modeIndex" > $thermalSysfsNode
 
-            # Restore proper context
-            restorecon $thermalSysfsNode
+            # Lock permissions
+            chmod 0444 $thermalSysfsNode
 
             exit 0
         """.trimIndent()
@@ -112,7 +103,7 @@ class ThermalRepository @Inject constructor(
         executeRootCommand("chmod 755 /data/adb/post-fs-data.d")
 
         val writeResult = executeRootCommand("cat > '$persistentScriptPath' << 'EOF'\n$scriptContent\nEOF")
-        if (!writeResult.isSuccess) {
+        if (!writeResult) {
             Log.e(TAG, "Failed to write persistent script")
             return@withContext false
         }
@@ -142,14 +133,15 @@ class ThermalRepository @Inject constructor(
                 sleep 1
             done
 
-            # Set SELinux context temporarily
+            # Set SELinux context for thermal access
             chcon u:object_r:sysfs_thermal:s0 $thermalSysfsNode
+            chmod 0644 $thermalSysfsNode
 
             # Apply thermal mode
             echo "$modeIndex" > $thermalSysfsNode
 
-            # Restore context
-            restorecon $thermalSysfsNode
+            # Lock permissions
+            chmod 0444 $thermalSysfsNode
 
             exit 0
         """.trimIndent()
@@ -158,7 +150,7 @@ class ThermalRepository @Inject constructor(
         executeRootCommand("chmod 755 '$serviceDir'")
 
         val writeResult = executeRootCommand("cat > '$thermalScriptPath' << 'EOF'\n$scriptContent\nEOF")
-        if (!writeResult.isSuccess) {
+        if (!writeResult) {
             return@withContext false
         }
 
@@ -169,16 +161,16 @@ class ThermalRepository @Inject constructor(
     }
 
     private suspend fun removeThermalScript(): Boolean = withContext(Dispatchers.IO) {
-        if (!rootRepository.isRootStillAvailable()) {
+        if (!rootRepository.checkRootFresh()) {
             Log.e(TAG, "removeThermalScript: Root access is not available.")
             return@withContext false
         }
-        val rmResult = executeRootCommand("rm -f '$thermalScriptPath'")
-        if (rmResult.isSuccess) {
+        val rmSuccess = executeRootCommand("rm -f '$thermalScriptPath'")
+        if (rmSuccess) {
             Log.i(TAG, "removeThermalScript: Successfully removed $thermalScriptPath")
             return@withContext true
         } else {
-            Log.e(TAG, "removeThermalScript: Failed to remove $thermalScriptPath. Error: ${rmResult.err.joinToString("\n")}")
+            Log.e(TAG, "removeThermalScript: Failed to remove $thermalScriptPath")
             return@withContext false
         }
     }
@@ -223,7 +215,7 @@ class ThermalRepository @Inject constructor(
             return@flow
         }
 
-        if (!rootRepository.isRootStillAvailable()) {
+        if (!rootRepository.checkRootFresh()) {
             Log.e(TAG, "setThermalModeIndex: Root access is not available.")
             emit(false)
             return@flow
@@ -232,13 +224,14 @@ class ThermalRepository @Inject constructor(
         monitoringJob?.cancel()
         monitoringJob = null
 
-        // Set SELinux context and permissions to allow write
+        // Apply thermal mode with necessary permission handling for sysfs
+        // Some kernels/engines lock this node with 0444
         executeRootCommand("chcon u:object_r:sysfs_thermal:s0 $thermalSysfsNode")
-        executeRootCommand("chmod 0666 '$thermalSysfsNode'")
+        executeRootCommand("chmod 0644 '$thermalSysfsNode'")
         
-        val writeOk = executeRootCommand("echo $modeIndex > '$thermalSysfsNode'").isSuccess
+        val writeOk = executeRootCommand("echo $modeIndex > '$thermalSysfsNode'")
         
-        // Lock with read-only permissions and do NOT restorecon to prevent system override
+        // Lock with read-only permissions to prevent system engine from overriding our setting
         executeRootCommand("chmod 0444 '$thermalSysfsNode'")
 
         if (!writeOk) {

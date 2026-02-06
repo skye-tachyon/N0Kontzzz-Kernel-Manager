@@ -167,7 +167,7 @@ class BootRestoreService : Service() {
         }
     }
 
-    private fun restoreMiscSettings() {
+    private suspend fun restoreMiscSettings() {
         if (preferenceManager.getAvoidDirtyPte()) systemRepository.setAvoidDirtyPte(true)
         if (preferenceManager.getKgslSkipZeroing()) systemRepository.setKgslSkipZeroing(true)
         if (preferenceManager.getBypassCharging()) systemRepository.setBypassCharging(true)

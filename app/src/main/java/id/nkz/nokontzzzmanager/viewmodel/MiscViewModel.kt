@@ -251,12 +251,12 @@ class MiscViewModel @Inject constructor(
         }
     }
 
-    private fun loadTcpCongestionAlgorithm() {
+    private suspend fun loadTcpCongestionAlgorithm() {
         _tcpCongestionAlgorithm.value = systemRepository.getTcpCongestionAlgorithm()
         _availableTcpCongestionAlgorithms.value = systemRepository.getAvailableTcpCongestionAlgorithmsList()
     }
 
-    private fun loadIoScheduler() {
+    private suspend fun loadIoScheduler() {
         _ioScheduler.value = systemRepository.getIoScheduler()
         _availableIoSchedulers.value = systemRepository.getAvailableIoSchedulersList()
     }

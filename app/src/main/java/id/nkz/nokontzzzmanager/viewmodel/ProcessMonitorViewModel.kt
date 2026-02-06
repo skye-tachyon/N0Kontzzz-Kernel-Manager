@@ -188,7 +188,7 @@ class ProcessMonitorViewModel @Inject constructor(
 
     private data class PsDetails(val user: String, val rssMb: Float, val name: String)
 
-    private fun getProcessDetails(): Map<String, PsDetails> {
+    private suspend fun getProcessDetails(): Map<String, PsDetails> {
         val map = mutableMapOf<String, PsDetails>()
         try {
             val output = rootRepository.run("ps -A -o pid,user,rss,args")

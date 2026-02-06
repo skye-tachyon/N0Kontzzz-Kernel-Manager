@@ -659,22 +659,22 @@ class BatteryMonitorService : Service() {
 
             // Apply only if state needs to change or if we don't know the state yet
             if (shouldEnableBypass != null) {
-                // If cache is missing, read the actual state once to sync
-                if (lastKnownBypassState == null) {
-                    lastKnownBypassState = systemRepository.getBypassCharging()
-                }
+                scope.launch {
+                    // If cache is missing, read the actual state once to sync
+                    if (lastKnownBypassState == null) {
+                        lastKnownBypassState = systemRepository.getBypassCharging()
+                    }
 
-                // Only perform I/O if the desired state differs from the current/cached state
-                if (lastKnownBypassState != shouldEnableBypass) {
-                    val success = systemRepository.setBypassCharging(shouldEnableBypass)
-                    if (success) {
-                        lastKnownBypassState = shouldEnableBypass
-                        // Force update notification to reflect status change immediately
-                        try {
-                           scope.launch {
+                    // Only perform I/O if the desired state differs from the current/cached state
+                    if (lastKnownBypassState != shouldEnableBypass) {
+                        val success = systemRepository.setBypassCharging(shouldEnableBypass)
+                        if (success) {
+                            lastKnownBypassState = shouldEnableBypass
+                            // Force update notification to reflect status change immediately
+                            try {
                                updateNotification(collectSystemStats())
-                           }
-                        } catch (_: Exception) {}
+                            } catch (_: Exception) {}
+                        }
                     }
                 }
             }

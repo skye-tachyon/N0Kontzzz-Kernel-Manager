@@ -52,8 +52,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import id.nkz.nokontzzzmanager.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import androidx.activity.compose.BackHandler
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
@@ -70,6 +68,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import id.nkz.nokontzzzmanager.utils.LocaleHelper
 import id.nkz.nokontzzzmanager.viewmodel.MainViewModel
 import id.nkz.nokontzzzmanager.viewmodel.KernelLogViewModel
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -140,23 +140,32 @@ class MainActivity : ComponentActivity() {
             maybeRequestNotificationPermissionOnce()
         }
         
-        // Check root status and update UI accordingly
-        // This check will be re-evaluated in onResume when user grants root access
-        if (!rootRepo.checkRootFresh()) {
-            showRootRequiredDialog = true
-        } else {
-            showRootRequiredDialog = false // Hide root dialog if root is available
-            if (!isKernelSupported()) {
-                showKernelVerificationDialog = true
-            } else {
-                // Only check permissions if device is rooted and kernel is supported
-                checkAndHandlePermissions()
-            }
+        // Initial check for root and kernel
+        lifecycleScope.launch {
+            mainViewModel.checkRootAndKernel()
         }
 
         setContent {
+            val isRootAvailable by mainViewModel.isRootAvailable.collectAsStateWithLifecycle()
+            val isKernelSupported by mainViewModel.isKernelSupported.collectAsStateWithLifecycle()
+
+            // Update dialog visibility based on ViewModel state
+            LaunchedEffect(isRootAvailable) {
+                showRootRequiredDialog = isRootAvailable == false
+            }
+
+            LaunchedEffect(isKernelSupported) {
+                if (isRootAvailable == true) {
+                    showKernelVerificationDialog = isKernelSupported == false
+                    if (isKernelSupported == true) {
+                        checkAndHandlePermissions()
+                    }
+                }
+            }
+
             RvKernelManagerTheme(themeManager = themeManager) {
                 val navController = rememberNavController()
+
 
                 LaunchedEffect(Unit) {
                     if (intent.getBooleanExtra("navigateToSettings", false)) {
@@ -333,7 +342,13 @@ class MainActivity : ComponentActivity() {
                                         FloatingActionButtonMenuItem(
                                             onClick = {
                                                 if (command.isNotEmpty()) {
-                                                    Runtime.getRuntime().exec(arrayOf("su", "-c", command))
+                                                    lifecycleScope.launch {
+                                                        try {
+                                                            rootRepo.run(command)
+                                                        } catch (e: Exception) {
+                                                            // Handle error or log
+                                                        }
+                                                    }
                                                 }
                                                 fabMenuExpanded = false
                                             },
@@ -371,6 +386,8 @@ class MainActivity : ComponentActivity() {
                     floatingActionButtonPosition = FabPosition.End,
                     bottomBar = { BottomNavBar(navController, items, isAmoledMode = isAmoledMode) }
                 ) { innerPadding ->
+                    val isRootAvailable by mainViewModel.isRootAvailable.collectAsStateWithLifecycle()
+                    
                     if (showKernelVerificationDialog) {
                         KernelVerificationDialog(onDismiss = { finish() })
                     }
@@ -380,7 +397,7 @@ class MainActivity : ComponentActivity() {
                         })
                     }
                     // Only show permission dialog if device is rooted
-                    if (showBatteryOptDialog && rootRepo.checkRootFresh()) {
+                    if (showBatteryOptDialog && isRootAvailable == true) {
                         BatteryOptDialog(
                             onDismiss = {
                                 // Only allow dismiss if we haven't exceeded retry limit
@@ -574,12 +591,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkAndHandlePermissions() {
-        // Only check permissions if device is rooted
-        if (rootRepo.checkRootFresh() && !batteryOptChecker.hasRequiredPermissions()) {
-            showBatteryOptDialog = true
+        lifecycleScope.launch {
+            if (rootRepo.checkRootFresh() && !batteryOptChecker.hasRequiredPermissions()) {
+                showBatteryOptDialog = true
+            }
         }
-            // Only start service for Dynamic mode (10) which requires continuous monitoring
-            // For other thermal modes, persistent scripts handle settings
     }
 
     private fun maybeRequestNotificationPermissionOnce() {
@@ -595,139 +611,28 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun isKernelSupported(): Boolean {
-        val supportedSignatures = listOf(
-            "Lunar",
-            "N0Kontzzz",
-            "N0kernel",
-            "FusionX",
-            "perf+",
-            "Oxygen+"
-        )
-
-        val lunarSupportedHosts = listOf(
-            "Kenskuyy@Github",
-            "andrian@ServerHive",
-            "build-user@build-host"
-        )
-
-        val fusionXSupportedHosts = listOf(
-            "andriann@ServerHive",
-            "andrian@ServerHive",
-            "build-user@build-host",
-            "senx@ubuntu",
-            "sensei@ServerHive"
-        )
-
-        val n0KontzzzSupportedHosts = listOf(
-            "bimoalfarrabi@github.com",
-            "build-user@build-host"
-        )
-
-        val n0kernelSupportedHosts = listOf(
-            "Impqxr@github.com",
-            "build-user@build-host"
-        )
-
-        val perfSupportedHosts = listOf(
-            "rohmanurip@Github"
-        )
-
-        val oxygenSupportedHosts = listOf(
-            "danda@pavilion"
-        )
-
-        try {
-            var versionLine: String?
-
-            try {
-                val versionProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /proc/version"))
-                val versionReader = BufferedReader(InputStreamReader(versionProcess.inputStream))
-                versionLine = versionReader.readLine()
-                versionReader.close()
-                versionProcess.waitFor()
-            } catch (e: Exception) {
-                return false
-            }
-
-            if (versionLine != null) {
-                // Special check for E404R kernel
-                if (versionLine.contains("4.19.404R", ignoreCase = true) && 
-                    versionLine.contains("vyn@zorin", ignoreCase = true)) {
-                    return true
-                }
-
-                for (signature in supportedSignatures) {
-                    if (versionLine.contains(signature, ignoreCase = true)) {
-                        return when (signature.lowercase()) {
-                            "fusionx" -> {
-                                fusionXSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
-                            }
-                            
-                            "lunar" -> {
-                                lunarSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
-                            }
-
-                            "n0kontzzz" -> {
-                                n0KontzzzSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
-                            }
-
-                            "n0kernel" -> {
-                                n0kernelSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
-                            }
-
-                            "perf+" -> {
-                                perfSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
-                            }
-
-                            "oxygen+" -> {
-                                oxygenSupportedHosts.any { versionLine.contains(it, ignoreCase = true) }
-                            }
-
-                            else -> true
-                        }
-                    }
-                }
-            }
-            return false
-        } catch (e: Exception) {
-            return false
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         
         // Check root status again in case user granted root access
-        // This handles the scenario where user granted root access after the app started
-        if (!rootRepo.checkRootFresh()) {
-            showRootRequiredDialog = true
-        } else {
-            // If root access is now granted, hide the root required dialog
-            showRootRequiredDialog = false
-            
-            // Don't check permissions if kernel verification dialog is shown
-            if (showKernelVerificationDialog) {
-                return
-            }
-            
-            // Check if permissions were denied
-            if (!batteryOptChecker.hasRequiredPermissions()) {
-                permissionDenialCount++
-                if (permissionDenialCount >= MAX_PERMISSION_RETRIES) {
-                    // Show dialog with exit button after max retries
-                    showBatteryOptDialog = true
-                } else if (!showBatteryOptDialog) {
-                    // Show normal dialog if not already showing
-                    showBatteryOptDialog = true
-                }
+        lifecycleScope.launch {
+            if (!rootRepo.checkRootFresh()) {
+                showRootRequiredDialog = true
             } else {
-                // Reset counter if permissions are granted
-                permissionDenialCount = 0
-                showBatteryOptDialog = false
-
-                // Only start service for Dynamic mode (10) which requires continuous monitoring
-                // For other thermal modes, persistent scripts handle settings
+                mainViewModel.checkRootAndKernel()
+                showRootRequiredDialog = false
+                
+                if (showKernelVerificationDialog) {
+                    return@launch
+                }
+                
+                if (!batteryOptChecker.hasRequiredPermissions()) {
+                    permissionDenialCount++
+                    showBatteryOptDialog = true
+                } else {
+                    permissionDenialCount = 0
+                    showBatteryOptDialog = false
+                }
             }
         }
     }

@@ -41,9 +41,6 @@ class CustomTunableRepository @Inject constructor(
                 return false
             }
 
-            // Try to make writable just in case
-            rootRepository.run("chmod +w \"$path\"")
-
             // Apply value
             // Use standard echo (without -n) to ensure newline character is sent,
             // which acts as a flush/commit signal for many kernel sysfs drivers.
