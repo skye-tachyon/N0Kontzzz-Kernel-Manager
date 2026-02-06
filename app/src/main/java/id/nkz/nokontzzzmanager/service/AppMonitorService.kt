@@ -135,22 +135,27 @@ class AppMonitorService : Service() {
         // 1. Performance Mode
         applyPerformanceMode(profile.performanceMode)
 
-        // 2. KGSL
-        systemRepository.setKgslSkipZeroing(profile.kgslSkipZeroing)
+        // 2. Misc Settings (KGSL, Bypass, Dirty PTE)
+        val commands = mutableListOf<String>()
+        
+        val kgslValue = if (profile.kgslSkipZeroing) "1" else "0"
+        commands.add("echo $kgslValue > /sys/kernel/n0kz_attributes/kgsl_skip_zeroing 2>/dev/null || true")
+        
+        val bypassValue = if (profile.bypassCharging) "1" else "0"
+        commands.add("echo $bypassValue > /sys/class/power_supply/battery/input_suspend 2>/dev/null || true")
+        
+        val dirtyPteValue = if (profile.allowDirtyPte) "1" else "0"
+        commands.add("echo $dirtyPteValue > /sys/kernel/n0kz_attributes/avoid_dirty_pte 2>/dev/null || true")
+        
+        tuningRepository.runBatchTuning(commands)
 
-        // 3. Bypass Charging
-        systemRepository.setBypassCharging(profile.bypassCharging)
-
-        // 4. Dirty PTE
-        systemRepository.setAvoidDirtyPte(profile.allowDirtyPte)
-
-        // 5. CPU Tuning
+        // 3. CPU Tuning
         applyCpuConfig(profile.getCpuConfig())
 
-        // 6. GPU Tuning
+        // 4. GPU Tuning
         applyGpuConfig(profile.getGpuConfig())
 
-        // 7. Thermal Profile
+        // 5. Thermal Profile
         if (profile.thermalProfile != null) {
             applyThermalProfile(profile.thermalProfile)
         }
@@ -163,25 +168,28 @@ class AppMonitorService : Service() {
         val globalMode = preferenceManager.getPerformanceMode()
         applyPerformanceMode(globalMode)
 
-        // 2. KGSL
-        val globalKgsl = preferenceManager.getKgslSkipZeroing()
-        systemRepository.setKgslSkipZeroing(globalKgsl)
+        // 2. Misc Settings (KGSL, Bypass, Dirty PTE)
+        // We can batch these simple echo commands
+        val commands = mutableListOf<String>()
+        
+        val globalKgsl = if (preferenceManager.getKgslSkipZeroing()) "1" else "0"
+        commands.add("echo $globalKgsl > /sys/kernel/n0kz_attributes/kgsl_skip_zeroing 2>/dev/null || true")
+        
+        val globalBypass = if (preferenceManager.getBypassCharging()) "1" else "0"
+        commands.add("echo $globalBypass > /sys/class/power_supply/battery/input_suspend 2>/dev/null || true")
+        
+        val globalDirtyPte = if (preferenceManager.getAvoidDirtyPte()) "1" else "0"
+        commands.add("echo $globalDirtyPte > /sys/kernel/n0kz_attributes/avoid_dirty_pte 2>/dev/null || true")
+        
+        tuningRepository.runBatchTuning(commands)
 
-        // 3. Bypass Charging
-        val globalBypass = preferenceManager.getBypassCharging()
-        systemRepository.setBypassCharging(globalBypass)
-
-        // 4. Dirty PTE
-        val globalDirtyPte = preferenceManager.getAvoidDirtyPte()
-        systemRepository.setAvoidDirtyPte(globalDirtyPte)
-
-        // 5. Revert CPU Tuning to Global Prefs
+        // 3. Revert CPU Tuning to Global Prefs
         revertCpuConfig()
 
-        // 6. Revert GPU Tuning to Global Prefs
+        // 4. Revert GPU Tuning to Global Prefs
         revertGpuConfig()
 
-        // 7. Revert Thermal Profile
+        // 5. Revert Thermal Profile
         revertThermalProfile()
     }
 
@@ -286,7 +294,9 @@ class AppMonitorService : Service() {
             }
 
             // Revert cores
-            val cores = Runtime.getRuntime().availableProcessors()
+            // IMPORTANT: Use getNumberOfCores() to detect all physical cores, 
+            // even if they were disabled by a profile.
+            val cores = tuningRepository.getNumberOfCores()
             for (i in 0 until cores) {
                 val globalOnline = preferenceManager.getCpuCoreOnline(i)
                 // If explicit pref exists, use it. Otherwise assume online (true) or just leave it?

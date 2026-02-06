@@ -303,7 +303,11 @@ fun AppProfileItem(
             }
             
             IconButton(onClick = { onDelete(profile) }) {
-                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.app_profiles_delete))
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.app_profiles_delete),
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
     }

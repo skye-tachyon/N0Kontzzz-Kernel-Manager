@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.ceil
@@ -18,6 +20,8 @@ import kotlin.math.ceil
 class TuningRepository @Inject constructor(
     private val context: Context
 ) {
+
+    private val shellMutex = Mutex()
 
 
     // Thermal
@@ -62,6 +66,34 @@ class TuningRepository @Inject constructor(
        Helper Shell
        ---------------------------------------------------------- */
     private var isSuShellWorking = true
+
+    /**
+     * Executes multiple commands in a single SELinux toggle block.
+     * This significantly reduces overhead when applying complex profiles.
+     */
+    suspend fun runBatchTuning(commands: List<String>): Boolean = shellMutex.withLock {
+        if (commands.isEmpty()) return true
+        
+        val originalSelinuxMode = getSelinuxModeInternal()
+        val needsSelinuxChange = originalSelinuxMode.equals("Enforcing", ignoreCase = true)
+
+        if (needsSelinuxChange) {
+            setSelinuxModeInternal(false)
+        }
+
+        var allSuccess = true
+        commands.forEach { cmd ->
+            if (!executeShellCommand(cmd)) {
+                allSuccess = false
+            }
+        }
+
+        if (needsSelinuxChange) {
+            setSelinuxModeInternal(true)
+        }
+        return allSuccess
+    }
+
     private fun runTuningCommand(cmd: String): Boolean {
         val originalSelinuxMode = getSelinuxModeInternal()
         val needsSelinuxChange = originalSelinuxMode.equals("Enforcing", ignoreCase = true)
@@ -72,7 +104,7 @@ class TuningRepository @Inject constructor(
 
         val success = executeShellCommand(cmd)
         if (needsSelinuxChange) {
-            setSelinuxModeInternal(true) // Set kembali ke Enforcing (1)
+            setSelinuxModeInternal(true)
         }
         return success
     }
