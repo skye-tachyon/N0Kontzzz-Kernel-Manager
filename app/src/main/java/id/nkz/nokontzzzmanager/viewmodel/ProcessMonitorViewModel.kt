@@ -76,18 +76,16 @@ class ProcessMonitorViewModel @Inject constructor(
             
             while (isActive) {
                 try {
-                    // 1. Capture Snapshot
-                    val tempPath = "/data/local/tmp/nkm_proc_snapshot"
-                    val cmd = "(cat /proc/stat; echo '###'; cat /proc/[0-9]*/stat) > $tempPath && chmod 644 $tempPath"
-                    rootRepository.run(cmd)
+                    // 1. Capture Snapshot directly into memory (avoiding flash storage wear)
+                    // We combine /proc/stat and all process stats into one output
+                    val cmd = "cat /proc/stat; echo '###'; cat /proc/[0-9]*/stat"
+                    val content = rootRepository.run(cmd)
 
-                    val file = File(tempPath)
-                    if (!file.exists() || !file.canRead()) {
+                    if (content.isBlank()) {
                         delay(500)
                         continue
                     }
 
-                    val content = file.readText()
                     val (currentTotalCpu, currentProcessCpuTimes) = parseCpuSnapshot(content)
 
                     // 2. If we have previous data, calculate delta
@@ -166,11 +164,6 @@ class ProcessMonitorViewModel @Inject constructor(
     fun stopMonitoring() {
         monitorJob?.cancel()
         monitorJob = null
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                rootRepository.run("rm /data/local/tmp/nkm_proc_snapshot")
-            } catch (_: Exception) {}
-        }
     }
 
     fun updateSettings(rate: Long, max: Int, sort: ProcessSort, filter: ProcessFilter) {
