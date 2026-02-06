@@ -76,8 +76,43 @@ class BootRestoreService : Service() {
 
     private suspend fun restoreSystemSettings() {
         Log.d(TAG, "Restoring standard system settings...")
-        restoreNetworkAndIoSettings()
-        restoreMiscSettings()
+        
+        val batchCommands = mutableListOf<String>()
+
+        // 1. Network & IO
+        if (preferenceManager.isApplyNetworkStorageOnBoot()) {
+            preferenceManager.getTcpCongestionAlgorithm()?.let { algo ->
+                batchCommands.add("echo $algo > /proc/sys/net/ipv4/tcp_congestion_control 2>/dev/null || true")
+            }
+
+            val ioPaths = listOf("/sys/block/sda/queue/scheduler", "/sys/block/mmcblk0/queue/scheduler", "/sys/block/nvme0n1/queue/scheduler")
+            preferenceManager.getIoScheduler()?.let { sched ->
+                ioPaths.forEach { path ->
+                    batchCommands.add("echo $sched > $path 2>/dev/null || true")
+                }
+            }
+        }
+
+        // 2. Misc Settings
+        if (preferenceManager.getAvoidDirtyPte()) {
+            batchCommands.add("echo 1 > /sys/kernel/n0kz_attributes/avoid_dirty_pte 2>/dev/null || true")
+        }
+        if (preferenceManager.getKgslSkipZeroing()) {
+            batchCommands.add("echo 1 > /sys/kernel/n0kz_attributes/kgsl_skip_zeroing 2>/dev/null || true")
+        }
+        if (preferenceManager.getBypassCharging()) {
+            batchCommands.add("echo 1 > /sys/class/power_supply/battery/input_suspend 2>/dev/null || true")
+        }
+        if (preferenceManager.getForceFastCharge()) {
+            batchCommands.add("echo 1 > /sys/kernel/fast_charge/force_fast_charge 2>/dev/null || true")
+        }
+
+        // Apply all at once
+        if (batchCommands.isNotEmpty()) {
+            tuningRepository.runBatchTuning(batchCommands)
+        }
+
+        // 3. Other specific modules
         restorePerformanceMode()
         restoreCpuSettings()
         restoreGpuSettings()
@@ -119,8 +154,6 @@ class BootRestoreService : Service() {
         Log.d(TAG, "Enforcement loop finished.")
     }
 
-    // --- Restore Logics copied from Worker ---
-
     private suspend fun restoreCpuSettings() {
         if (!preferenceManager.isApplyCpuOnBoot()) return
 
@@ -149,29 +182,6 @@ class BootRestoreService : Service() {
                 }
             }
         }
-    }
-
-    private suspend fun restoreNetworkAndIoSettings() {
-        if (!preferenceManager.isApplyNetworkStorageOnBoot()) return
-
-        preferenceManager.getTcpCongestionAlgorithm()?.let { algo ->
-            if (systemRepository.setTcpCongestionAlgorithm(algo)) {
-                Log.d(TAG, "Restored TCP: $algo")
-            }
-        }
-
-        preferenceManager.getIoScheduler()?.let { sched ->
-            if (systemRepository.setIoScheduler(sched)) {
-                Log.d(TAG, "Restored I/O: $sched")
-            }
-        }
-    }
-
-    private suspend fun restoreMiscSettings() {
-        if (preferenceManager.getAvoidDirtyPte()) systemRepository.setAvoidDirtyPte(true)
-        if (preferenceManager.getKgslSkipZeroing()) systemRepository.setKgslSkipZeroing(true)
-        if (preferenceManager.getBypassCharging()) systemRepository.setBypassCharging(true)
-        if (preferenceManager.getForceFastCharge()) systemRepository.setForceFastCharge(true)
     }
 
     private suspend fun restorePerformanceMode() {
