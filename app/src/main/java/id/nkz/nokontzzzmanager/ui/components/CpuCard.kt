@@ -140,9 +140,6 @@ private fun CpuHeaderSection(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
-            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
