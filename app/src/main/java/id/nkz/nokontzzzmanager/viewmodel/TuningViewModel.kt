@@ -120,27 +120,28 @@ class TuningViewModel @Inject constructor(
     }
 
     // Logic to validate active performance mode based on real-time governor state
-    val activePerformanceMode: StateFlow<String?> = combine(
-        getCpuGov("cpu0"),
-        getCpuGov("cpu4"),
-        getCpuGov("cpu7")
-    ) { gov0, gov4, gov7 ->
-        // Check if governors are still loading
-        if (gov0 == "..." || gov4 == "..." || gov7 == "...") return@combine null
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val activePerformanceMode: StateFlow<String?> = dynamicCpuClusters.flatMapLatest { clusters ->
+        if (clusters.isEmpty()) return@flatMapLatest flowOf(null)
+        
+        val govFlows = clusters.map { getCpuGov(it) }
+        combine(govFlows) { governors ->
+            // Check if any governor is still loading
+            if (governors.any { it == "..." }) return@combine null
 
-        val governors = listOf(gov0, gov4, gov7)
-        val uniqueGovs = governors.distinct()
+            val uniqueGovs = governors.distinct()
 
-        // Valid only if all clusters share the same governor
-        if (uniqueGovs.size == 1) {
-            when (uniqueGovs.first()) {
-                "powersave" -> "Powersave"
-                "schedutil" -> "Balanced"
-                "performance" -> "Performance"
-                else -> null // Default kernel governor or other custom governor -> No mode active
+            // Valid only if all clusters share the same governor
+            if (uniqueGovs.size == 1) {
+                when (uniqueGovs.first()) {
+                    "powersave" -> "Powersave"
+                    "schedutil" -> "Balanced"
+                    "performance" -> "Performance"
+                    else -> null // Default kernel governor or other custom governor -> No mode active
+                }
+            } else {
+                null // Mixed governors (Manual per-cluster changes) -> No mode active
             }
-        } else {
-            null // Mixed governors (Manual per-cluster changes) -> No mode active
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -279,8 +280,9 @@ class TuningViewModel @Inject constructor(
 
     private suspend fun refreshRealtimeData() {
         withContext(Dispatchers.IO) {
+            val clusters = _dynamicCpuClusters.value.ifEmpty { cpuClusters }
             // CPU
-            cpuClusters.forEach { cluster ->
+            clusters.forEach { cluster ->
                 launch { repo.getCpuGov(cluster).take(1).collect { _currentCpuGovernors[cluster]?.value = it } }
                 launch { repo.getCpuFreq(cluster).take(1).collect { _currentCpuFrequencies[cluster]?.value = it } }
             }
@@ -312,13 +314,19 @@ class TuningViewModel @Inject constructor(
             fetchAllCpuData()
             refreshCoreStates()
             
+            // Wait for dynamic clusters to be loaded
+            while (_dynamicCpuClusters.value.isEmpty()) {
+                delay(50)
+            }
+            val clusters = _dynamicCpuClusters.value
+
             // Allow time for flows to emit initial values
             delay(200) 
             
             // 1. Self-healing for Performance Mode
             if (preferenceManager.isApplyPerformanceModeOnBoot()) {
                 val preferredMode = preferenceManager.getPerformanceMode()
-                val gov0 = _currentCpuGovernors["cpu0"]?.value
+                val gov0 = _currentCpuGovernors[clusters.first()]?.value
                 
                 // Only act if we have valid governor data
                 if (gov0 != null && gov0 != "...") {
@@ -340,7 +348,7 @@ class TuningViewModel @Inject constructor(
 
             // 2. Self-healing for Manual CPU Settings (Per-cluster)
             if (preferenceManager.isApplyCpuOnBoot()) {
-                cpuClusters.forEach { cluster ->
+                clusters.forEach { cluster ->
                     // Governor Check
                     val prefGov = preferenceManager.getCpuGov(cluster)
                     val currentGov = _currentCpuGovernors[cluster]?.value
@@ -535,27 +543,15 @@ class TuningViewModel @Inject constructor(
     private fun fetchDynamicCpuClusters() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val clusters = systemRepo.getCpuClusters()
-                // Map the dynamic cluster names to the corresponding cpu cluster identifiers
-                val clusterNames = clusters.map { cluster ->
-                    when {
-                        cluster.name.contains("Little", ignoreCase = true) -> "cpu0"
-                        cluster.name.contains("Big", ignoreCase = true) -> "cpu4"
-                        cluster.name.contains("Prime", ignoreCase = true) -> "cpu7"
-                        else -> {
-                            // Fallback to original naming
-                            when (cluster.name) {
-                                "Efficiency Cluster" -> "cpu0"
-                                "Performance Cluster" -> "cpu7"
-                                else -> "cpu4" // Mid cluster
-                            }
-                        }
-                    }
+                // Get cluster leaders directly from repository instead of trying to guess/map them
+                val clusters = repo.getClusterLeaders()
+                if (clusters.isNotEmpty()) {
+                    _dynamicCpuClusters.value = clusters
+                } else {
+                    _dynamicCpuClusters.value = cpuClusters
                 }
-                _dynamicCpuClusters.value = clusterNames
             } catch (e: Exception) {
                 Log.e("TuningViewModel", "Error fetching dynamic CPU clusters", e)
-                // Fallback to hardcoded values
                 _dynamicCpuClusters.value = cpuClusters
             }
         }
@@ -568,10 +564,16 @@ class TuningViewModel @Inject constructor(
         Log.d("TuningVM_CPU", "Fetching all CPU data...")
         val tempGovernors = mutableMapOf<String, List<String>>()
         val tempFreqs = mutableMapOf<String, List<Int>>()
+        
+        // Wait for dynamic clusters to be loaded
+        while (_dynamicCpuClusters.value.isEmpty()) {
+            delay(50)
+        }
+        val clusters = _dynamicCpuClusters.value
 
         try {
             coroutineScope {
-                cpuClusters.forEach { cluster ->
+                clusters.forEach { cluster ->
                     launch {
                         try {
                             repo.getCpuGov(cluster).take(1).collect { _currentCpuGovernors[cluster]?.value = it }
@@ -611,8 +613,13 @@ class TuningViewModel @Inject constructor(
         }
     }
 
-    fun getCpuGov(cluster: String): StateFlow<String> = _currentCpuGovernors.getOrPut(cluster) { MutableStateFlow("...") }.asStateFlow()
-    fun getCpuFreq(cluster: String): StateFlow<Pair<Int, Int>> = _currentCpuFrequencies.getOrPut(cluster) { MutableStateFlow(0 to 0) }.asStateFlow()
+    fun getCpuGov(cluster: String): StateFlow<String> {
+        return _currentCpuGovernors.getOrPut(cluster) { MutableStateFlow("...") }.asStateFlow()
+    }
+    
+    fun getCpuFreq(cluster: String): StateFlow<Pair<Int, Int>> {
+        return _currentCpuFrequencies.getOrPut(cluster) { MutableStateFlow(0 to 0) }.asStateFlow()
+    }
     fun getAvailableCpuFrequencies(cluster: String): StateFlow<List<Int>> = _availableCpuFrequenciesPerClusterMap.map { it[cluster] ?: emptyList() }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), emptyList())
 
     fun setCpuGov(cluster: String, gov: String) = viewModelScope.launch(Dispatchers.IO) {

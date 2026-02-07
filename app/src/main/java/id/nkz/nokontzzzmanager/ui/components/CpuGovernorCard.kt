@@ -76,7 +76,7 @@ fun CpuGovernorCard(
     isExpanded: Boolean,
     onExpandChange: (Boolean) -> Unit
 ) {
-    val clusters = vm.cpuClusters
+    val clusters by vm.dynamicCpuClusters.collectAsState()
     val availableGovernors by vm.generalAvailableCpuGovernors.collectAsState()
     val coreStates by vm.coreStates.collectAsState()
 
