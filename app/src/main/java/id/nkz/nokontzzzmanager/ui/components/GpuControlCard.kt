@@ -371,7 +371,7 @@ fun GpuControlCard(
                                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                             )
                                             Text(
-                                                text = "Note: Level 0 is usually Max Performance",
+                                                text = stringResource(id = R.string.gpu_power_level_note),
                                                 fontSize = 10.sp,
                                                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                                                 fontWeight = FontWeight.Medium

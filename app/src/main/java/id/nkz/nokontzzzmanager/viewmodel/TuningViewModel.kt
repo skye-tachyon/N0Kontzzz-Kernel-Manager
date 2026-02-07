@@ -680,7 +680,7 @@ class TuningViewModel @Inject constructor(
         val newStates = _coreStates.value.toMutableList()
         val newState = !newStates[coreId]
         if (!newState && newStates.count { it } == 1) {
-            _rebootCommandFeedback.emit("Setidaknya 1 core harus tetap online")
+            _rebootCommandFeedback.emit(application.getString(R.string.error_at_least_one_core))
             return@launch
         }
         if (repo.setCoreOnline(coreId, newState)) {
@@ -830,7 +830,7 @@ class TuningViewModel @Inject constructor(
     fun setZramDisksize(sizeBytes: Long) = viewModelScope.launch(Dispatchers.IO) {
         val max = repo.calculateMaxZramSize()
         if (sizeBytes < 512 * 1024 * 1024 || sizeBytes > max) {
-            _rebootCommandFeedback.emit("Ukuran ZRAM tidak valid (512 MB - ${max / 1024 / 1024} MB)")
+            _rebootCommandFeedback.emit(application.getString(R.string.error_zram_size_invalid, max / 1024 / 1024))
             return@launch
         }
         if (repo.setZramDisksize(sizeBytes)) {

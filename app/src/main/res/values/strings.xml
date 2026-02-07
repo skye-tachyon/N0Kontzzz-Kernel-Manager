@@ -380,6 +380,9 @@
     <string name="power_level">Power Level</string>
     <string name="gpu_throttling">GPU Throttling</string>
     <string name="gpu_throttling_desc">Reduce performance to save power</string>
+    <string name="gpu_power_level_note">Note: Level 0 is usually Max Performance</string>
+    <string name="error_at_least_one_core">At least 1 core must remain online</string>
+    <string name="error_zram_size_invalid">Invalid ZRAM size (512 MB - %1$d MB)</string>
     <string name="set_gpu_governor">Set GPU Governor</string>
 
     <!-- ThermalCard -->
