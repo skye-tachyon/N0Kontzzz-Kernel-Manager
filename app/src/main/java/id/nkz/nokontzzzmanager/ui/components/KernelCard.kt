@@ -35,13 +35,13 @@ fun KernelCard(
     k: KernelInfo,
     modifier: Modifier = Modifier
 ) {
-                Card(
-                modifier = modifier,
-                shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    ),
-            ) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+    ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -110,14 +110,17 @@ fun KernelCard(
                     )
                 }
 
-                // Single card: Kernel Version (full width)
+                // Total 7 items in the list for rounding logic
+                val totalItems = 7
+
+                // 1. Kernel Version
                 val kernelVersionTitle = stringResource(id = R.string.kernel_version)
                 CompactInfoCardWithCustomShape(
                     label = stringResource(R.string.version),
                     value = shortenedVersion,
                     icon = Icons.Filled.Memory,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp, 12.dp, 4.dp, 4.dp), // top left, top right, bottom right, bottom left
+                    shape = RoundedCornerShape(16.dp, 16.dp, 4.dp, 4.dp),
                     onCardClick = {
                         detailInfo = KernelDetailInfo(
                             title = kernelVersionTitle,
@@ -127,7 +130,7 @@ fun KernelCard(
                     }
                 )
 
-                // Single card: GKI Type (full width)
+                // 2. GKI Type
                 val kernelTypeString = stringResource(id = getKernelTypeResByVersion(k.version))
                 val kernelTypeTitle = stringResource(id = R.string.kernel_type)
                 CompactInfoCardWithCustomShape(
@@ -145,7 +148,7 @@ fun KernelCard(
                     }
                 )
 
-                // Single card: Build Fingerprint (full width)
+                // 3. Build Fingerprint
                 val buildFingerprintTitle = stringResource(id = R.string.build_fingerprint)
                 CompactInfoCardWithCustomShape(
                     label = stringResource(id = R.string.build),
@@ -162,13 +165,13 @@ fun KernelCard(
                     }
                 )
 
-                // WireGuard Version
+                // 4. WireGuard Version
                 val wireguardTitle = stringResource(id = R.string.wireguard_version)
                 val wireguardValue = k.wireguardVersion ?: stringResource(id = R.string.common_na)
                 CompactInfoCardWithCustomShape(
                     label = wireguardTitle,
                     value = wireguardValue,
-                    icon = Icons.Filled.Shield, // Reusing Shield icon which fits security/vpn theme
+                    icon = Icons.Filled.Shield,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(4.dp),
                     onCardClick = {
@@ -180,7 +183,7 @@ fun KernelCard(
                     }
                 )
 
-                // Single card: I/O Scheduler (full width)
+                // 5. I/O Scheduler
                 val ioSchedulerTitle = stringResource(id = R.string.io_scheduler)
                 CompactInfoCardWithCustomShape(
                     label = stringResource(R.string.sched),
@@ -197,91 +200,48 @@ fun KernelCard(
                     }
                 )
 
-                // Row: ABI and Architecture with 2dp rounded corners on all sides
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    // ABI Card (left card) - 8dp on all sides
-                    val abiTitle = stringResource(id = R.string.abi)
-                    CompactInfoCardWithCustomShape(
-                        label = abiTitle,
-                        value = k.abi,
-                        icon = Icons.Filled.Computer,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(4.dp),
-                        onCardClick = {
-                            detailInfo = KernelDetailInfo(
-                                title = abiTitle,
-                                value = k.abi,
-                                icon = Icons.Filled.Computer
-                            )
-                        }
-                    )
-                    // Architecture Card (right card) - 8dp on all sides
-                    val architectureTitle = stringResource(id = R.string.architecture)
-                    CompactInfoCardWithCustomShape(
-                        label = architectureTitle,
-                        value = k.architecture,
-                        icon = Icons.Filled.Memory,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(4.dp),
-                        onCardClick = {
-                            detailInfo = KernelDetailInfo(
-                                title = architectureTitle,
-                                value = k.architecture,
-                                icon = Icons.Filled.Memory
-                            )
-                        }
-                    )
-                }
+                // 6. ABI
+                val abiTitle = stringResource(id = R.string.abi)
+                CompactInfoCardWithCustomShape(
+                    label = abiTitle,
+                    value = k.abi,
+                    icon = Icons.Filled.Computer,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    onCardClick = {
+                        detailInfo = KernelDetailInfo(
+                            title = abiTitle,
+                            value = k.abi,
+                            icon = Icons.Filled.Computer
+                        )
+                    }
+                )
 
-                // Row: SELinux and KernelSU (highlighted with colors) with custom rounded corners
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    // SELinux Card (left card) - 8dp top left/right, 8dp bottom left, 24dp bottom right
-                    val selinuxTitle = stringResource(id = R.string.selinux)
-                    CompactInfoCardWithCustomShape(
-                        label = selinuxTitle,
-                        value = k.selinuxStatus,
-                        icon = Icons.Filled.Shield,
-                        valueColor = getSelinuxColor(k.selinuxStatus),
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(4.dp, 4.dp, 4.dp, 12.dp), // top left, top right, bottom right, bottom left
-                        onCardClick = {
-                            detailInfo = KernelDetailInfo(
-                                title = selinuxTitle,
-                                value = k.selinuxStatus,
-                                icon = Icons.Filled.Shield
-                            )
+                // 7. KernelSU (Bottom item)
+                val kernelsuTitle = stringResource(id = R.string.kernelsu)
+                CompactInfoCardWithCustomShape(
+                    label = kernelsuTitle,
+                    value = when {
+                        k.kernelSuStatus.contains("Version", ignoreCase = true) -> "✓ " + k.kernelSuStatus.substringAfter("Version ").take(8)
+                        k.kernelSuStatus.contains("Active", ignoreCase = true) -> {
+                            val inside = k.kernelSuStatus.substringAfter("(", "").substringBefore(")")
+                            if (inside.isNotBlank()) "✓ $inside" else stringResource(id = R.string.ksu_active)
                         }
-                    )
-                    // KernelSU Card (right card) - 8dp top left/right, 24dp bottom left, 8dp bottom right
-                    val kernelsuTitle = stringResource(id = R.string.kernelsu)
-                    CompactInfoCardWithCustomShape(
-                        label = kernelsuTitle,
-                        value = when {
-                            k.kernelSuStatus.contains("Version", ignoreCase = true) -> "✓ " + k.kernelSuStatus.substringAfter("Version ").take(8)
-                            k.kernelSuStatus.contains("Active", ignoreCase = true) -> {
-                                val inside = k.kernelSuStatus.substringAfter("(", "").substringBefore(")")
-                                if (inside.isNotBlank()) "✓ $inside" else stringResource(id = R.string.ksu_active)
-                            }
-                            k.kernelSuStatus.contains("Detected", ignoreCase = true) -> stringResource(id = R.string.ksu_detected)
-                            else -> stringResource(id = R.string.ksu_not_found)
-                        },
-                        icon = Icons.Filled.AdminPanelSettings,
-                        valueColor = getKernelSuColor(k.kernelSuStatus),
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(4.dp, 4.dp, 12.dp, 4.dp), // top left, top right, bottom right, bottom left
-                        onCardClick = {
-                            detailInfo = KernelDetailInfo(
-                                title = kernelsuTitle,
-                                value = k.kernelSuStatus,
-                                icon = Icons.Filled.AdminPanelSettings
-                            )
-                        }
-                    )
-                }
+                        k.kernelSuStatus.contains("Detected", ignoreCase = true) -> stringResource(id = R.string.ksu_detected)
+                        else -> stringResource(id = R.string.ksu_not_found)
+                    },
+                    icon = Icons.Filled.AdminPanelSettings,
+                    valueColor = getKernelSuColor(k.kernelSuStatus),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(4.dp, 4.dp, 16.dp, 16.dp),
+                    onCardClick = {
+                        detailInfo = KernelDetailInfo(
+                            title = kernelsuTitle,
+                            value = k.kernelSuStatus,
+                            icon = Icons.Filled.AdminPanelSettings
+                        )
+                    }
+                )
             }
         }
     }
@@ -316,20 +276,9 @@ private fun CompactInfoCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon with MD3 styling using dynamic colors based on label
-            val iconColor = when {
-                label.contains("version", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("type", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("abi", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("arch", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("selinux", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("kernelsu", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                else -> MaterialTheme.colorScheme.primaryContainer
-            }
-            
             Surface(
                 modifier = Modifier.size(42.dp),
-                color = iconColor,
+                color = MaterialTheme.colorScheme.primaryContainer,
                 shape = CircleShape
             ) {
                 Box(
@@ -339,10 +288,7 @@ private fun CompactInfoCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = if (iconColor == MaterialTheme.colorScheme.errorContainer)
-                            MaterialTheme.colorScheme.onErrorContainer
-                        else 
-                            MaterialTheme.colorScheme.onPrimaryContainer,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -351,8 +297,6 @@ private fun CompactInfoCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                // Jika value tidak kosong, tampilkan label dan value terpisah
-                // Jika value kosong, anggap label sudah berisi format lengkap
                 if (value.isNotEmpty()) {
                     Text(
                         text = label,
@@ -370,7 +314,6 @@ private fun CompactInfoCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 } else {
-                    // Untuk kasus format string seperti "Version: 4.19.0"
                     Text(
                         text = label,
                         style = MaterialTheme.typography.bodyMedium,
@@ -415,20 +358,9 @@ private fun CompactInfoCardWithCustomShape(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon with MD3 styling using dynamic colors based on label
-            val iconColor = when {
-                label.contains("version", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("type", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("abi", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("arch", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("selinux", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                label.contains("kernelsu", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
-                else -> MaterialTheme.colorScheme.primaryContainer
-            }
-            
             Surface(
                 modifier = Modifier.size(42.dp),
-                color = iconColor,
+                color = MaterialTheme.colorScheme.primaryContainer,
                 shape = CircleShape
             ) {
                 Box(
@@ -438,10 +370,7 @@ private fun CompactInfoCardWithCustomShape(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = if (iconColor == MaterialTheme.colorScheme.errorContainer)
-                            MaterialTheme.colorScheme.onErrorContainer
-                        else 
-                            MaterialTheme.colorScheme.onPrimaryContainer,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -450,8 +379,6 @@ private fun CompactInfoCardWithCustomShape(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                // Jika value tidak kosong, tampilkan label dan value terpisah
-                // Jika value kosong, anggap label sudah berisi format lengkap
                 if (value.isNotEmpty()) {
                     Text(
                         text = label,
@@ -469,7 +396,6 @@ private fun CompactInfoCardWithCustomShape(
                         overflow = TextOverflow.Ellipsis
                     )
                 } else {
-                    // Untuk kasus format string seperti "Version: 4.19.0"
                     Text(
                         text = label,
                         style = MaterialTheme.typography.bodyMedium,
@@ -488,9 +414,9 @@ private fun CompactInfoCardWithCustomShape(
 @Composable
 private fun getSelinuxColor(status: String): Color {
     return when (status.lowercase()) {
-        "enforcing" -> MaterialTheme.colorScheme.primary // Green tone from dynamic colors
-        "permissive" -> MaterialTheme.colorScheme.tertiary // Orange tone from dynamic colors
-        "disabled" -> MaterialTheme.colorScheme.error // Red tone from dynamic colors
+        "enforcing" -> MaterialTheme.colorScheme.primary
+        "permissive" -> MaterialTheme.colorScheme.tertiary
+        "disabled" -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.onSurface
     }
 }
@@ -498,23 +424,20 @@ private fun getSelinuxColor(status: String): Color {
 @Composable
 private fun getKernelSuColor(status: String): Color {
     return when {
-        status.contains("Version", ignoreCase = true) -> MaterialTheme.colorScheme.primary // Green tone from dynamic colors
-        status.contains("Active", ignoreCase = true) -> MaterialTheme.colorScheme.primary // Green tone from dynamic colors
-        status.contains("Detected", ignoreCase = true) -> MaterialTheme.colorScheme.secondary // Blue tone from dynamic colors
-        status.contains("Not Detected", ignoreCase = true) -> MaterialTheme.colorScheme.outline // Gray tone from dynamic colors
+        status.contains("Version", ignoreCase = true) -> MaterialTheme.colorScheme.primary
+        status.contains("Active", ignoreCase = true) -> MaterialTheme.colorScheme.primary
+        status.contains("Detected", ignoreCase = true) -> MaterialTheme.colorScheme.secondary
+        status.contains("Not Detected", ignoreCase = true) -> MaterialTheme.colorScheme.outline
         else -> MaterialTheme.colorScheme.onSurface
     }
 }
 
-// Utility function to shorten kernel version format
 private fun shortenKernelVersion(version: String): String {
-    // Special case for E404R kernel which has empty kernel name
     if (version.contains("4.19.404R", ignoreCase = true) && 
         version.contains("vyn@zorin", ignoreCase = true)) {
         return "4.19.404R"
     }
 
-    // Special case for perf+ kernel by rohmanurip
     if (version.contains("perf+", ignoreCase = true) && 
         version.contains("rohmanurip@Github", ignoreCase = true)) {
          val versionRegex = """Linux version ([\d.]+)""".toRegex()
@@ -523,7 +446,6 @@ private fun shortenKernelVersion(version: String): String {
          return if (ver.isNotEmpty()) "$ver-perf+" else "perf+"
     }
 
-    // Extract version number and kernel name
     val versionRegex = """Linux version ([\d.]+)-([^ ]+)""".toRegex()
     val matchResult = versionRegex.find(version)
     
@@ -532,7 +454,6 @@ private fun shortenKernelVersion(version: String): String {
         val kernelName = matchResult.groupValues[2]
         "$versionNumber-$kernelName"
     } else {
-        // Fallback: try to extract version info before hash or parentheses
         val hashIndex = version.indexOf(" #")
         val parenIndex = version.indexOf(" (")
         val endIndex = when {
@@ -545,12 +466,9 @@ private fun shortenKernelVersion(version: String): String {
     }
 }
 
-// Utility function to determine kernel type based on version
 private fun getKernelTypeResByVersion(version: String): Int {
-    // Debug logging
     Log.d("KernelCard", "getKernelTypeByVersion called with version: '$version'")
     
-    // Extract version number
     val versionRegex = """Linux version ([\d.]+)""".toRegex()
     val matchResult = versionRegex.find(version)
     
@@ -558,15 +476,13 @@ private fun getKernelTypeResByVersion(version: String): Int {
         val versionNumber = matchResult.groupValues[1]
         Log.d("KernelCard", "Extracted version number: '$versionNumber'")
         
-        // Clean the version number to remove any non-printable characters and normalize dots
         val cleanVersionNumber = versionNumber.trim()
-            .replace(Regex("""[^\d.]"""), "") // Hanya biarkan angka dan titik
-            .replace("..", ".") // Ganti double titik dengan satu titik (cara manual)
-            .replace(Regex("""\.{2,}"""), ".") // Ganti multiple titik dengan satu titik
-            .replace(Regex("""[^\x00-\x7F]"""), "") // Hapus karakter non-ASCII
+            .replace(Regex("""[^\d.]"""), "")
+            .replace("..", ".")
+            .replace(Regex("""\.{2,}"""), ".")
+            .replace(Regex("""[^\x00-\x7F]"""), "")
             .trim('.', '.')
         
-        // Jika ada multiple titik, ambil hanya bagian sebelum dan setelah titik pertama
         val finalVersionNumber = if (cleanVersionNumber.count { it == '.' } > 1) {
             val firstDotIndex = cleanVersionNumber.indexOf('.')
             val secondDotIndex = cleanVersionNumber.indexOf('.', firstDotIndex + 1)
@@ -579,66 +495,45 @@ private fun getKernelTypeResByVersion(version: String): Int {
             cleanVersionNumber
         }
         
-        // Debug: Print each character and its code
-        Log.d("KernelCard", "Final cleaned version number: '$finalVersionNumber'")
-        finalVersionNumber.forEachIndexed { index, char ->
-            Log.d("KernelCard", "  Character $index: '$char' (code: ${char.code})")
-        }
-        
-        // Parse version as string parts for more accurate comparison
         val versionParts = finalVersionNumber.split(".").map { it.toIntOrNull() ?: 0 }
-        Log.d("KernelCard", "Version parts: $versionParts")
         
         val result = when {
             versionParts.size >= 2 && (versionParts[0] < 4 || (versionParts[0] == 4 && versionParts[1] < 19)) -> {
-                Log.d("KernelCard", "Returning Legacy")
                 R.string.legacy
             }
             versionParts.size >= 2 && versionParts[0] == 4 && versionParts[1] == 19 -> {
-                Log.d("KernelCard", "Returning Non GKI (4.19)")
                 R.string.non_gki
             }
             versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] == 4 -> {
-                Log.d("KernelCard", "Returning GKI1 (5.4)")
                 R.string.gki1
             }
             versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] > 4 && versionParts[1] < 10 -> {
-                Log.d("KernelCard", "Returning GKI1 (5.4-5.10)")
                 R.string.gki1
             }
             versionParts.size >= 2 && (versionParts[0] > 5 || (versionParts[0] == 5 && versionParts[1] >= 10)) -> {
-                Log.d("KernelCard", "Returning GKI2")
                 R.string.gki2
             }
             else -> {
-                Log.d("KernelCard", "Returning Unknown (else case)")
                 R.string.common_unknown_value
             }
         }
         
-        Log.d("KernelCard", "Final result: $result")
         return result
     }
     
-    Log.d("KernelCard", "No match found with primary regex")
-    
-    // Fallback: if we can't parse with the regex, try to extract version in a simpler way
     val simpleVersionRegex = """(\d+\.\d+)""".toRegex()
     val simpleMatch = simpleVersionRegex.find(version)
     
     if (simpleMatch != null) {
         val versionNumber = simpleMatch.groupValues[1]
-        Log.d("KernelCard", "Fallback extracted version number: '$versionNumber'")
         
-        // Clean the version number to remove any non-printable characters and normalize dots
         val cleanVersionNumber = versionNumber.trim()
-            .replace(Regex("""[^\d.]"""), "") // Hanya biarkan angka dan titik
-            .replace("..", ".") // Ganti double titik dengan satu titik (cara manual)
-            .replace(Regex("""\.{2,}"""), ".") // Ganti multiple titik dengan satu titik
-            .replace(Regex("""[^\x00-\x7F]"""), "") // Hapus karakter non-ASCII
+            .replace(Regex("""[^\d.]"""), "")
+            .replace("..", ".")
+            .replace(Regex("""\.{2,}"""), ".")
+            .replace(Regex("""[^\x00-\x7F]"""), "")
             .trim('.', '.')
         
-        // Jika ada multiple titik, ambil hanya bagian sebelum dan setelah titik pertama
         val finalVersionNumber = if (cleanVersionNumber.count { it == '.' } > 1) {
             val firstDotIndex = cleanVersionNumber.indexOf('.')
             val secondDotIndex = cleanVersionNumber.indexOf('.', firstDotIndex + 1)
@@ -651,47 +546,31 @@ private fun getKernelTypeResByVersion(version: String): Int {
             cleanVersionNumber
         }
         
-        // Debug: Print each character and its code
-        Log.d("KernelCard", "Fallback final cleaned version number: '$finalVersionNumber'")
-        finalVersionNumber.forEachIndexed { index, char ->
-            Log.d("KernelCard", "  Character $index: '$char' (code: ${char.code})")
-        }
-        
-        // Parse version as string parts for more accurate comparison
         val versionParts = finalVersionNumber.split(".").map { it.toIntOrNull() ?: 0 }
-        Log.d("KernelCard", "Fallback version parts: $versionParts")
         
         val result = when {
             versionParts.size >= 2 && (versionParts[0] < 4 || (versionParts[0] == 4 && versionParts[1] < 19)) -> {
-                Log.d("KernelCard", "Fallback returning Legacy")
                 R.string.legacy
             }
             versionParts.size >= 2 && versionParts[0] == 4 && versionParts[1] == 19 -> {
-                Log.d("KernelCard", "Fallback returning Non GKI (4.19)")
                 R.string.non_gki
             }
             versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] == 4 -> {
-                Log.d("KernelCard", "Fallback returning GKI1 (5.4)")
                 R.string.gki1
             }
             versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] > 4 && versionParts[1] < 10 -> {
-                Log.d("KernelCard", "Fallback returning GKI1 (5.4-5.10)")
                 R.string.gki1
             }
             versionParts.size >= 2 && (versionParts[0] > 5 || (versionParts[0] == 5 && versionParts[1] >= 10)) -> {
-                Log.d("KernelCard", "Fallback returning GKI2")
                 R.string.gki2
             }
             else -> {
-                Log.d("KernelCard", "Fallback returning Unknown (else case)")
                 R.string.common_unknown_value
             }
         }
         
-        Log.d("KernelCard", "Fallback final result: $result")
         return result
     }
     
-    Log.d("KernelCard", "No match found with fallback regex, returning Unknown")
     return R.string.common_unknown_value
 }

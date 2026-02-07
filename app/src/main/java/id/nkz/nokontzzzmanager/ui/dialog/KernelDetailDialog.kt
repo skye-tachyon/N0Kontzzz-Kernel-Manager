@@ -2,9 +2,10 @@ package id.nkz.nokontzzzmanager.ui.dialog
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +26,7 @@ fun KernelDetailDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(28.dp),
             tonalElevation = 6.dp,
             color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
@@ -33,13 +34,11 @@ fun KernelDetailDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 // Header dengan ikon dan judul
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -65,39 +64,47 @@ fun KernelDetailDialog(
                     )
                 }
                 
-                // Divider
-                HorizontalDivider(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    thickness = DividerDefaults.Thickness, color = MaterialTheme.colorScheme.outlineVariant
-                )
-
-                // Value dengan scrolling jika terlalu panjang
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = false)
-                        .padding(vertical = 16.dp)
-                ) {
-                    Text(
-                        text = detailInfo.value,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.fillMaxWidth(),
-                        overflow = TextOverflow.Visible
-                    )
-                }
-                
-                // Tombol Close
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
+                // Content Card (Standardized style)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Close")
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Value",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 300.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Text(
+                                text = detailInfo.value,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+                
+                // Tombol Close (Standardized style)
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Close", fontWeight = FontWeight.Medium)
                 }
             }
         }
