@@ -53,7 +53,7 @@ fun GpuCard(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
+        shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
@@ -114,7 +114,8 @@ private fun GpuHeaderSection(
                 } else {
                     stringResource(R.string.graphics_processing_unit_gpu)
                 },
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
@@ -129,7 +130,8 @@ private fun GpuHeaderSection(
                     Text(
                         text = stringResource(R.string.gpu_label),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
@@ -148,7 +150,8 @@ private fun GpuHeaderSection(
                         Text(
                             text = stringResource(R.string.gpu_gl_es_prefix, simplifiedVersion),
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
@@ -276,10 +279,10 @@ private fun GpuDriverDialog(
                                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                                     ),
                                     shape = when {
-                                        driverDetails.size == 1 -> RoundedCornerShape(24.dp)
-                                        index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
-                                        index == driverDetails.size - 1 -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-                                        else -> RoundedCornerShape(8.dp)
+                                        driverDetails.size == 1 -> RoundedCornerShape(16.dp)
+                                        index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+                                        index == driverDetails.size - 1 -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+                                        else -> RoundedCornerShape(4.dp)
                                     },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
@@ -328,7 +331,7 @@ private fun GpuDriverDialog(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text(stringResource(id = R.string.close))
+                            Text(stringResource(id = R.string.close), fontWeight = FontWeight.Medium)
                         }
                     }
                 }
@@ -344,7 +347,7 @@ private fun GpuStatsSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = CardDefaults.shape,
+        shape = RoundedCornerShape(12.dp, 12.dp, 4.dp, 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
         Column(
@@ -356,6 +359,7 @@ private fun GpuStatsSection(
             Text(
                 text = stringResource(R.string.system_stats_title),
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
