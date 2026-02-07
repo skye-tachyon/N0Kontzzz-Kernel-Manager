@@ -42,10 +42,10 @@ private fun formatTimeWithSeconds(timeInMillis: Long): String {
 // Helper function to format storage size
 @Composable
 private fun formatStorageSize(bytes: Long): String {
-    val tb = 1_000_000_000_000L
-    val gb = 1_000_000_000L
-    val mb = 1_000_000L
-    val kb = 1_000L
+    val tb = 1024L * 1024 * 1024 * 1024
+    val gb = 1024L * 1024 * 1024
+    val mb = 1024L * 1024
+    val kb = 1024L
 
     return when {
         bytes >= tb -> stringResource(id = R.string.storage_tb, bytes.toDouble() / tb)
@@ -57,48 +57,6 @@ private fun formatStorageSize(bytes: Long): String {
 }
 
 @Composable
-fun MergedSystemCard(
-    b: BatteryInfo,
-    d: DeepSleepInfo,
-    rooted: Boolean,
-    version: String,
-    mem: MemoryInfo,
-    systemInfo: SystemInfo,
-    storageInfo: StorageInfo,
-    modifier: Modifier = Modifier
-) {
-    // Main container with separated cards
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        // Separate Battery Card
-        BatteryCard(
-            batteryInfo = b,
-            deepSleepInfo = d,
-        )
-
-        // Separate Memory Card
-        MemoryCard(
-            memoryInfo = mem,
-        )
-
-        // Separate Storage Card
-        StorageCard(
-            storageInfo = storageInfo,
-        )
-
-        // Device Information Card
-        DeviceInfoCard(
-            systemInfo = systemInfo,
-            rooted = rooted,
-            version = version,
-            storageInfo = storageInfo
-        )
-    }
-}
-
-@Composable
 fun BatteryCard(
     batteryInfo: BatteryInfo,
     deepSleepInfo: DeepSleepInfo?,
@@ -106,7 +64,7 @@ fun BatteryCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(
@@ -130,11 +88,13 @@ fun MemoryCard(
     memoryInfo: MemoryInfo,
     modifier: Modifier = Modifier
 ) {
-    val usedPercentage = ((memoryInfo.used.toDouble() / memoryInfo.total.toDouble()) * 100).roundToInt()
+    val usedPercentage = if (memoryInfo.total > 0) {
+        ((memoryInfo.used.toDouble() / memoryInfo.total.toDouble()) * 100).roundToInt()
+    } else 0
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
     ) {
         Column(
@@ -158,11 +118,13 @@ fun StorageCard(
     storageInfo: StorageInfo,
     modifier: Modifier = Modifier
 ) {
-    val usedPercentage = ((storageInfo.usedSpace.toDouble() / storageInfo.totalSpace.toDouble()) * 100).roundToInt()
+    val usedPercentage = if (storageInfo.totalSpace > 0) {
+        ((storageInfo.usedSpace.toDouble() / storageInfo.totalSpace.toDouble()) * 100).roundToInt()
+    } else 0
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
     ) {
         Column(
@@ -520,14 +482,19 @@ private fun BatteryStatsSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        shape = RoundedCornerShape(12.dp, 12.dp, 4.dp, 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(
+                text = stringResource(R.string.system_stats_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             // Battery Stats Row 1 - Voltage and Uptime
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -685,14 +652,19 @@ private fun MemoryStatsSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        shape = RoundedCornerShape(12.dp, 12.dp, 4.dp, 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(
+                text = stringResource(R.string.system_stats_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             // Memory Stats Row 1 - Used and Free RAM
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -813,7 +785,7 @@ fun DeviceInfoCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp, 8.dp, 8.dp, 8.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
     ) {
         Column(
@@ -829,10 +801,8 @@ fun DeviceInfoCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(id = R.string.device_information),
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        ),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
@@ -890,14 +860,19 @@ fun DeviceInfoCard(
             // Device Stats
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                shape = RoundedCornerShape(12.dp, 12.dp, 4.dp, 4.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Text(
+                        text = stringResource(R.string.system_stats_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     // Device Info Row 1
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -1086,14 +1061,19 @@ private fun StorageStatsSection(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        shape = RoundedCornerShape(12.dp, 12.dp, 4.dp, 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(
+                text = stringResource(R.string.system_stats_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             // Storage Stats Row 1 - Used and Free
             Row(
                 modifier = Modifier.fillMaxWidth(),
