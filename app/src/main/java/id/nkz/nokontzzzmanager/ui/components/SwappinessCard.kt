@@ -139,22 +139,22 @@ fun SwappinessCard(
                         }
                     }
 
-                    // Memory Settings title
-                    Text(
-                        text = stringResource(id = R.string.memory_settings),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp, bottom = 4.dp)
-                    )
-                    
-                    // Always visible RAM settings (not dependent on ZRAM) - 7 items
+                    // Memory Settings Section
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(2.dp) // Changed from 12.dp to 2.dp to match your other requirements
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
+                        // Memory Settings title
+                        Text(
+                            text = stringResource(id = R.string.memory_settings),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, bottom = 4.dp)
+                        )
+                        
                         RamSettingItem(
                             icon = Icons.Default.Speed,
                             title = stringResource(id = R.string.tuning_feature_swappiness_title),
@@ -162,7 +162,7 @@ fun SwappinessCard(
                             description = stringResource(id = R.string.swappiness_desc),
                             color = MaterialTheme.colorScheme.primary,
                             onClick = { showSwappinessDialog = true },
-                            shape = getRoundedCornerShape(0, 6) // First card in group of 6
+                            shape = getRoundedCornerShape(0, 6)
                         )
 
                         RamSettingItem(
@@ -172,7 +172,7 @@ fun SwappinessCard(
                             description = stringResource(id = R.string.dirty_ratio_desc),
                             color = MaterialTheme.colorScheme.primary,
                             onClick = { showDirtyRatioDialog = true },
-                            shape = getRoundedCornerShape(1, 6) // Second card in group of 6
+                            shape = getRoundedCornerShape(1, 6)
                         )
 
                         RamSettingItem(
@@ -182,7 +182,7 @@ fun SwappinessCard(
                             description = stringResource(id = R.string.dirty_background_ratio_desc),
                             color = MaterialTheme.colorScheme.primary,
                             onClick = { showDirtyBgRatioDialog = true },
-                            shape = getRoundedCornerShape(2, 6) // Third card in group of 6
+                            shape = getRoundedCornerShape(2, 6)
                         )
 
                         RamSettingItem(
@@ -192,7 +192,7 @@ fun SwappinessCard(
                             description = stringResource(id = R.string.dirty_writeback_desc),
                             color = MaterialTheme.colorScheme.primary,
                             onClick = { showDirtyWritebackDialog = true },
-                            shape = getRoundedCornerShape(3, 6) // Fourth card in group of 6
+                            shape = getRoundedCornerShape(3, 6)
                         )
 
                         RamSettingItem(
@@ -202,7 +202,7 @@ fun SwappinessCard(
                             description = stringResource(id = R.string.dirty_expire_desc),
                             color = MaterialTheme.colorScheme.primary,
                             onClick = { showDirtyExpireDialog = true },
-                            shape = getRoundedCornerShape(4, 6) // Fifth card in group of 6
+                            shape = getRoundedCornerShape(4, 6)
                         )
 
                         RamSettingItem(
@@ -680,85 +680,107 @@ fun SliderSettingDialog(
                                 }
                             }
 
-                            // Feature explanation card
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                                )
+                            // Grouped cards: Explanation, Warning (optional), and Value
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Info,
-                                            contentDescription = stringResource(id = R.string.info),
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text(
-                                            text = stringResource(id = R.string.about_this_feature),
-                                            style = MaterialTheme.typography.labelLarge.copy(
-                                                fontWeight = FontWeight.SemiBold
-                                            ),
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                    Text(
-                                        text = explanation,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        lineHeight = 18.sp
-                                    )
-                                }
-                            }
-
-                            if (additionalInfo != null) {
+                                val hasWarning = additionalInfo != null
+                                
+                                // 1. Feature explanation card
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = CardDefaults.cardColors(
                                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                                     ),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
                                 ) {
-                                    Text(
-                                        text = additionalInfo,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.padding(16.dp)
-                                    )
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Info,
+                                                contentDescription = stringResource(id = R.string.info),
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                            Text(
+                                                text = stringResource(id = R.string.about_this_feature),
+                                                style = MaterialTheme.typography.labelLarge.copy(
+                                                    fontWeight = FontWeight.SemiBold
+                                                ),
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                        Text(
+                                            text = explanation,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            lineHeight = 18.sp
+                                        )
+                                    }
                                 }
-                            }
 
-                            // Enhanced value display
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                                )
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(20.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = stringResource(id = R.string.current_value),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "${animatedValue.roundToInt()}$valueSuffix",
-                                        style = MaterialTheme.typography.headlineLarge.copy(
-                                            fontWeight = FontWeight.Bold
+                                // 2. Optional Warning card (Middle)
+                                if (additionalInfo != null) {
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainer
                                         ),
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Warning,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                            Text(
+                                                text = additionalInfo,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                lineHeight = 18.sp
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // 3. Enhanced value display (Bottom)
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                    ),
+                                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(20.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = stringResource(id = R.string.current_value),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "${animatedValue.roundToInt()}$valueSuffix",
+                                            style = MaterialTheme.typography.headlineLarge.copy(
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                             }
 
@@ -815,12 +837,6 @@ fun SliderSettingDialog(
                                     ),
                                     shape = RoundedCornerShape(16.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = stringResource(id = R.string.cancel),
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(stringResource(id = R.string.cancel), fontWeight = FontWeight.Medium)
                                 }
 
@@ -835,12 +851,6 @@ fun SliderSettingDialog(
                                     ),
                                     shape = RoundedCornerShape(16.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = stringResource(id = R.string.apply),
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(stringResource(id = R.string.apply), fontWeight = FontWeight.Bold)
                                 }
                             }
@@ -945,13 +955,14 @@ fun ZramSizeDialog(
                     // Options List
                     LazyColumn(
                         modifier = Modifier.heightIn(max = 350.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        items(zramOptions) { sizeBytes ->
+                        itemsIndexed(zramOptions) { index, sizeBytes ->
                             val isSelected = sizeBytes == currentSize
                             val sizeMb = sizeBytes / (1024 * 1024)
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
+                                shape = getDialogListItemShape(index, zramOptions.size),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                                 ),
@@ -1076,8 +1087,8 @@ fun CompressionAlgorithmDialog(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                contentColor = MaterialTheme.colorScheme.onSurface
                             ),
                             shape = RoundedCornerShape(24.dp),
                         ) {
@@ -1093,20 +1104,20 @@ fun CompressionAlgorithmDialog(
                                         imageVector = Icons.Default.Info,
                                         contentDescription = stringResource(id = R.string.info),
                                         modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
                                         text = stringResource(id = R.string.about_this_feature),
                                         style = MaterialTheme.typography.labelLarge.copy(
                                             fontWeight = FontWeight.SemiBold
                                         ),
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                                 Text(
                                     text = stringResource(id = R.string.compression_feature_explanation),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     lineHeight = 18.sp
                                 )
                             }
@@ -1202,12 +1213,6 @@ fun CompressionAlgorithmDialog(
                                 ),
                                 shape = RoundedCornerShape(16.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = stringResource(id = R.string.close),
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(stringResource(id = R.string.close), fontWeight = FontWeight.Medium)
                             }
                         }
