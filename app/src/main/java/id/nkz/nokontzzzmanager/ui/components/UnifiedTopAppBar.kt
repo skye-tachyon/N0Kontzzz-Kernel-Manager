@@ -5,12 +5,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import id.nkz.nokontzzzmanager.R
@@ -25,26 +22,19 @@ fun UnifiedTopAppBar(
     isAmoledMode: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val elevation = if (isAmoledMode) 6.dp else 3.dp
-    val surfaceColorAtElevation = MaterialTheme.colorScheme.surfaceColorAtElevation(elevation)
-    val topBarContainerColor by remember(scrollBehavior, surfaceColor, surfaceColorAtElevation) {
-        derivedStateOf {
-            scrollBehavior?.state?.overlappedFraction?.let { fraction ->
-                lerp(
-                    surfaceColor,
-                    surfaceColorAtElevation,
-                    fraction
-                )
-            } ?: surfaceColor
-        }
+    val containerColor = MaterialTheme.colorScheme.surface
+    val scrolledContainerColor = if (isAmoledMode) {
+        MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp)
+    } else {
+        MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
     }
 
     TopAppBar(
         title = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         },
@@ -72,13 +62,18 @@ fun UnifiedTopAppBar(
                 }) {
                     Icon(
                         imageVector = Icons.Default.Settings,
-                        contentDescription = stringResource(R.string.home_settings_button_desc)
+                        contentDescription = stringResource(id = R.string.home_settings_button_desc),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = topBarContainerColor
+            containerColor = containerColor,
+            scrolledContainerColor = scrolledContainerColor,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
         ),
         scrollBehavior = scrollBehavior
     )

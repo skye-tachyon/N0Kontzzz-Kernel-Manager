@@ -74,7 +74,7 @@ fun BottomNavBar(navController: NavHostController, items: List<String>, isAmoled
 private fun getNavIcons(route: String): Pair<ImageVector, ImageVector> {
     return when (route) {
         "home" -> Pair(Icons.Filled.Home, Icons.Outlined.Home)
-        "tuning" -> Pair(Icons.Filled.Build, Icons.Filled.Build)
+        "tuning" -> Pair(Icons.Filled.Build, Icons.Outlined.Build)
         "misc" -> Pair(Icons.Filled.Extension, Icons.Outlined.Extension)
         else -> Pair(Icons.AutoMirrored.Filled.Help, Icons.AutoMirrored.Outlined.HelpOutline)
     }
