@@ -594,9 +594,12 @@ private fun getKernelTypeResByVersion(version: String): Int {
                 Log.d("KernelCard", "Returning Legacy")
                 R.string.legacy
             }
-            versionParts.size >= 2 && (versionParts[0] > 4 || (versionParts[0] == 4 && versionParts[1] >= 19)) && 
-            (versionParts[0] < 5 || (versionParts[0] == 5 && versionParts[1] <= 4)) -> {
-                Log.d("KernelCard", "Returning GKI1 (4.19-5.4)")
+            versionParts.size >= 2 && versionParts[0] == 4 && versionParts[1] == 19 -> {
+                Log.d("KernelCard", "Returning Non GKI (4.19)")
+                R.string.non_gki
+            }
+            versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] == 4 -> {
+                Log.d("KernelCard", "Returning GKI1 (5.4)")
                 R.string.gki1
             }
             versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] > 4 && versionParts[1] < 10 -> {
@@ -663,9 +666,12 @@ private fun getKernelTypeResByVersion(version: String): Int {
                 Log.d("KernelCard", "Fallback returning Legacy")
                 R.string.legacy
             }
-            versionParts.size >= 2 && (versionParts[0] > 4 || (versionParts[0] == 4 && versionParts[1] >= 19)) && 
-            (versionParts[0] < 5 || (versionParts[0] == 5 && versionParts[1] <= 4)) -> {
-                Log.d("KernelCard", "Fallback returning GKI1 (4.19-5.4)")
+            versionParts.size >= 2 && versionParts[0] == 4 && versionParts[1] == 19 -> {
+                Log.d("KernelCard", "Fallback returning Non GKI (4.19)")
+                R.string.non_gki
+            }
+            versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] == 4 -> {
+                Log.d("KernelCard", "Fallback returning GKI1 (5.4)")
                 R.string.gki1
             }
             versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] > 4 && versionParts[1] < 10 -> {

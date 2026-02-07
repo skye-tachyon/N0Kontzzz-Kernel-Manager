@@ -951,7 +951,7 @@ class SystemRepository @Inject constructor(
                     kernelVersion != null && kernelVersion >= 5.15f -> "Generic Kernel Image (GKI 2.0)"
                     kernelVersion != null && kernelVersion >= 5.10f -> "Generic Kernel Image (GKI 2.0)"
                     kernelVersion != null && kernelVersion >= 5.4f -> "Generic Kernel Image (GKI 1.0)"
-                    kernelVersion != null && kernelVersion >= 4.19f -> "Non GKI"
+                    kernelVersion != null && kernelVersion == 4.19f -> "Non GKI"
                     version.contains("android", ignoreCase = true) -> "Android Kernel"
                     else -> "Linux Kernel $kernelVersion"
                 }

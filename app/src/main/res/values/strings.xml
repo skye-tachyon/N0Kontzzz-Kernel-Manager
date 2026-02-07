@@ -333,6 +333,7 @@
     <string name="legacy">Legacy</string>
     <string name="gki1">GKI 1</string>
     <string name="gki2">GKI 2</string>
+    <string name="non_gki">Non GKI</string>
 
     <!-- AboutCard -->
     <string name="viasco">Viasco</string>
