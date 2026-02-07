@@ -36,14 +36,17 @@ fun BottomNavBar(navController: NavHostController, items: List<String>, isAmoled
                 selected = selected,
                 onClick = {
                     if (currentRoute != route) {
-                        if (currentRoute != null && currentRoute !in routes) {
-                            navController.popBackStack()
-                        }
                         navController.navigate(route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
                             launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
                             restoreState = true
                         }
                     }
@@ -57,7 +60,7 @@ fun BottomNavBar(navController: NavHostController, items: List<String>, isAmoled
                 },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    selectedTextColor = MaterialTheme.colorScheme.onSurface, // Or onSecondaryContainer
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
                     indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -68,12 +71,11 @@ fun BottomNavBar(navController: NavHostController, items: List<String>, isAmoled
 }
 
 // Helper function to get filled and outlined icons for each screen.
-private fun getNavIcons(route: String): Pair<ImageVector, ImageVector> { // Pair(Filled, Outlined)
+private fun getNavIcons(route: String): Pair<ImageVector, ImageVector> {
     return when (route) {
         "home" -> Pair(Icons.Filled.Home, Icons.Outlined.Home)
-        "tuning" -> Pair(Icons.Filled.Build, Icons.Outlined.Build) // Assuming Build has an Outlined version
-        "misc" -> Pair(Icons.Filled.Tune, Icons.Outlined.Tune) // Changed icon
-        // Fallback icons if a screen name doesn't match
-        else -> Pair(Icons.AutoMirrored.Filled.Help, Icons.AutoMirrored.Outlined.HelpOutline) // Example fallback
+        "tuning" -> Pair(Icons.Filled.Speed, Icons.Outlined.Speed)
+        "misc" -> Pair(Icons.Filled.Extension, Icons.Outlined.Extension)
+        else -> Pair(Icons.AutoMirrored.Filled.Help, Icons.AutoMirrored.Outlined.HelpOutline)
     }
 }
