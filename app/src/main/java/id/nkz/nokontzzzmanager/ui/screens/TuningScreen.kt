@@ -286,6 +286,12 @@ fun PerformanceModeCard(
     val isPowersaveAvailable = remember(availableGovernors) {
         availableGovernors.contains("powersave")
     }
+    val isBalancedAvailable = remember(availableGovernors) {
+        availableGovernors.contains("schedutil")
+    }
+    val isPerformanceAvailable = remember(availableGovernors) {
+        availableGovernors.contains("performance")
+    }
     
     // Performance modes - Always show all modes to maintain layout stability
     val performanceModes = remember {
@@ -357,7 +363,12 @@ fun PerformanceModeCard(
                 performanceModes.forEachIndexed { index, mode ->
                     val isFirst = index == 0
                     val isLast = index == performanceModes.lastIndex
-                    val isEnabled = mode != "Powersave" || isPowersaveAvailable
+                    val isEnabled = when (mode) {
+                        "Powersave" -> isPowersaveAvailable
+                        "Balanced" -> isBalancedAvailable
+                        "Performance" -> isPerformanceAvailable
+                        else -> true
+                    }
                     
                     val shape = when {
                         isFirst -> RoundedCornerShape(

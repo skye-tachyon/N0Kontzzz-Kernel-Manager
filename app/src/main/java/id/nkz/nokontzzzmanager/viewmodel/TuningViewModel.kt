@@ -330,6 +330,10 @@ class TuningViewModel @Inject constructor(
                         Log.d("TuningVM_SelfHeal", "Re-applying Powersave Mode")
                         onPerformanceModeChange(preferredMode)
                         return@withContext
+                    } else if (preferredMode == "Balanced" && gov0 != "schedutil") {
+                        Log.d("TuningVM_SelfHeal", "Re-applying Balanced Mode")
+                        onPerformanceModeChange(preferredMode)
+                        return@withContext
                     }
                 }
             }
@@ -657,7 +661,8 @@ class TuningViewModel @Inject constructor(
             else -> "schedutil"
         }
         viewModelScope.launch(Dispatchers.IO) {
-            cpuClusters.forEach { cluster ->
+            val clustersToApply = _dynamicCpuClusters.value.ifEmpty { cpuClusters }
+            clustersToApply.forEach { cluster ->
                 // Use internal method to avoid triggering the "Disable Boot Pref" logic
                 setCpuGovInternal(cluster, governor)
             }
