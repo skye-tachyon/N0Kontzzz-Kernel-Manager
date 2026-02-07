@@ -194,10 +194,10 @@ class MainActivity : ComponentActivity() {
                     "settings" -> stringResource(id = R.string.settings)
                     "battery_history" -> stringResource(id = R.string.battery_history_title) // Define title for Battery History screen
                     "custom_tunable" -> stringResource(id = R.string.custom_tunable_title)
-                    "app_profiles" -> "App Profiles"
+                    "app_profiles" -> stringResource(id = R.string.app_profiles_title)
                     "process_monitor" -> stringResource(id = R.string.process_monitor_title)
                     "permission_manager" -> stringResource(id = R.string.permission_manager_title)
-                    "dexopt" -> "Dexopt"
+                    "dexopt" -> stringResource(id = R.string.dexopt_title)
                     "kernel_log" -> stringResource(id = R.string.kernel_log_title)
                     else -> stringResource(id = R.string.n0kz_kernel_manager) // Default title for home, tuning, misc
                 }
