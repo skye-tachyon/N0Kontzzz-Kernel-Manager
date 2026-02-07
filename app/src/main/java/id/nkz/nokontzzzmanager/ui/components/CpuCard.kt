@@ -99,10 +99,10 @@ private fun CpuHeaderSection(
         when {
             upperBoard == "SM8250" || upperBoard == "SM8250-AB" || upperBoard == "SM8250-AC" -> {
                 when (lowerCodename) {
-                    "munch" -> "Poco F4 / Xiaomi 12S" to upperBoard
-                    "alioth" -> "Poco F3 / Redmi K40" to upperBoard
-                    "apollo" -> "Xiaomi Mi 10T" to upperBoard
-                    "lmi" -> "Redmi K30 Pro" to upperBoard
+                    "munch" -> "POCO F4 / Redmi K40S" to upperBoard
+                    "alioth" -> "Redmi K40 / POCO F3 / Mi 11X" to upperBoard
+                    "apollo" -> "Redmi K30S Ultra / Mi 10T / Pro" to upperBoard
+                    "lmi" -> "Redmi K30 Pro / POCO F2 Pro" to upperBoard
                     else -> (if (soc.isNotBlank() && soc != "Unknown SoC") soc else "Qualcomm® Snapdragon™ 865 Family") to upperBoard
                 }
             }
