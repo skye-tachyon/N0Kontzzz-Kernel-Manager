@@ -103,7 +103,7 @@ private fun CpuHeaderSection(
     deviceModel: String,
     info: RealtimeCpuInfo
 ) {
-    val (marketingName, subtitle) = remember(board, deviceCodename, productBoard, soc, deviceModel) {
+    val (marketingName, subtitle, portInfo) = remember(board, deviceCodename, productBoard, soc, deviceModel) {
         val upperBoard = board.uppercase()
         val lowerCodename = deviceCodename.lowercase()
         val lowerProductBoard = productBoard.lowercase()
@@ -126,13 +126,13 @@ private fun CpuHeaderSection(
             else -> soc
         }
 
-        val portInfo = when {
-            upperModel == "OP5CF9L1" || upperModel == "PJE110" -> " (ColorOS Port/Spoof)"
-            upperModel == "XT2301-5" -> " (MyUI Port/Spoof)"
+        val port = when {
+            upperModel == "OP5CF9L1" || upperModel == "PJE110" -> "ColorOS Port"
+            upperModel == "XT2301-5" -> "MyUI Port"
             else -> ""
         }
 
-        when {
+        val (name, sub) = when {
             isMunch || isAlioth || 
             upperBoard == "SM8250" || upperBoard == "SM8250-AB" || upperBoard == "SM8250-AC" -> {
                 val deviceName = when {
@@ -142,11 +142,13 @@ private fun CpuHeaderSection(
                     lowerCodename == "lmi" || lowerProductBoard == "lmi" -> "Redmi K30 Pro / POCO F2 Pro"
                     else -> (if (soc.isNotBlank() && soc != "Unknown SoC") soc else "Qualcomm® Snapdragon™ 865 Family")
                 }
-                deviceName to "$upperBoard - $chipName$portInfo"
+                deviceName to "$upperBoard - $chipName"
             }
-            soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A" -> soc to "$upperBoard$portInfo"
-            else -> "Central Processing Unit" to "$upperBoard$portInfo"
+            soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A" -> soc to upperBoard
+            else -> "Central Processing Unit" to upperBoard
         }
+        
+        Triple(name, sub, port)
     }
 
     Row(
@@ -172,19 +174,36 @@ private fun CpuHeaderSection(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Surface( // Using Surface for the label background
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                Text(
-                    text = if ((soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A") ||
-                        (info.soc.isNotBlank() && info.soc != "Unknown SoC" && info.soc != "N/A"))
-                        stringResource(R.string.cpu_soc_label) else stringResource(R.string.cpu_cpu_label),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Surface( // SoC Label Chip
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Text(
+                        text = if ((soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A") ||
+                            (info.soc.isNotBlank() && info.soc != "Unknown SoC" && info.soc != "N/A"))
+                            stringResource(R.string.cpu_soc_label) else stringResource(R.string.cpu_cpu_label),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+
+                if (portInfo.isNotEmpty()) {
+                    Surface( // Port Info Chip
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f)
+                    ) {
+                        Text(
+                            text = portInfo,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
             }
         }
 
