@@ -126,9 +126,9 @@ private fun CpuHeaderSection(
             else -> soc
         }
 
-        val port = when {
-            upperModel == "OP5CF9L1" || upperModel == "PJE110" -> "ColorOS Port"
-            upperModel == "XT2301-5" -> "MyUI Port"
+        val port = when (upperModel) {
+            "OP5CF9L1", "PJE110" -> "ColorOS Port"
+            "XT2301-5" -> "MyUI Port"
             else -> ""
         }
 
