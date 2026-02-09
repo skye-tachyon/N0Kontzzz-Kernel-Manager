@@ -36,6 +36,8 @@ fun CpuCard(
     soc: String,
     board: String,
     deviceCodename: String,
+    productBoard: String,
+    deviceModel: String,
     info: RealtimeCpuInfo,
     clusters: ImmutableList<CpuCluster>,
     graphData: GraphData,
@@ -59,7 +61,14 @@ fun CpuCard(
                 .padding(16.dp, 12.dp, 16.dp, 0.dp), // Consistent padding
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            CpuHeaderSection(soc = soc, board = board, deviceCodename = deviceCodename, info = info)
+            CpuHeaderSection(
+                soc = soc,
+                board = board,
+                deviceCodename = deviceCodename,
+                productBoard = productBoard,
+                deviceModel = deviceModel,
+                info = info
+            )
 
             if (info.freqs.isNotEmpty()) {
                 CpuCoresSection(info = info, clusters = clusters)
@@ -90,33 +99,53 @@ private fun CpuHeaderSection(
     soc: String,
     board: String,
     deviceCodename: String,
+    productBoard: String,
+    deviceModel: String,
     info: RealtimeCpuInfo
 ) {
-    val (marketingName, subtitle) = remember(board, deviceCodename, soc) {
+    val (marketingName, subtitle) = remember(board, deviceCodename, productBoard, soc, deviceModel) {
         val upperBoard = board.uppercase()
         val lowerCodename = deviceCodename.lowercase()
+        val lowerProductBoard = productBoard.lowercase()
+        val upperModel = deviceModel.uppercase()
         
+        // Model numbers for munch (POCO F4 / Redmi K40S)
+        val munchModels = listOf("22021211RG", "22021211RI", "22021211RC")
+        // Model numbers for alioth (POCO F3 / Redmi K40 / Mi 11X)
+        val aliothModels = listOf("M2012K11AG", "M2012K11AI", "M2012K11AC")
+
+        val isMunch = lowerCodename == "munch" || lowerProductBoard == "munch" || munchModels.contains(upperModel)
+        val isAlioth = lowerCodename == "alioth" || lowerProductBoard == "alioth" || aliothModels.contains(upperModel)
+
+        // Prioritaskan deteksi berdasarkan codename asli perangkat (alioth/munch)
         val chipName = when {
-            upperBoard == "SM8250-AC" || lowerCodename == "munch" || lowerCodename == "alioth" -> "Snapdragon® 870"
+            isMunch || isAlioth || upperBoard == "SM8250-AC" -> "Snapdragon® 870"
             upperBoard == "SM8250-AB" -> "Snapdragon® 865+"
             upperBoard == "SM8250" -> "Snapdragon® 865"
             soc.contains("Snapdragon", ignoreCase = true) -> soc.replace("Qualcomm® ", "").replace("™", "®")
             else -> soc
         }
 
+        val portInfo = when {
+            upperModel == "OP5CF9L1" || upperModel == "PJE110" -> " (ColorOS Port/Spoof)"
+            upperModel == "XT2301-5" -> " (MyUI Port/Spoof)"
+            else -> ""
+        }
+
         when {
+            isMunch || isAlioth || 
             upperBoard == "SM8250" || upperBoard == "SM8250-AB" || upperBoard == "SM8250-AC" -> {
-                val deviceName = when (lowerCodename) {
-                    "munch" -> "POCO F4 / Redmi K40S"
-                    "alioth" -> "Redmi K40 / POCO F3 / Mi 11X"
-                    "apollo" -> "Redmi K30S Ultra / Mi 10T / Pro"
-                    "lmi" -> "Redmi K30 Pro / POCO F2 Pro"
+                val deviceName = when {
+                    isMunch -> "POCO F4 / Redmi K40S"
+                    isAlioth -> "Redmi K40 / POCO F3 / Mi 11X"
+                    lowerCodename == "apollo" || lowerProductBoard == "apollo" -> "Redmi K30S Ultra / Mi 10T / Pro"
+                    lowerCodename == "lmi" || lowerProductBoard == "lmi" -> "Redmi K30 Pro / POCO F2 Pro"
                     else -> (if (soc.isNotBlank() && soc != "Unknown SoC") soc else "Qualcomm® Snapdragon™ 865 Family")
                 }
-                deviceName to "$upperBoard - $chipName"
+                deviceName to "$upperBoard - $chipName$portInfo"
             }
-            soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A" -> soc to upperBoard
-            else -> "Central Processing Unit" to upperBoard
+            soc.isNotBlank() && soc != "Unknown SoC" && soc != "N/A" -> soc to "$upperBoard$portInfo"
+            else -> "Central Processing Unit" to "$upperBoard$portInfo"
         }
     }
 

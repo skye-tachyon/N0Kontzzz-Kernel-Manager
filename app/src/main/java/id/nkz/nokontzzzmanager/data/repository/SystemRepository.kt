@@ -836,6 +836,7 @@ class SystemRepository @Inject constructor(
         return SystemInfo(
             model = Build.MODEL ?: VALUE_UNKNOWN,
             codename = Build.DEVICE ?: VALUE_UNKNOWN,
+            productBoard = getSystemProperty("ro.product.board") ?: VALUE_UNKNOWN,
             androidVersion = Build.VERSION.RELEASE ?: VALUE_UNKNOWN,
             sdk = Build.VERSION.SDK_INT,
             fingerprint = Build.FINGERPRINT ?: VALUE_UNKNOWN,

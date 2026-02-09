@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 data class SystemInfo(
     val model: String,
     val codename: String,
+    val productBoard: String = "",
     val androidVersion: String,
     val sdk: Int,
     val soc: String,

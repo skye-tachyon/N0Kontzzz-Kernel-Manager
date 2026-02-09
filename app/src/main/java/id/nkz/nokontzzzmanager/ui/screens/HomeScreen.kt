@@ -115,11 +115,15 @@ fun HomeScreen(
                     val socNameToDisplay = currentSystemInfo?.soc?.takeIf { it.isNotBlank() && it != stringResource(id = R.string.common_unknown_value) } ?: cpuInfo.soc.takeIf { it.isNotBlank() && it != stringResource(id = R.string.unknown_soc) && it != stringResource(id = R.string.common_na) } ?: stringResource(id = R.string.cpu_cpu_label)
                     val board = currentSystemInfo?.board ?: ""
                     val deviceCodename = currentSystemInfo?.codename ?: ""
+                    val productBoard = currentSystemInfo?.productBoard ?: ""
+                    val deviceModel = currentSystemInfo?.model ?: ""
                     
                     CpuCard(
                         soc = socNameToDisplay,
                         board = board,
                         deviceCodename = deviceCodename,
+                        productBoard = productBoard,
+                        deviceModel = deviceModel,
                         info = cpuInfo,
                         clusters = clusters,
                         graphData = graphData,
