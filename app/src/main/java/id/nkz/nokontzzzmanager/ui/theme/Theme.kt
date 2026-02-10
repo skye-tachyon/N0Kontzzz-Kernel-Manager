@@ -36,7 +36,6 @@ private fun Color.blend(other: Color, ratio: Float): Color {
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RvKernelManagerTheme(

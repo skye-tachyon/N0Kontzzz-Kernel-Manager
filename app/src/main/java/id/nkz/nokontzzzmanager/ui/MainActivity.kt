@@ -115,7 +115,6 @@ class MainActivity : ComponentActivity() {
     val customTunableFabAction: MutableState<(() -> Unit)?> = mutableStateOf(null)
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge()
