@@ -871,24 +871,10 @@ class SystemRepository @Inject constructor(
     private fun getDisplayInfo(): DisplayInfo {
         try {
             val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager
-            val resolution: String
-            val dpi: String
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val metrics = windowManager.currentWindowMetrics
-                val bounds = metrics.bounds
-                resolution = "${bounds.width()}x${bounds.height()}"
-                dpi = "${context.resources.configuration.densityDpi}"
-            } else {
-                @Suppress("DEPRECATION")
-                val display = windowManager.defaultDisplay
-                @Suppress("DEPRECATION")
-                val metrics = android.util.DisplayMetrics()
-                @Suppress("DEPRECATION")
-                display.getRealMetrics(metrics)
-                resolution = "${metrics.widthPixels}x${metrics.heightPixels}"
-                dpi = "${metrics.densityDpi}"
-            }
+            val metrics = windowManager.currentWindowMetrics
+            val bounds = metrics.bounds
+            val resolution = "${bounds.width()}x${bounds.height()}"
+            val dpi = "${context.resources.configuration.densityDpi}"
 
             // Get refresh rate - hardcoded to 60-120Hz
             val refreshRate = "60-120Hz"
