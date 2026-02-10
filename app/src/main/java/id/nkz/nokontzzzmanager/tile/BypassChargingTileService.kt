@@ -60,9 +60,7 @@ class BypassChargingTileService : TileService() {
         val isEnabled = preferenceManager.getBypassCharging()
         qsTile.state = if (isEnabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
         qsTile.label = "Bypass Charging"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            qsTile.subtitle = if (isEnabled) "Active" else "Inactive"
-        }
+        qsTile.subtitle = if (isEnabled) "Active" else "Inactive"
         qsTile.updateTile()
     }
 }

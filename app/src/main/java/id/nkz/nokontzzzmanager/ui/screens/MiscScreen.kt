@@ -137,7 +137,7 @@ fun MiscScreen(
     val checkBatteryOptimizationAndEnable = {
         val pm = context.getSystemService(PowerManager::class.java)
         // Request ignore battery optimizations if not whitelisted (Android 6.0+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && pm != null && !pm.isIgnoringBatteryOptimizations(context.packageName)) {
+        if (pm != null && !pm.isIgnoringBatteryOptimizations(context.packageName)) {
             try {
                 val i = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                     data = ("package:" + context.packageName).toUri()

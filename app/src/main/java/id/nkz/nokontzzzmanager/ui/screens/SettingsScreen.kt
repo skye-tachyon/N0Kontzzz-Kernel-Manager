@@ -128,39 +128,25 @@ fun SettingsScreen(
     val manageStorageLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { _ ->
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (android.os.Environment.isExternalStorageManager()) {
-                showBackupDialog = true
-            } else {
-                Toast.makeText(context, permissionStorageRequired, Toast.LENGTH_SHORT).show()
-            }
+        if (android.os.Environment.isExternalStorageManager()) {
+            showBackupDialog = true
+        } else {
+            Toast.makeText(context, permissionStorageRequired, Toast.LENGTH_SHORT).show()
         }
     }
 
     fun checkStoragePermissionAndShowDialog() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (android.os.Environment.isExternalStorageManager()) {
-                showBackupDialog = true
-            } else {
-                try {
-                    val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                        data = "package:${context.packageName}".toUri()
-                    }
-                    manageStorageLauncher.launch(intent)
-                } catch (e: Exception) {
-                    val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                    manageStorageLauncher.launch(intent)
-                }
-            }
+        if (android.os.Environment.isExternalStorageManager()) {
+            showBackupDialog = true
         } else {
-            val granted = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-            if (granted) {
-                showBackupDialog = true
-            } else {
-                storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            try {
+                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                    data = "package:${context.packageName}".toUri()
+                }
+                manageStorageLauncher.launch(intent)
+            } catch (e: Exception) {
+                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                manageStorageLauncher.launch(intent)
             }
         }
     }

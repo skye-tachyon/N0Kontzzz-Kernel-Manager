@@ -244,19 +244,11 @@ private fun getRelevantPermissions(context: Context, hasRoot: Boolean): List<App
 
     // 3. Usage Stats
     val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-    val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
-    } else {
-        appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
-    }
+    val mode = appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
     list.add(AppPermissionInfo(R.string.perm_usage_title, R.string.perm_usage_desc, mode == AppOpsManager.MODE_ALLOWED))
 
     // 4. File Storage (Android 11+ MANAGE_EXTERNAL_STORAGE or Legacy)
-    val storageGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        android.os.Environment.isExternalStorageManager()
-    } else {
-        ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-    }
+    val storageGranted = android.os.Environment.isExternalStorageManager()
     list.add(AppPermissionInfo(R.string.perm_storage_title, R.string.perm_storage_desc, storageGranted))
 
     // 5. Battery Optimization
@@ -292,11 +284,7 @@ private fun getRelevantPermissions(context: Context, hasRoot: Boolean): List<App
     ))
 
     // 9. Foreground Service (Install Time)
-    val fgsGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        ContextCompat.checkSelfPermission(context, Manifest.permission.FOREGROUND_SERVICE) == PackageManager.PERMISSION_GRANTED
-    } else {
-        true // Implicitly granted on older Android versions
-    }
+    val fgsGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.FOREGROUND_SERVICE) == PackageManager.PERMISSION_GRANTED
     list.add(AppPermissionInfo(
         titleRes = R.string.perm_fgs_title,
         descRes = R.string.perm_fgs_desc,

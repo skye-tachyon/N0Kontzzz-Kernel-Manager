@@ -271,16 +271,14 @@ class BootRestoreService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Boot Restore Service",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            channel.description = "Applying system settings on boot"
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "Boot Restore Service",
+            NotificationManager.IMPORTANCE_LOW
+        )
+        channel.description = "Applying system settings on boot"
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(channel)
     }
 
     private fun createNotification(): Notification {
