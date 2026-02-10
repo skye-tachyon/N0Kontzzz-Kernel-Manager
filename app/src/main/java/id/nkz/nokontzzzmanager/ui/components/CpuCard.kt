@@ -379,7 +379,7 @@ private fun CpuStatsSection(
 ) {
     Card( // Using Card for stats section
         modifier = Modifier.fillMaxWidth(),
-        shape = CardDefaults.shape,
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
         Column(
