@@ -73,15 +73,19 @@
             android:name=".service.ThermalService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="false">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="thermal_monitoring" />
+        </service>
 
         <!-- Boot Restore Service -->
         <service
             android:name=".service.BootRestoreService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync" />
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="boot_restore" />
+        </service>
 
         <!-- Battery Monitor Service -->
         <service
@@ -138,14 +142,18 @@
         <service
             android:name=".service.RootActionService"
             android:exported="false"
-            android:foregroundServiceType="dataSync" />
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="root_action" />
+        </service>
 
         <!-- Dexopt Service -->
         <service
             android:name=".service.DexoptService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync" />
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="dexopt" />
+        </service>
 
         <!-- KGSL Tile Service -->
         <service
