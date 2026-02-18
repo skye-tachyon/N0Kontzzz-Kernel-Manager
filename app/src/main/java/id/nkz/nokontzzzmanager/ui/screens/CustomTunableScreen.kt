@@ -169,26 +169,28 @@ fun CustomTunableCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "${stringResource(R.string.tunable_target_prefix)} ${tunable.value}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (actualValue != null) {
-                            Spacer(modifier = Modifier.width(8.dp))
+                    if (tunable.value == "0" || tunable.value == "1") {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "•",
+                                text = "${stringResource(R.string.tunable_target_prefix)} ${tunable.value}",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "${stringResource(R.string.tunable_actual_prefix)} $actualValue",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (isMismatch) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                                fontWeight = if (isMismatch) FontWeight.Bold else FontWeight.Normal
-                            )
+                            if (actualValue != null) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "•",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "${stringResource(R.string.tunable_actual_prefix)} $actualValue",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (isMismatch) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                    fontWeight = if (isMismatch) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
                         }
                     }
                 }
