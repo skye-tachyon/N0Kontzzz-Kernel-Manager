@@ -1,9 +1,11 @@
 package id.nkz.nokontzzzmanager.viewmodel
 
 import android.app.Application
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.repository.SystemRepository
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import id.nkz.nokontzzzmanager.service.BatteryMonitorService
@@ -406,6 +408,18 @@ class MiscViewModel @Inject constructor(
     }
 
     fun updateBgBlocklist(blocklist: String) {
+        val apps = if (blocklist.isBlank()) emptyList() else blocklist.split(",")
+        
+        // Kernel limits: max 16 apps and 255 characters
+        if (apps.size > 16) {
+            Toast.makeText(application, application.getString(R.string.bg_blocker_max_apps), Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (blocklist.length > 255) {
+            Toast.makeText(application, application.getString(R.string.bg_blocker_max_chars), Toast.LENGTH_SHORT).show()
+            return
+        }
+
         viewModelScope.launch {
             val success = systemRepository.setBgBlocklist(blocklist)
             if (success) {

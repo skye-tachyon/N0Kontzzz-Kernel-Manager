@@ -82,11 +82,16 @@ fun BgBlockerScreen(
     Scaffold(
         floatingActionButton = {
             if (isBgBlockerAvailable == true) {
+                val canAdd = blockedPackages.size < 16 && bgBlocklist.length < 240
                 FloatingActionButton(
                     onClick = {
-                        appProfilesViewModel.loadInstalledApps()
-                        showAddDialog = true
+                        if (canAdd) {
+                            appProfilesViewModel.loadInstalledApps()
+                            showAddDialog = true
+                        }
                     },
+                    containerColor = if (canAdd) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (canAdd) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
                     modifier = Modifier.size(72.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.bg_blocker_add_app))
@@ -176,8 +181,14 @@ fun BgBlockerScreen(
                 // Actions Header
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 4.dp),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Text(
+                        text = "${blockedPackages.size}/16 apps",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (blockedPackages.size >= 16 || bgBlocklist.length > 240) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     OutlinedButton(
                         onClick = { showResetConfirm = true },
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
@@ -245,7 +256,15 @@ fun BgBlockerScreen(
                         if (!blockedPackages.contains(appInfo.packageName)) {
                             val newList = blockedPackages.toMutableList()
                             newList.add(appInfo.packageName)
-                            miscViewModel.updateBgBlocklist(newList.joinToString(","))
+                            val newString = newList.joinToString(",")
+                            
+                            if (newList.size > 16) {
+                                android.widget.Toast.makeText(context, context.getString(R.string.bg_blocker_max_apps), android.widget.Toast.LENGTH_SHORT).show()
+                            } else if (newString.length > 255) {
+                                android.widget.Toast.makeText(context, context.getString(R.string.bg_blocker_char_limit_exceeded), android.widget.Toast.LENGTH_SHORT).show()
+                            } else {
+                                miscViewModel.updateBgBlocklist(newString)
+                            }
                         }
                         showAddDialog = false
                         appProfilesViewModel.onSearchQueryChanged("")

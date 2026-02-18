@@ -722,4 +722,8 @@
     <string name="bg_blocker_not_installed">Not installed</string>
     <string name="bg_blocker_apply_on_boot">Apply on Boot</string>
     <string name="bg_blocker_apply_on_boot_desc">Automatically apply the blocklist after every reboot.</string>
+    <string name="bg_blocker_max_apps">Maximum 16 apps allowed</string>
+    <string name="bg_blocker_max_chars">Blocklist is too long (max 255 characters)</string>
+    <string name="bg_blocker_limit_reached">App limit reached (16 apps max)</string>
+    <string name="bg_blocker_char_limit_exceeded">Adding this app would exceed kernel character limit</string>
 </resources>

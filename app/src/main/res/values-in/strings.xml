@@ -721,4 +721,8 @@
     <string name="bg_blocker_not_installed">Tidak terinstal</string>
     <string name="bg_blocker_apply_on_boot">Terapkan saat Boot</string>
     <string name="bg_blocker_apply_on_boot_desc">Secara otomatis menerapkan daftar blokir setelah setiap reboot.</string>
+    <string name="bg_blocker_max_apps">Maksimal 16 aplikasi diizinkan</string>
+    <string name="bg_blocker_max_chars">Daftar blokir terlalu panjang (maksimal 255 karakter)</string>
+    <string name="bg_blocker_limit_reached">Batas aplikasi tercapai (maksimal 16 aplikasi)</string>
+    <string name="bg_blocker_char_limit_exceeded">Menambah aplikasi ini akan melebihi batas karakter kernel</string>
 </resources>
