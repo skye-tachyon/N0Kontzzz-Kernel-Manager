@@ -127,55 +127,31 @@ fun BgBlockerScreen(
             } else {
                 // Set on Boot Card
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
                     ),
                     onClick = {
                         miscViewModel.setApplyBgBlockerOnBoot(!applyOnBoot)
                     }
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Icon with themed background
-                        Box(
-                            modifier = Modifier
-                                .size(42.dp)
-                                .background(
-                                    color = if (applyOnBoot) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Save,
-                                contentDescription = null,
-                                tint = if (applyOnBoot) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(id = R.string.bg_blocker_apply_on_boot),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = stringResource(id = R.string.bg_blocker_apply_on_boot_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(
+                            text = stringResource(id = R.string.bg_blocker_apply_on_boot),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
 
                         Switch(
                             checked = applyOnBoot,
-                            onCheckedChange = null,
+                            onCheckedChange = { miscViewModel.setApplyBgBlockerOnBoot(it) },
                             thumbContent = if (applyOnBoot) {
                                 {
                                     Icon(
@@ -199,7 +175,7 @@ fun BgBlockerScreen(
 
                 // Actions Header
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 4.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
                     OutlinedButton(
@@ -212,6 +188,8 @@ fun BgBlockerScreen(
                         Text(stringResource(R.string.reset_to_default), style = MaterialTheme.typography.labelLarge)
                     }
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 if (blockedPackages.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
