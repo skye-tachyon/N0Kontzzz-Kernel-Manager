@@ -127,7 +127,7 @@ class SystemRepository @Inject constructor(
         if (attemptSu) {
             try {
                 // Use the root repository for more reliable command execution
-                rootRepository.run("echo \"$content\" > \"$filePath\"")
+                rootRepository.run("echo -n \"$content\" > \"$filePath\"")
                 return true
             } catch (_: Exception) {
                 return false
@@ -1342,7 +1342,7 @@ class SystemRepository @Inject constructor(
                 // Ensure writable
                 rootRepository.run("chmod 666 $path")
                 // Write
-                rootRepository.run("echo \"$value\" > \"$path\"")
+                rootRepository.run("echo -n \"$value\" > \"$path\"")
                 // Restore/Lock permissions (read-only to prevent reset)
                 rootRepository.run("chmod 444 $path")
                 return true

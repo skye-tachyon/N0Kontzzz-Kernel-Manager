@@ -91,29 +91,29 @@ class BootRestoreService : Service() {
         // 1. Network & IO
         if (preferenceManager.isApplyNetworkStorageOnBoot()) {
             preferenceManager.getTcpCongestionAlgorithm()?.let { algo ->
-                batchCommands.add("echo $algo > /proc/sys/net/ipv4/tcp_congestion_control 2>/dev/null || true")
+                batchCommands.add("echo -n $algo > /proc/sys/net/ipv4/tcp_congestion_control 2>/dev/null || true")
             }
 
             val ioPaths = listOf("/sys/block/sda/queue/scheduler", "/sys/block/mmcblk0/queue/scheduler", "/sys/block/nvme0n1/queue/scheduler")
             preferenceManager.getIoScheduler()?.let { sched ->
                 ioPaths.forEach { path ->
-                    batchCommands.add("echo $sched > $path 2>/dev/null || true")
+                    batchCommands.add("echo -n $sched > $path 2>/dev/null || true")
                 }
             }
         }
 
         // 2. Misc Settings
         if (preferenceManager.getAvoidDirtyPte()) {
-            batchCommands.add("echo 1 > /sys/kernel/n0kz_attributes/avoid_dirty_pte 2>/dev/null || true")
+            batchCommands.add("echo -n 1 > /sys/kernel/n0kz_attributes/avoid_dirty_pte 2>/dev/null || true")
         }
         if (preferenceManager.getKgslSkipZeroing()) {
-            batchCommands.add("echo 1 > /sys/kernel/n0kz_attributes/kgsl_skip_zeroing 2>/dev/null || true")
+            batchCommands.add("echo -n 1 > /sys/kernel/n0kz_attributes/kgsl_skip_zeroing 2>/dev/null || true")
         }
         if (preferenceManager.getBypassCharging()) {
-            batchCommands.add("echo 1 > /sys/class/power_supply/battery/input_suspend 2>/dev/null || true")
+            batchCommands.add("echo -n 1 > /sys/class/power_supply/battery/input_suspend 2>/dev/null || true")
         }
         if (preferenceManager.getForceFastCharge()) {
-            batchCommands.add("echo 1 > /sys/kernel/fast_charge/force_fast_charge 2>/dev/null || true")
+            batchCommands.add("echo -n 1 > /sys/kernel/fast_charge/force_fast_charge 2>/dev/null || true")
         }
 
         // 3. Background Blocker

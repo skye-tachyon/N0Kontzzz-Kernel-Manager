@@ -82,7 +82,8 @@ fun BgBlockerScreen(
     Scaffold(
         floatingActionButton = {
             if (isBgBlockerAvailable == true) {
-                val canAdd = blockedPackages.size < 16 && bgBlocklist.length < 240
+                val canAdd = blockedPackages.size < MiscViewModel.MAX_BG_BLOCKLIST_APPS && 
+                             bgBlocklist.length < MiscViewModel.MAX_BG_BLOCKLIST_CHARS - 10 // Warning buffer
                 FloatingActionButton(
                     onClick = {
                         if (canAdd) {
@@ -184,10 +185,12 @@ fun BgBlockerScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val isLimitReached = blockedPackages.size >= MiscViewModel.MAX_BG_BLOCKLIST_APPS || 
+                                         bgBlocklist.length >= MiscViewModel.MAX_BG_BLOCKLIST_CHARS - 10
                     Text(
-                        text = "${blockedPackages.size}/16 apps",
+                        text = "${blockedPackages.size}/${MiscViewModel.MAX_BG_BLOCKLIST_APPS} apps",
                         style = MaterialTheme.typography.labelMedium,
-                        color = if (blockedPackages.size >= 16 || bgBlocklist.length > 240) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (isLimitReached) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     OutlinedButton(
                         onClick = { showResetConfirm = true },
@@ -256,15 +259,7 @@ fun BgBlockerScreen(
                         if (!blockedPackages.contains(appInfo.packageName)) {
                             val newList = blockedPackages.toMutableList()
                             newList.add(appInfo.packageName)
-                            val newString = newList.joinToString(",")
-                            
-                            if (newList.size > 16) {
-                                android.widget.Toast.makeText(context, context.getString(R.string.bg_blocker_max_apps), android.widget.Toast.LENGTH_SHORT).show()
-                            } else if (newString.length > 255) {
-                                android.widget.Toast.makeText(context, context.getString(R.string.bg_blocker_char_limit_exceeded), android.widget.Toast.LENGTH_SHORT).show()
-                            } else {
-                                miscViewModel.updateBgBlocklist(newString)
-                            }
+                            miscViewModel.updateBgBlocklist(newList.joinToString(","))
                         }
                         showAddDialog = false
                         appProfilesViewModel.onSearchQueryChanged("")

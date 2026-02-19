@@ -26,6 +26,11 @@ class MiscViewModel @Inject constructor(
     private val systemRepository: SystemRepository
 ) : AndroidViewModel(application) {
 
+    companion object {
+        const val MAX_BG_BLOCKLIST_APPS = 16
+        const val MAX_BG_BLOCKLIST_CHARS = 255
+    }
+
     private val _kgslSkipZeroingEnabled = MutableStateFlow(preferenceManager.getKgslSkipZeroing())
     val kgslSkipZeroingEnabled: StateFlow<Boolean> = _kgslSkipZeroingEnabled.asStateFlow()
 
@@ -411,11 +416,11 @@ class MiscViewModel @Inject constructor(
         val apps = if (blocklist.isBlank()) emptyList() else blocklist.split(",")
         
         // Kernel limits: max 16 apps and 255 characters
-        if (apps.size > 16) {
+        if (apps.size > MAX_BG_BLOCKLIST_APPS) {
             Toast.makeText(application, application.getString(R.string.bg_blocker_max_apps), Toast.LENGTH_SHORT).show()
             return
         }
-        if (blocklist.length > 255) {
+        if (blocklist.length > MAX_BG_BLOCKLIST_CHARS) {
             Toast.makeText(application, application.getString(R.string.bg_blocker_max_chars), Toast.LENGTH_SHORT).show()
             return
         }
