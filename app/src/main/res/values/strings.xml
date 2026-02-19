@@ -31,6 +31,8 @@
     <string name="icon_app_logo">App Logo</string>
     <string name="icon_transparent">Transparent</string>
     <string name="select_notification_icon">Select Notification Icon</string>
+    <string name="battery_charging_icon">Charging Icon</string>
+    <string name="battery_charging_icon_desc">Show lightning icon instead of percentage while charging</string>
 
     <!-- Settings strings -->
 

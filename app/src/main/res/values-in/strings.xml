@@ -31,6 +31,8 @@
     <string name="icon_app_logo">Logo Aplikasi</string>
     <string name="icon_transparent">Transparan</string>
     <string name="select_notification_icon">Pilih Ikon Notifikasi</string>
+    <string name="battery_charging_icon">Ikon Pengisian</string>
+    <string name="battery_charging_icon_desc">Tampilkan ikon petir alih-alih persentase saat mengisi daya</string>
 
     <!-- Settings strings -->
 

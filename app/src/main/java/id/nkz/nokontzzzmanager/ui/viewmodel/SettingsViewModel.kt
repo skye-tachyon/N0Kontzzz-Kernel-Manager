@@ -37,6 +37,9 @@ class SettingsViewModel @Inject constructor(
     private val _notificationIconStyle = MutableStateFlow(preferenceManager.getNotificationIconStyle())
     val notificationIconStyle: StateFlow<Int> = _notificationIconStyle.asStateFlow()
 
+    private val _batteryChargingIconEnabled = MutableStateFlow(preferenceManager.isBatteryChargingIconEnabled())
+    val batteryChargingIconEnabled: StateFlow<Boolean> = _batteryChargingIconEnabled.asStateFlow()
+
     private val _isBatteryMonitorEnabled = MutableStateFlow(preferenceManager.isBatteryMonitorEnabled())
     val isBatteryMonitorEnabled: StateFlow<Boolean> = _isBatteryMonitorEnabled.asStateFlow()
 
@@ -85,6 +88,16 @@ class SettingsViewModel @Inject constructor(
     fun setNotificationIconStyle(style: Int) {
         preferenceManager.setNotificationIconStyle(style)
         _notificationIconStyle.value = style
+        try {
+            BatteryMonitorService.updateIcon(context)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun setBatteryChargingIconEnabled(enabled: Boolean) {
+        preferenceManager.setBatteryChargingIconEnabled(enabled)
+        _batteryChargingIconEnabled.value = enabled
         try {
             BatteryMonitorService.updateIcon(context)
         } catch (e: Exception) {

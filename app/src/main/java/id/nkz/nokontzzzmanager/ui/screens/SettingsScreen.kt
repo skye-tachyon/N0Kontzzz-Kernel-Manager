@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Contrast
@@ -75,6 +76,7 @@ fun SettingsScreen(
 
     val currentThemeMode by viewModel.currentThemeMode.collectAsState()
     val notificationIconStyle by viewModel.notificationIconStyle.collectAsState()
+    val batteryChargingIconEnabled by viewModel.batteryChargingIconEnabled.collectAsState()
     val isBatteryMonitorEnabled by viewModel.isBatteryMonitorEnabled.collectAsState()
     val backupPreview by viewModel.backupPreview.collectAsState()
     val selectedRestoreUri by viewModel.selectedRestoreUri.collectAsState()
@@ -248,9 +250,52 @@ fun SettingsScreen(
                         modifier = Modifier.size(20.dp)
                     )
                 },
-                shape = getRoundedCornerShape(0, 1),
+                shape = getRoundedCornerShape(0, 2),
                 enabled = isBatteryMonitorEnabled,
                 onClick = { showNotificationIconDialog = true }
+            )
+
+            SettingItemCard(
+                headlineText = stringResource(R.string.battery_charging_icon),
+                supportingText = stringResource(R.string.battery_charging_icon_desc),
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Bolt,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                trailingContent = {
+                    Switch(
+                        checked = batteryChargingIconEnabled,
+                        onCheckedChange = { viewModel.setBatteryChargingIconEnabled(it) },
+                        enabled = isBatteryMonitorEnabled,
+                        thumbContent = if (batteryChargingIconEnabled) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        } else {
+                            {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        }
+                    )
+                },
+                shape = getRoundedCornerShape(1, 2),
+                enabled = isBatteryMonitorEnabled,
+                onClick = { 
+                    if (isBatteryMonitorEnabled) {
+                        viewModel.setBatteryChargingIconEnabled(!batteryChargingIconEnabled) 
+                    }
+                }
             )
 
             if (showNotificationIconDialog) {

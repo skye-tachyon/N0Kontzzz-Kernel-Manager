@@ -480,6 +480,7 @@ class BatteryMonitorService : Service() {
             statusText = getChargingStatus(status, plugged),
             currentMa = currentMa,
             powerWatt = powerWatt,
+            isCharging = charging,
             activeDrain = activeDrainStr,
             idleDrain = idleDrainStr,
             screenOnTime = formatDurationAdaptive(currentScreenOnMs),
@@ -892,7 +893,7 @@ class BatteryMonitorService : Service() {
         }
     }
 
-    private fun createBatteryIcon(level: Int): IconCompat {
+    private fun createBatteryIcon(level: Int, isCharging: Boolean): IconCompat {
         val size = 24 * 3 // 72px for xhdpi approx
         val bitmap = createBitmap(size, size)
         val canvas = Canvas(bitmap)
@@ -904,12 +905,15 @@ class BatteryMonitorService : Service() {
             typeface = Typeface.DEFAULT_BOLD
         }
         val yPos = (canvas.height / 2) - ((paint.descent() + paint.ascent()) / 2)
-        canvas.drawText(if (level >= 0) "$level" else "?", canvas.width / 2f, yPos, paint)
+        val text = if (isCharging && preferenceManager.isBatteryChargingIconEnabled()) "⚡" 
+                   else if (level >= 0) "$level" 
+                   else "?"
+        canvas.drawText(text, canvas.width / 2f, yPos, paint)
         return IconCompat.createWithBitmap(bitmap)
     }
 
     // === NOTIFICATION ===
-    private fun createNotification(title: String, bigText: String, batteryLevel: Int = -1): Notification {
+    private fun createNotification(title: String, bigText: String, batteryLevel: Int = -1, isCharging: Boolean = false): Notification {
         val intent = packageManager.getLaunchIntentForPackage(packageName)
             ?: Intent(this, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -932,7 +936,7 @@ class BatteryMonitorService : Service() {
 
         when (iconStyle) {
             PreferenceManager.ICON_STYLE_BATTERY_PERCENT -> {
-                builder.setSmallIcon(createBatteryIcon(batteryLevel))
+                builder.setSmallIcon(createBatteryIcon(batteryLevel, isCharging))
             }
             PreferenceManager.ICON_STYLE_TRANSPARENT -> {
                 builder.setSmallIcon(R.drawable.transparent)
@@ -986,7 +990,7 @@ class BatteryMonitorService : Service() {
             Deep sleep   : ${stats.deepSleep}
             Awake        : ${stats.uptime}
         """.trimIndent()
-        notificationManager.notify(notificationId, createNotification(title, bigText, stats.level))
+        notificationManager.notify(notificationId, createNotification(title, bigText, stats.level, stats.isCharging))
     }
 
     private fun formatDurationAdaptive(ms: Long): String {
@@ -1131,6 +1135,7 @@ class BatteryMonitorService : Service() {
         val statusText: String = "Unknown",
         val currentMa: Float = 0f,
         val powerWatt: Float = 0f,
+        val isCharging: Boolean = false,
         val activeDrain: String = "-",
         val idleDrain: String = "-",
         val screenOnTime: String = "-",
