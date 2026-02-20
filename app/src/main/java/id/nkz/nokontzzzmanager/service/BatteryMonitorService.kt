@@ -31,6 +31,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -88,6 +89,9 @@ class BatteryMonitorService : Service() {
     private var monitoringJob: Job? = null
     private var lastManualUpdateTime = 0L
     private val MANUAL_UPDATE_THROTTLE_MS = 2000L
+    
+    // Cache for Battery Intent
+    private var lastBatteryIntent: Intent? = null
 
     // Screen on-time tracking
     private var screenReceiver: BroadcastReceiver? = null
@@ -120,6 +124,7 @@ class BatteryMonitorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        Log.d("BatteryMonitorService", "onCreate")
         serviceStartedAtMs = System.currentTimeMillis()
         batteryManager = getSystemService(BATTERY_SERVICE) as BatteryManager
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -131,7 +136,7 @@ class BatteryMonitorService : Service() {
             } else
                 startForeground(notificationId, initialNotification)
         } catch (e: Exception) {
-            // Prevent crash if FGS is blocked
+            Log.e("BatteryMonitorService", "Failed to start foreground service", e)
             stopSelf()
         }
         designCapacityUah = getDesignCapacityUah()
@@ -142,12 +147,25 @@ class BatteryMonitorService : Service() {
         startMonitoring()
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        Log.w("BatteryMonitorService", "onTrimMemory: level=$level")
+    }
+
     private fun computeCurrentBatteryPercent(stickyLevel: Int, chargeUah: Long): Double {
-        // Prefer OS-reported percentage to avoid noisy coulomb counter coupling to current draw
-        if (stickyLevel >= 0) return stickyLevel.toDouble()
+        // Combination: use OS level as base, use coulomb counter for fractional precision
         if (chargeUah > 0L && designCapacityUah > 0L) {
-            return (chargeUah.toDouble() * 100.0) / designCapacityUah.toDouble()
+            val calc = (chargeUah.toDouble() * 100.0) / designCapacityUah.toDouble()
+            // Ensure calculated percent is reasonably close to OS level to avoid jumps
+            if (stickyLevel >= 0) {
+                if (kotlin.math.abs(calc - stickyLevel) < 2.0) {
+                    return calc
+                }
+            } else {
+                return calc
+            }
         }
+        if (stickyLevel >= 0) return stickyLevel.toDouble()
         return 0.0
     }
 
@@ -190,11 +208,14 @@ class BatteryMonitorService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("BatteryMonitorService", "onStartCommand: action=${intent?.action}")
         if (intent?.action == ACTION_RESET) {
             try {
                 manualReset()
                 triggerManualUpdate(immediate = true)
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                Log.e("BatteryMonitorService", "Reset failed", e)
+            }
         } else if (intent?.action == ACTION_BOOT_START) {
             // History auto-reset
             if (preferenceManager.isAutoResetOnReboot()) {
@@ -203,14 +224,13 @@ class BatteryMonitorService : Service() {
                 }
             }
             // Monitor auto-reset (Active Stats)
-            // Note: restoreStateIfAny() already handles wiping accumulators if this is true.
-            // We call manualReset() here to ensure sampling baselines are also fresh.
             if (preferenceManager.isMonitorAutoResetOnReboot()) {
                 manualReset()
             }
             startMonitoring()
             triggerManualUpdate(immediate = true)
         } else if (intent?.action == ACTION_UPDATE_ICON) {
+            startMonitoring() // Ensure loop is running
             triggerManualUpdate(immediate = true)
         } else {
             startMonitoring()
@@ -223,26 +243,28 @@ class BatteryMonitorService : Service() {
     private fun startMonitoring() {
         if (monitoringJob?.isActive == true) return
         isRunning = true
+        Log.d("BatteryMonitorService", "Starting monitoring loop")
 
         val pm = getSystemService(POWER_SERVICE) as PowerManager
 
-        monitoringJob = scope.launch {
-            // Immediate check upon starting to handle initial state correctly
+        monitoringJob = scope.launch(Dispatchers.Main.immediate) {
+            // Initial update
             try {
-                updateNotification(collectSystemStats())
+                val stats = withContext(Dispatchers.IO) { collectSystemStats() }
+                updateNotification(stats)
             } catch (e: Exception) {
                 Log.e("BatteryMonitorService", "Initial update failed", e)
             }
 
             while (isRunning) {
                 try {
-                    val stats = collectSystemStats()
+                    val stats = withContext(Dispatchers.IO) { collectSystemStats() }
                     updateNotification(stats)
                 } catch (e: Exception) {
                     Log.e("BatteryMonitorService", "Error in monitoring loop", e)
                 }
                 
-                // Adaptive delay: 5s if screen on, 60s if screen off (to match history save interval)
+                // Adaptive delay: 5s if screen on, 60s if screen off
                 val d = nextDelayOverrideMs ?: if (pm.isInteractive) 5_000L else 60_000L
                 nextDelayOverrideMs = null
                 delay(d)
@@ -255,9 +277,9 @@ class BatteryMonitorService : Service() {
         if (!immediate && now - lastManualUpdateTime < MANUAL_UPDATE_THROTTLE_MS) return
         lastManualUpdateTime = now
         
-        scope.launch {
+        scope.launch(Dispatchers.Main.immediate) {
             try {
-                val stats = collectSystemStats()
+                val stats = withContext(Dispatchers.IO) { collectSystemStats() }
                 updateNotification(stats)
             } catch (e: Exception) {
                 Log.e("BatteryMonitorService", "Manual update failed", e)
@@ -269,19 +291,20 @@ class BatteryMonitorService : Service() {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent?.action == Intent.ACTION_BATTERY_CHANGED) {
+                    lastBatteryIntent = intent
                     triggerManualUpdate(immediate = false)
                 }
             }
         }
         batteryReceiver = receiver
-        registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        lastBatteryIntent = registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
     }
 
     // === BATTERY LOGIC ===
     private fun collectSystemStats(): BatteryData {
         val bm = batteryManager ?: return BatteryData()
 
-        val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val intent = lastBatteryIntent ?: registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
         val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
@@ -394,8 +417,7 @@ class BatteryMonitorService : Service() {
             windowStartElapsed = nowElapsed
             windowStartUptime = nowUptime
             // if screen currently on, start tracking from now
-            val pm = getSystemService(POWER_SERVICE) as PowerManager
-            screenOnStartAtElapsed = if (pm.isInteractive) nowElapsed else null
+            screenOnStartAtElapsed = if (interactive) nowElapsed else null
             // also initialize sampling baselines
             lastSampleElapsedMs = nowElapsed
             lastSampleChargeUah = currentCharge
@@ -990,7 +1012,21 @@ class BatteryMonitorService : Service() {
             Deep sleep   : ${stats.deepSleep}
             Awake        : ${stats.uptime}
         """.trimIndent()
-        notificationManager.notify(notificationId, createNotification(title, bigText, stats.level, stats.isCharging))
+        
+        val notification = createNotification(title, bigText, stats.level, stats.isCharging)
+        
+        // Use startForeground to refresh foreground status and update notification simultaneously
+        // This is more resilient on aggressive ROMs than just notificationManager.notify
+        try {
+            if (Build.VERSION.SDK_INT >= 34) {
+                startForeground(notificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else {
+                startForeground(notificationId, notification)
+            }
+        } catch (e: Exception) {
+            // Fallback to basic notify if startForeground fails (e.g. if called from background incorrectly)
+            notificationManager.notify(notificationId, notification)
+        }
     }
 
     private fun formatDurationAdaptive(ms: Long): String {
@@ -1021,14 +1057,19 @@ class BatteryMonitorService : Service() {
             .putLong("consumed_off_uah", consumedOffUah)
             .putLong("on_percent_drop_bits", java.lang.Double.doubleToRawLongBits(onPercentDrop))
             .putLong("off_percent_drop_bits", java.lang.Double.doubleToRawLongBits(offPercentDrop))
+            .putLong("last_sample_elapsed", lastSampleElapsedMs)
+            .putLong("last_sample_charge", lastSampleChargeUah)
+            .putLong("last_sample_percent_bits", java.lang.Double.doubleToRawLongBits(lastSamplePercent))
+            .putBoolean("prev_interactive", prevInteractiveForSample ?: false)
             .putLong("last_cleanup_time", lastCleanupTime)
         
         if (sync) {
-            editor.apply()
+            editor.commit()
         } else {
             editor.apply()
         }
     }
+
 
     private fun restoreStateIfAny() {
         val lastElapsed = prefs.getLong(keyLastElapsed, 0L)
@@ -1044,15 +1085,24 @@ class BatteryMonitorService : Service() {
         val effectiveSavedAwake = if (savedAwakeAccum == 0L && savedAccum > 0L) savedAccum else savedAwakeAccum
         
         // Restore drain stats
-        val savedConsumedOn = prefs.getLong("consumed_on_uah", 0L)
-        val savedConsumedOff = prefs.getLong("consumed_off_uah", 0L)
-        val savedOnDrop = java.lang.Double.longBitsToDouble(prefs.getLong("on_percent_drop_bits", 0L))
-        val savedOffDrop = java.lang.Double.longBitsToDouble(prefs.getLong("off_percent_drop_bits", 0L))
+        consumedOnUah = prefs.getLong("consumed_on_uah", 0L)
+        consumedOffUah = prefs.getLong("consumed_off_uah", 0L)
+        onPercentDrop = java.lang.Double.longBitsToDouble(prefs.getLong("on_percent_drop_bits", 0L))
+        offPercentDrop = java.lang.Double.longBitsToDouble(prefs.getLong("off_percent_drop_bits", 0L))
+        
+        // Restore sampling stats
+        lastSampleElapsedMs = prefs.getLong("last_sample_elapsed", 0L)
+        lastSampleChargeUah = prefs.getLong("last_sample_charge", 0L)
+        lastSamplePercent = java.lang.Double.longBitsToDouble(prefs.getLong("last_sample_percent_bits", java.lang.Double.doubleToRawLongBits(Double.NaN)))
+        if (prefs.contains("prev_interactive")) {
+            prevInteractiveForSample = prefs.getBoolean("prev_interactive", false)
+        }
 
         val now = SystemClock.elapsedRealtime()
         val isReboot = (lastElapsed == 0L || now < lastElapsed)
 
         if (isReboot) {
+            Log.i("BatteryMonitorService", "Detected reboot, resetting transient stats")
             if (preferenceManager.isMonitorAutoResetOnReboot()) {
                 // Reset everything if user requested auto-reset on reboot
                 screenOnAccumMs = 0L
@@ -1064,6 +1114,8 @@ class BatteryMonitorService : Service() {
                 consumedOffUah = 0L
                 onPercentDrop = 0.0
                 offPercentDrop = 0.0
+                lastSampleElapsedMs = 0L
+                lastSamplePercent = Double.NaN
             } else {
                 // Persist: Carry over stats
                 screenOnAccumMs = savedAccum
@@ -1081,11 +1133,9 @@ class BatteryMonitorService : Service() {
                 windowStartElapsed = now
                 windowStartUptime = SystemClock.uptimeMillis()
                 
-                // Restore accumulated drain stats
-                consumedOnUah = savedConsumedOn
-                consumedOffUah = savedConsumedOff
-                onPercentDrop = savedOnDrop
-                offPercentDrop = savedOffDrop
+                // Sampling stats carry over but we reset baseline to avoid massive delta
+                lastSampleElapsedMs = 0L
+                lastSamplePercent = Double.NaN
             }
         } else {
             // Normal restore (service restart, no reboot)
@@ -1094,11 +1144,6 @@ class BatteryMonitorService : Service() {
             awakeAccumMs = effectiveSavedAwake
             windowStartElapsed = savedWindowStart
             windowStartUptime = savedWindowStartUptime
-            
-            consumedOnUah = savedConsumedOn
-            consumedOffUah = savedConsumedOff
-            onPercentDrop = savedOnDrop
-            offPercentDrop = savedOffDrop
         }
         lastCleanupTime = prefs.getLong("last_cleanup_time", 0L)
     }
