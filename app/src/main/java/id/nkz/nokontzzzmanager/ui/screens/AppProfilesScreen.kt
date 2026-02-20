@@ -71,7 +71,7 @@ fun AppProfilesScreen(
     
     var showAddDialog by remember { mutableStateOf(false) }
     var profileToEdit by remember { mutableStateOf<AppProfileEntity?>(null) }
-    var showPermissionDialog by remember { mutableStateOf(false) }
+    var showPermissionDialog by remember { mutableStateOf(!viewModel.hasUsageStatsPermission()) }
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
