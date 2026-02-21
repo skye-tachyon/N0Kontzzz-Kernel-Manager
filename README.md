@@ -128,6 +128,10 @@
   - **Layout Compilation**: Optimizes view hierarchies to reduce UI rendering latency.
   - **Background Dexopt**: Executes the system's background maintenance optimization script immediately.
 
+- **Background App Blocker**
+  Utilizes a specialized kernel interface to prevent selected applications from consuming resources in the background. This feature functions by writing the package names to a kernel-managed blocklist, forcing the system to restrict their activity.
+  *Technical Requirement: This feature is only available on kernels that expose the `/sys/kernel/n0kz_attributes/bg_blocklist` or `/sys/kernel/e404/bg_blocklist` nodes.*
+
 ---
 
 ## Requirements
