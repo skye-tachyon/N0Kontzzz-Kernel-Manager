@@ -104,16 +104,16 @@ class BootRestoreService : Service() {
 
         // 2. Misc Settings
         if (preferenceManager.getAvoidDirtyPte()) {
-            batchCommands.add("echo -n 1 > /sys/kernel/n0kz_attributes/avoid_dirty_pte 2>/dev/null || true")
+            systemRepository.setAvoidDirtyPte(true)
         }
         if (preferenceManager.getKgslSkipZeroing()) {
-            batchCommands.add("echo -n 1 > /sys/kernel/n0kz_attributes/kgsl_skip_zeroing 2>/dev/null || true")
+            systemRepository.setKgslSkipZeroing(true)
         }
         if (preferenceManager.getBypassCharging()) {
-            batchCommands.add("echo -n 1 > /sys/class/power_supply/battery/input_suspend 2>/dev/null || true")
+            systemRepository.setBypassCharging(true)
         }
         if (preferenceManager.getForceFastCharge()) {
-            batchCommands.add("echo -n 1 > /sys/kernel/fast_charge/force_fast_charge 2>/dev/null || true")
+            systemRepository.setForceFastCharge(true)
         }
 
         // 3. Background Blocker

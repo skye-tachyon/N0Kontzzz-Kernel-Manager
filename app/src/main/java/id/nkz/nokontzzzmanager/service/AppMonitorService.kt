@@ -136,18 +136,9 @@ class AppMonitorService : Service() {
         applyPerformanceMode(profile.performanceMode)
 
         // 2. Misc Settings (KGSL, Bypass, Dirty PTE)
-        val commands = mutableListOf<String>()
-        
-        val kgslValue = if (profile.kgslSkipZeroing) "1" else "0"
-        commands.add("echo $kgslValue > /sys/kernel/n0kz_attributes/kgsl_skip_zeroing 2>/dev/null || true")
-        
-        val bypassValue = if (profile.bypassCharging) "1" else "0"
-        commands.add("echo $bypassValue > /sys/class/power_supply/battery/input_suspend 2>/dev/null || true")
-        
-        val dirtyPteValue = if (profile.allowDirtyPte) "1" else "0"
-        commands.add("echo $dirtyPteValue > /sys/kernel/n0kz_attributes/avoid_dirty_pte 2>/dev/null || true")
-        
-        tuningRepository.runBatchTuning(commands)
+        systemRepository.setKgslSkipZeroing(profile.kgslSkipZeroing)
+        systemRepository.setBypassCharging(profile.bypassCharging)
+        systemRepository.setAvoidDirtyPte(profile.allowDirtyPte)
 
         // 3. CPU Tuning
         applyCpuConfig(profile.getCpuConfig())
@@ -169,19 +160,9 @@ class AppMonitorService : Service() {
         applyPerformanceMode(globalMode)
 
         // 2. Misc Settings (KGSL, Bypass, Dirty PTE)
-        // We can batch these simple echo commands
-        val commands = mutableListOf<String>()
-        
-        val globalKgsl = if (preferenceManager.getKgslSkipZeroing()) "1" else "0"
-        commands.add("echo $globalKgsl > /sys/kernel/n0kz_attributes/kgsl_skip_zeroing 2>/dev/null || true")
-        
-        val globalBypass = if (preferenceManager.getBypassCharging()) "1" else "0"
-        commands.add("echo $globalBypass > /sys/class/power_supply/battery/input_suspend 2>/dev/null || true")
-        
-        val globalDirtyPte = if (preferenceManager.getAvoidDirtyPte()) "1" else "0"
-        commands.add("echo $globalDirtyPte > /sys/kernel/n0kz_attributes/avoid_dirty_pte 2>/dev/null || true")
-        
-        tuningRepository.runBatchTuning(commands)
+        systemRepository.setKgslSkipZeroing(preferenceManager.getKgslSkipZeroing())
+        systemRepository.setBypassCharging(preferenceManager.getBypassCharging())
+        systemRepository.setAvoidDirtyPte(preferenceManager.getAvoidDirtyPte())
 
         // 3. Revert CPU Tuning to Global Prefs
         revertCpuConfig()
