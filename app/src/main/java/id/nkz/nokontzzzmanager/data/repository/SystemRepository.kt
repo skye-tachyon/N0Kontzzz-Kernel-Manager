@@ -13,6 +13,7 @@ import id.nkz.nokontzzzmanager.data.model.RealtimeAggregatedInfo
 import id.nkz.nokontzzzmanager.data.model.RealtimeCpuInfo
 import id.nkz.nokontzzzmanager.data.model.RealtimeGpuInfo
 import id.nkz.nokontzzzmanager.data.model.SystemInfo
+import id.nkz.nokontzzzmanager.utils.KernelPaths
 
 import id.nkz.nokontzzzmanager.data.model.*
 import kotlinx.coroutines.CoroutineScope
@@ -1213,21 +1214,10 @@ class SystemRepository @Inject constructor(
         )
     }
 
-    // KGSL Paths
-    private val KGSL_PATHS = listOf(
-        "/sys/kernel/e404/kgsl_skip_zeroing",
-        "/sys/kernel/lunar_attributes/kgsl_skip_zeroing",
-        "/sys/kernel/lunar_attributes/lunar_kgsl_skip_zeroing",
-        "/sys/kernel/n0kz_attributes/kgsl_skip_zeroing",
-        "/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing",
-        "/sys/kernel/fusionx_attributes/fusionx_kgsl_skip_zeroing",
-        "/sys/kernel/fusionx_attributes/kgsl_skip_zeroing"
-    )
-
     // Helper function to determine which KGSL path is available
     private suspend fun getAvailableKgslPath(): String? {
         // 1. Fast check: Standard file access
-        for (path in KGSL_PATHS) {
+        for (path in KernelPaths.KGSL_SKIP_ZEROING) {
             try {
                 val file = File(path)
                 if (file.exists()) return path
@@ -1237,7 +1227,7 @@ class SystemRepository @Inject constructor(
         }
         
         // 2. Slow check: Root access (if file exists but not visible/readable to app user)
-        for (path in KGSL_PATHS) {
+        for (path in KernelPaths.KGSL_SKIP_ZEROING) {
             try {
                 // attemptSu = true is default
                 if (readFileToString(path, "KGSL Skip Pool Zeroing Check") != null) {
@@ -1279,14 +1269,10 @@ class SystemRepository @Inject constructor(
     }
 
     private suspend fun getAvailableAvoidDirtyPtePath(): String? {
-        val paths = listOf(
-            "/sys/kernel/n0kz_attributes/avoid_dirty_pte",
-            "/sys/kernel/e404/avoid_dirty_pte"
-        )
-        for (path in paths) {
+        for (path in KernelPaths.AVOID_DIRTY_PTE) {
             if (File(path).exists()) return path
         }
-        for (path in paths) {
+        for (path in KernelPaths.AVOID_DIRTY_PTE) {
             if (readFileToString(path, "Avoid Dirty PTE Check", false) != null) return path
         }
         return null
@@ -1326,58 +1312,50 @@ class SystemRepository @Inject constructor(
         return false
     }
 
-    private val bypassChargingPath = "/sys/class/power_supply/battery/input_suspend"
-
     suspend fun isBypassChargingAvailable(): Boolean {
-        val file = File(bypassChargingPath)
+        val file = File(KernelPaths.BYPASS_CHARGING)
         if (file.exists()) {
             return true
         }
         // If the file doesn't exist directly, try reading it with root.
         // readFileToString will return null if the file doesn't exist even with root.
-        return readFileToString(bypassChargingPath, "Bypass Charging Status Check") != null
+        return readFileToString(KernelPaths.BYPASS_CHARGING, "Bypass Charging Status Check") != null
     }
 
     suspend fun getBypassCharging(): Boolean {
-        val value = readFileToString(bypassChargingPath, "Bypass Charging Status")
+        val value = readFileToString(KernelPaths.BYPASS_CHARGING, "Bypass Charging Status")
         return value?.trim() == "1"
     }
 
     suspend fun setBypassCharging(enabled: Boolean): Boolean {
         val value = if (enabled) "1" else "0"
-        return writeStringToFile(bypassChargingPath, value, "Bypass Charging")
+        return writeStringToFile(KernelPaths.BYPASS_CHARGING, value, "Bypass Charging")
     }
 
-    private val forceFastChargePath = "/sys/kernel/fast_charge/force_fast_charge"
-
     suspend fun isForceFastChargeAvailable(): Boolean {
-        val file = File(forceFastChargePath)
+        val file = File(KernelPaths.FORCE_FAST_CHARGE)
         if (file.exists()) {
             return true
         }
-        return readFileToString(forceFastChargePath, "USB Fast Charge Check") != null
+        return readFileToString(KernelPaths.FORCE_FAST_CHARGE, "USB Fast Charge Check") != null
     }
 
     suspend fun getForceFastCharge(): Boolean {
-        val value = readFileToString(forceFastChargePath, "USB Fast Charge Status")
+        val value = readFileToString(KernelPaths.FORCE_FAST_CHARGE, "USB Fast Charge Status")
         return value?.trim() == "1"
     }
 
     suspend fun setForceFastCharge(enabled: Boolean): Boolean {
         val value = if (enabled) "1" else "0"
-        return writeStringToFile(forceFastChargePath, value, "USB Fast Charge")
+        return writeStringToFile(KernelPaths.FORCE_FAST_CHARGE, value, "USB Fast Charge")
     }
 
     // Background App Blocker functions
     private suspend fun getAvailableBgBlocklistPath(): String? {
-        val paths = listOf(
-            "/sys/kernel/n0kz_attributes/bg_blocklist",
-            "/sys/kernel/e404/bg_blocklist"
-        )
-        for (path in paths) {
+        for (path in KernelPaths.BG_BLOCKLIST) {
             if (File(path).exists()) return path
         }
-        for (path in paths) {
+        for (path in KernelPaths.BG_BLOCKLIST) {
             if (readFileToString(path, "Background Blocker Check", true) != null) return path
         }
         return null
@@ -1435,12 +1413,7 @@ class SystemRepository @Inject constructor(
 
     // GPU Throttling functions
     private fun getGpuThrottlingPath(): String? {
-        val paths = listOf(
-            "/sys/class/kgsl/kgsl-3d0/throttling",
-            "/sys/class/kgsl/kgsl-3d0/devfreq/throttling",
-            "/sys/kernel/gpu/gpu_throttling"
-        )
-        return paths.find { File(it).exists() }
+        return KernelPaths.GPU_THROTTLING.find { File(it).exists() }
     }
 
     private suspend fun getGpuThrottlingStatus(): Boolean? {
