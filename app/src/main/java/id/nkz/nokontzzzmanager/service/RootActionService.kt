@@ -50,7 +50,7 @@ class RootActionService : Service() {
             var success = false
             when (action) {
                 ACTION_TOGGLE_KGSL -> {
-                    val currentState = preferenceManager.getKgslSkipZeroing()
+                    val currentState = systemRepository.getKgslSkipZeroing()
                     val newState = !currentState
                     success = systemRepository.setKgslSkipZeroing(newState)
                     if (success) {
@@ -58,7 +58,7 @@ class RootActionService : Service() {
                     }
                 }
                 ACTION_TOGGLE_BYPASS_CHARGING -> {
-                    val currentState = preferenceManager.getBypassCharging()
+                    val currentState = systemRepository.getBypassCharging()
                     val newState = !currentState
                     success = systemRepository.setBypassCharging(newState)
                     if (success) {

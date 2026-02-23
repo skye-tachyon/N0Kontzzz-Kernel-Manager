@@ -1254,7 +1254,11 @@ class SystemRepository @Inject constructor(
         val path = getAvailableKgslPath()
         if (path != null) {
             val value = if (enabled) "1" else "0"
-            return writeStringToFile(path, value, "KGSL Skip Pool Zeroing")
+            val success = writeStringToFile(path, value, "KGSL Skip Pool Zeroing")
+            if (success) {
+                val actualValue = readFileToString(path, "KGSL Verification")
+                return parseKgslSkipZeroingValue(actualValue) == enabled
+            }
         }
         return false
     }
@@ -1329,7 +1333,13 @@ class SystemRepository @Inject constructor(
 
     suspend fun setBypassCharging(enabled: Boolean): Boolean {
         val value = if (enabled) "1" else "0"
-        return writeStringToFile(KernelPaths.BYPASS_CHARGING, value, "Bypass Charging")
+        val success = writeStringToFile(KernelPaths.BYPASS_CHARGING, value, "Bypass Charging")
+        if (success) {
+            // Verify if the value was actually applied
+            val actualValue = readFileToString(KernelPaths.BYPASS_CHARGING, "Bypass Charging Verification")
+            return actualValue?.trim() == value
+        }
+        return false
     }
 
     suspend fun isForceFastChargeAvailable(): Boolean {

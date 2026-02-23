@@ -727,4 +727,10 @@
     <string name="bg_blocker_max_chars">Daftar blokir terlalu panjang (maksimal 255 karakter)</string>
     <string name="bg_blocker_limit_reached">Batas aplikasi tercapai (maksimal 16 aplikasi)</string>
     <string name="bg_blocker_char_limit_exceeded">Menambah aplikasi ini akan melebihi batas karakter kernel</string>
+
+    <!-- QS Tiles -->
+    <string name="tile_bypass_charging">Bypass Charging</string>
+    <string name="tile_kgsl_skip_zeroing">KGSL Skip Zeroing</string>
+    <string name="status_active">Aktif</string>
+    <string name="status_inactive">Nonaktif</string>
 </resources>

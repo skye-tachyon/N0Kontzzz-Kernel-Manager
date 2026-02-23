@@ -24,6 +24,9 @@ class BypassChargingTileService : TileService() {
     @Inject
     lateinit var tileUpdateManager: TileUpdateManager
 
+    @Inject
+    lateinit var systemRepository: SystemRepository
+
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var collectorJob: Job? = null
 
@@ -57,10 +60,16 @@ class BypassChargingTileService : TileService() {
     }
 
     fun updateTile() {
-        val isEnabled = preferenceManager.getBypassCharging()
-        qsTile.state = if (isEnabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
-        qsTile.label = "Bypass Charging"
-        qsTile.subtitle = if (isEnabled) "Active" else "Inactive"
-        qsTile.updateTile()
+        serviceScope.launch {
+            val isEnabled = systemRepository.getBypassCharging()
+            qsTile.apply {
+                state = if (isEnabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
+                label = getString(R.string.tile_bypass_charging)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    subtitle = if (isEnabled) getString(R.string.status_active) else getString(R.string.status_inactive)
+                }
+                updateTile()
+            }
+        }
     }
 }
