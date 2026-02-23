@@ -68,8 +68,8 @@ class BatteryMonitorRepository @Inject constructor(
         val onHours = totalScreenOnMs / 3_600_000.0
         val offHours = totalScreenOffMs / 3_600_000.0
         
-        val activeRate = if (onHours > 0) (savedOnDrop / onHours).toFloat() else 0f
-        val idleRate = if (offHours > 0) (savedOffDrop / offHours).toFloat() else 0f
+        val activeRate = if (onHours > 0) (savedOnDrop / onHours).toFloat().coerceAtLeast(0f) else 0f
+        val idleRate = if (offHours > 0) (savedOffDrop / offHours).toFloat().coerceAtLeast(0f) else 0f
         
         return BatteryMonitorStats(
             screenOnMs = totalScreenOnMs,
@@ -78,8 +78,8 @@ class BatteryMonitorRepository @Inject constructor(
             deepSleepMs = totalDeepSleepMs,
             activeDrainRate = activeRate,
             idleDrainRate = idleRate,
-            activeDrainPct = savedOnDrop.toFloat(),
-            idleDrainPct = savedOffDrop.toFloat(),
+            activeDrainPct = savedOnDrop.toFloat().coerceAtLeast(0f),
+            idleDrainPct = savedOffDrop.toFloat().coerceAtLeast(0f),
             lastUpdateTime = if (isReboot) lastElapsed else now
         )
     }

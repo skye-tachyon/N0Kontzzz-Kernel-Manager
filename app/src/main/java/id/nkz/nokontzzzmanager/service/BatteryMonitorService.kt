@@ -357,16 +357,16 @@ class BatteryMonitorService : Service() {
         val currentCharge = bm.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
 
         // Attribute consumption since last sample to previous interactive state
-        if (lastSampleElapsedMs != 0L) {
+        if (!charging && lastSampleElapsedMs != 0L) {
             val dt = nowElapsed - lastSampleElapsedMs
             if (dt > 0) {
-                val deltaUah = (lastSampleChargeUah - currentCharge).coerceAtLeast(0L)
+                val deltaUah = (lastSampleChargeUah - currentCharge)
                 val prev = prevInteractiveForSample ?: interactive
                 if (prev) consumedOnUah += deltaUah else consumedOffUah += deltaUah
                 // Also accumulate percent drop
                 val currentPercent = computeCurrentBatteryPercent(level, currentCharge)
                 if (!lastSamplePercent.isNaN()) {
-                    val dPct = (lastSamplePercent - currentPercent).coerceAtLeast(0.0)
+                    val dPct = (lastSamplePercent - currentPercent)
                     if (prev) onPercentDrop += dPct else offPercentDrop += dPct
                 }
                 lastSamplePercent = currentPercent
@@ -443,8 +443,8 @@ class BatteryMonitorService : Service() {
         // Compute drain strings from cumulative consumption/time
         val onHours = currentScreenOnMs / 3_600_000.0
         val offHours = screenOffMs / 3_600_000.0
-        val activeRate = if (onHours > 0) (onPercentDrop / onHours) else 0.0
-        val idleRate = if (offHours > 0) (offPercentDrop / offHours) else 0.0
+        val activeRate = if (onHours > 0) (onPercentDrop / onHours).coerceAtLeast(0.0) else 0.0
+        val idleRate = if (offHours > 0) (offPercentDrop / offHours).coerceAtLeast(0.0) else 0.0
         val activeDrainStr = if (onPercentDrop <= 0.0 || onHours <= 0.0 || currentScreenOnMs < 60_000L) {
             "0% /hr"
         } else {
