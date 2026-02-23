@@ -42,8 +42,8 @@ import id.nkz.nokontzzzmanager.ui.dialog.RootRequiredDialog
 import id.nkz.nokontzzzmanager.ui.dialog.BatteryOptDialog
 import id.nkz.nokontzzzmanager.ui.screens.*
 import id.nkz.nokontzzzmanager.ui.theme.RvKernelManagerTheme
-import id.nkz.nokontzzzmanager.util.ThemeManager
-import id.nkz.nokontzzzmanager.util.BatteryOptimizationChecker
+import id.nkz.nokontzzzmanager.utils.ThemeManager
+import id.nkz.nokontzzzmanager.utils.BatteryOptimizationChecker
 import id.nkz.nokontzzzmanager.ui.components.UnifiedTopAppBar
 import javax.inject.Inject
 import androidx.compose.ui.input.nestedscroll.nestedScroll

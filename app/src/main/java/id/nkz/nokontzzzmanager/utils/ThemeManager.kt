@@ -2,7 +2,7 @@
  * Copyright (c) 2025 Rve <rve27github @gmail.com>
  * All Rights Reserved.
  */
-package id.nkz.nokontzzzmanager.util
+package id.nkz.nokontzzzmanager.utils
 
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate

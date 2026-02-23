@@ -7,7 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import id.nkz.nokontzzzmanager.service.BatteryMonitorService
 import id.nkz.nokontzzzmanager.ui.theme.ThemeMode
-import id.nkz.nokontzzzmanager.util.ThemeManager
+import id.nkz.nokontzzzmanager.utils.ThemeManager
 import id.nkz.nokontzzzmanager.utils.PreferenceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

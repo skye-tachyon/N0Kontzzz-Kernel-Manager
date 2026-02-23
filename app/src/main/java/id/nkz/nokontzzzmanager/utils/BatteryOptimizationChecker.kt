@@ -1,4 +1,4 @@
-package id.nkz.nokontzzzmanager.util
+package id.nkz.nokontzzzmanager.utils
 
 import android.Manifest
 import android.annotation.SuppressLint

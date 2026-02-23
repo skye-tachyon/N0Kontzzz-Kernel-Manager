@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import id.nkz.nokontzzzmanager.data.repository.RootRepository
-import id.nkz.nokontzzzmanager.util.ThemeManager
+import id.nkz.nokontzzzmanager.utils.ThemeManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

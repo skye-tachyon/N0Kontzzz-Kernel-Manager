@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import id.nkz.nokontzzzmanager.util.ThemeManager
+import id.nkz.nokontzzzmanager.utils.ThemeManager
 
 private val AMOLED_BLACK = Color(0xFF000000)
 
