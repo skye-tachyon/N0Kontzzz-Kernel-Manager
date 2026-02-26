@@ -61,7 +61,7 @@ class BatteryMonitorService : Service() {
     private var batteryManager: BatteryManager? = null
     private var serviceStartedAtMs: Long = 0L
 
-    private val channelId = "battery_monitor_channel"
+    private val channelId = "battery_monitor_channel_v2"
     private val notificationId = 1001
 
     private var lastUpdate = System.currentTimeMillis()
@@ -961,6 +961,10 @@ class BatteryMonitorService : Service() {
             .setWhen(if (serviceStartedAtMs != 0L) serviceStartedAtMs else System.currentTimeMillis())
             .setOngoing(true)
             .setSilent(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
         when (iconStyle) {
             PreferenceManager.ICON_STYLE_BATTERY_PERCENT -> {
@@ -978,12 +982,19 @@ class BatteryMonitorService : Service() {
     }
 
     private fun createNotificationChannel() {
+        // Cleanup old channel
+        try {
+            notificationManager.deleteNotificationChannel("battery_monitor_channel")
+        } catch (_: Exception) {}
+
         val channel = NotificationChannel(
             channelId,
             "Battery Monitor",
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_DEFAULT
         )
         channel.description = "Menampilkan status baterai realtime"
+        channel.setSound(null, null)
+        channel.enableVibration(false)
         notificationManager.createNotificationChannel(channel)
     }
 
