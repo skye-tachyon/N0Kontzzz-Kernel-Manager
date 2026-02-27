@@ -46,7 +46,8 @@ class MainViewModel @Inject constructor(
             if (versionLine.isNotBlank()) {
                 // Special check for E404R kernel (keep it here because special case)
                 if (versionLine.contains("4.19.404R", ignoreCase = true) &&
-                    versionLine.contains("vyn@zorin", ignoreCase = true)) {
+                    (versionLine.contains("vyn@zorin", ignoreCase = true) ||
+                     versionLine.contains("build-user@build-host", ignoreCase = true))) {
                     return true
                 }
 
