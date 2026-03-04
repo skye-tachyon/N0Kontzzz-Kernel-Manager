@@ -449,7 +449,7 @@ fun NetworkStorageOnBootCard(
                     modifier = Modifier
                         .size(42.dp)
                         .background(
-                            color = if (applyOnBoot) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            color = MaterialTheme.colorScheme.primaryContainer,
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -457,7 +457,7 @@ fun NetworkStorageOnBootCard(
                     Icon(
                         imageVector = Icons.Default.Save,
                         contentDescription = null,
-                        tint = if (applyOnBoot) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(20.dp)
                     )
                 }
