@@ -739,4 +739,6 @@
     <!-- FPS Meter & Benchmarking -->
     <string name="fps_monitor_title">FPS Meter &amp; Benchmarking</string>
     <string name="fps_monitor_desc">Overlay FPS realtime dan benchmarking performa untuk game</string>
+    <string name="fps_permission_warning">Izin overlay diperlukan untuk menampilkan metrik FPS di atas game.</string>
+    <string name="grant_permission">Berikan Izin</string>
 </resources>

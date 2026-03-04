@@ -740,4 +740,6 @@
     <!-- FPS Meter & Benchmarking -->
     <string name="fps_monitor_title">FPS Meter &amp; Benchmarking</string>
     <string name="fps_monitor_desc">Real-time FPS overlay and performance benchmarking for games</string>
+    <string name="fps_permission_warning">Overlay permission is required to display FPS metrics over games.</string>
+    <string name="grant_permission">Grant Permission</string>
 </resources>
