@@ -93,6 +93,11 @@ class FpsOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedS
     }
 
     private fun showOverlay() {
+        if (!android.provider.Settings.canDrawOverlays(this)) {
+            stopSelf()
+            return
+        }
+
         composeView = ComposeView(this).apply {
             setViewTreeLifecycleOwner(this@FpsOverlayService)
             setViewTreeViewModelStoreOwner(this@FpsOverlayService)
@@ -130,7 +135,12 @@ class FpsOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedS
             y = 100
         }
 
-        windowManager?.addView(composeView, params)
+        try {
+            windowManager?.addView(composeView, params)
+        } catch (e: Exception) {
+            android.util.Log.e("FpsOverlay", "Error adding overlay view", e)
+            stopSelf()
+        }
     }
 
     private fun toggleBenchmarking() {

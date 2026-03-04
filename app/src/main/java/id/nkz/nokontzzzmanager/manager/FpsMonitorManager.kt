@@ -145,12 +145,17 @@ class FpsMonitorManager @Inject constructor(
 
     private suspend fun getActiveLayerName(packageName: String): String? {
         return try {
-            // Find SurfaceFlinger layer that matches package name and contains SurfaceView or BLAST
+            // Find SurfaceFlinger layer that matches package name
             val output = rootRepository.run("dumpsys SurfaceFlinger --list")
             
-            output.lines().firstOrNull { 
-                it.contains(packageName) && (it.contains("SurfaceView") || it.contains("BLAST")) 
-            } ?: output.lines().firstOrNull { it.contains(packageName) }
+            val lines = output.lines()
+            
+            // Priority 1: SurfaceView for games (most accurate for FPS)
+            lines.firstOrNull { it.contains(packageName) && it.contains("SurfaceView", ignoreCase = true) }
+            // Priority 2: BLAST BufferQueue (Android 12+)
+            ?: lines.firstOrNull { it.contains(packageName) && it.contains("BLAST", ignoreCase = true) }
+            // Priority 3: Any layer containing the package name
+            ?: lines.firstOrNull { it.contains(packageName) }
         } catch (e: Exception) {
             null
         }
