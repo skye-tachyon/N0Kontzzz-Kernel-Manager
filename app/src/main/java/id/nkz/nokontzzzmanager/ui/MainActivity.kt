@@ -199,6 +199,7 @@ class MainActivity : ComponentActivity() {
                     "permission_manager" -> stringResource(id = R.string.permission_manager_title)
                     "dexopt" -> stringResource(id = R.string.dexopt_title)
                     "kernel_log" -> stringResource(id = R.string.kernel_log_title)
+                    "fps_monitor" -> stringResource(id = R.string.fps_monitor_title)
                     else -> stringResource(id = R.string.n0kz_kernel_manager) // Default title for home, tuning, misc
                 }
 
@@ -600,6 +601,23 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             KernelLogScreen(navController = navController, viewModel = viewModel)
+                        }
+                        composable(
+                            "fps_monitor",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                            FpsMonitorScreen(navController = navController)
                         }
                     }
                 }

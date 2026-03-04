@@ -108,4 +108,28 @@ object AppModule {
     ): id.nkz.nokontzzzmanager.data.repository.CustomTunableRepository {
         return id.nkz.nokontzzzmanager.data.repository.CustomTunableRepository(dao, rootRepository)
     }
+
+    @Provides
+    @Singleton
+    fun provideGameDao(database: id.nkz.nokontzzzmanager.data.database.BatteryHistoryDatabase): id.nkz.nokontzzzmanager.data.database.GameDao {
+        return database.gameDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideGameRepository(dao: id.nkz.nokontzzzmanager.data.database.GameDao): id.nkz.nokontzzzmanager.data.repository.GameRepository {
+        return id.nkz.nokontzzzmanager.data.repository.GameRepository(dao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBenchmarkDao(database: id.nkz.nokontzzzmanager.data.database.BatteryHistoryDatabase): id.nkz.nokontzzzmanager.data.database.BenchmarkDao {
+        return database.benchmarkDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideBenchmarkRepository(dao: id.nkz.nokontzzzmanager.data.database.BenchmarkDao): id.nkz.nokontzzzmanager.data.repository.BenchmarkRepository {
+        return id.nkz.nokontzzzmanager.data.repository.BenchmarkRepository(dao)
+    }
 }

@@ -36,6 +36,12 @@ class AppMonitorService : Service() {
 
     @Inject
     lateinit var preferenceManager: PreferenceManager
+
+    @Inject
+    lateinit var gameRepository: id.nkz.nokontzzzmanager.data.repository.GameRepository
+
+    @Inject
+    lateinit var fpsMonitorManager: id.nkz.nokontzzzmanager.manager.FpsMonitorManager
     
     // Raw shared prefs removed as we now use PreferenceManager
 
@@ -127,6 +133,28 @@ class AppMonitorService : Service() {
                 isProfileApplied = false
             }
         }
+
+        // Handle FPS Overlay for games
+        val game = gameRepository.getGameByPackageName(packageName).first()
+        if (game != null && game.isBenchmarkEnabled) {
+            startFpsOverlay(packageName)
+        } else {
+            stopFpsOverlay()
+        }
+    }
+
+    private fun startFpsOverlay(packageName: String) {
+        serviceScope.launch {
+            fpsMonitorManager.startMonitoring(packageName)
+        }
+        val intent = Intent(this, FpsOverlayService::class.java)
+        startService(intent)
+    }
+
+    private fun stopFpsOverlay() {
+        fpsMonitorManager.stopMonitoring()
+        val intent = Intent(this, FpsOverlayService::class.java)
+        stopService(intent)
     }
 
     private suspend fun applyProfile(profile: AppProfileEntity) {

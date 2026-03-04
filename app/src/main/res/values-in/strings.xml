@@ -733,4 +733,8 @@
     <string name="tile_kgsl_skip_zeroing">KGSL Skip Zeroing</string>
     <string name="status_active">Aktif</string>
     <string name="status_inactive">Nonaktif</string>
+
+    <!-- FPS Meter & Benchmarking -->
+    <string name="fps_monitor_title">FPS Meter &amp; Benchmarking</string>
+    <string name="fps_monitor_desc">Overlay FPS realtime dan benchmarking performa untuk game</string>
 </resources>
