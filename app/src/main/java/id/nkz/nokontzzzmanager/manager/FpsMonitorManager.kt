@@ -175,6 +175,15 @@ class FpsMonitorManager @Inject constructor(
         try {
             val refreshPeriodNs = lines.firstOrNull()?.toLongOrNull() ?: return
             
+            // VRR Compensation: Calculate dynamic refresh rate from SurfaceFlinger's actual refresh period
+            val dynamicRefreshRate = if (refreshPeriodNs > 0) {
+                1_000_000_000f / refreshPeriodNs.toFloat()
+            } else {
+                refreshRate // Fallback to baseline
+            }
+            
+            val expectedFrameTimeMs = refreshPeriodNs / 1_000_000f
+
             val frameTimes = mutableListOf<Float>()
             var janks = 0
 
@@ -198,11 +207,12 @@ class FpsMonitorManager @Inject constructor(
                             recordedFrameTimes.add(frameTimeMs)
                         }
                         
-                        if (frameTimeMs > (1000f / refreshRate) * 1.5f) {
+                        // Jank is determined based on the dynamic expected frame time
+                        if (frameTimeMs > expectedFrameTimeMs * 1.5f) {
                             janks++
                             if (isBenchmarking) totalJankCount++
                             
-                            if (frameTimeMs > (1000f / refreshRate) * 3f) {
+                            if (frameTimeMs > expectedFrameTimeMs * 3f) {
                                 if (isBenchmarking) totalBigJankCount++
                             }
                         }
@@ -221,9 +231,9 @@ class FpsMonitorManager @Inject constructor(
                 val fps01Low = 1000f / (frameTimes[top01PercentIndex].coerceAtLeast(1f))
 
                 _fpsData.value = _fpsData.value.copy(
-                    currentFps = fps.coerceAtMost(refreshRate),
-                    fps1Low = fps1Low.coerceAtMost(refreshRate),
-                    fps01Low = fps01Low.coerceAtMost(refreshRate),
+                    currentFps = fps.coerceAtMost(dynamicRefreshRate),
+                    fps1Low = fps1Low.coerceAtMost(dynamicRefreshRate),
+                    fps01Low = fps01Low.coerceAtMost(dynamicRefreshRate),
                     frameTimeMs = frameTimes.average().toFloat(),
                     jankCount = janks
                 )
