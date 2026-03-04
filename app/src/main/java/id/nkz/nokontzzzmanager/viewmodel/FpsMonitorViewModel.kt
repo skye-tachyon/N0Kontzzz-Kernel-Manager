@@ -5,7 +5,9 @@ import android.content.pm.ApplicationInfo
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.nkz.nokontzzzmanager.data.database.BenchmarkEntity
 import id.nkz.nokontzzzmanager.data.database.GameEntity
+import id.nkz.nokontzzzmanager.data.repository.BenchmarkRepository
 import id.nkz.nokontzzzmanager.data.repository.GameRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,10 +22,14 @@ import javax.inject.Inject
 @HiltViewModel
 class FpsMonitorViewModel @Inject constructor(
     private val application: Application,
-    private val gameRepository: GameRepository
+    private val gameRepository: GameRepository,
+    private val benchmarkRepository: BenchmarkRepository
 ) : AndroidViewModel(application) {
 
     val games: StateFlow<List<GameEntity>> = gameRepository.getAllGames()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val benchmarks: StateFlow<List<BenchmarkEntity>> = benchmarkRepository.getAllBenchmarks()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private var allApps: List<AppInfo> = emptyList()
@@ -103,6 +109,12 @@ class FpsMonitorViewModel @Inject constructor(
     fun toggleBenchmark(game: GameEntity, enabled: Boolean) {
         viewModelScope.launch {
             gameRepository.insertGame(game.copy(isBenchmarkEnabled = enabled))
+        }
+    }
+
+    fun deleteBenchmark(benchmark: BenchmarkEntity) {
+        viewModelScope.launch {
+            benchmarkRepository.deleteBenchmark(benchmark)
         }
     }
 }

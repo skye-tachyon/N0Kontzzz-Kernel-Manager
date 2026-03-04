@@ -16,7 +16,10 @@ data class FpsData(
     val fps01Low: Float = 0f,
     val frameTimeMs: Float = 0f,
     val jankCount: Int = 0,
-    val isTracking: Boolean = false
+    val isTracking: Boolean = false,
+    val isBenchmarking: Boolean = false,
+    val benchmarkStartTime: Long = 0L,
+    val currentBenchmarkDuration: Long = 0L
 )
 
 @Singleton
@@ -28,6 +31,13 @@ class FpsMonitorManager @Inject constructor(
 
     private var isMonitoring = false
     private var currentPackageName: String? = null
+    
+    // Benchmarking data
+    private var isBenchmarking = false
+    private var benchmarkStartTime = 0L
+    private val recordedFrameTimes = mutableListOf<Float>()
+    private var totalJankCount = 0
+    private var totalBigJankCount = 0
     
     // Baseline refresh rate info
     private var refreshRate = 60f
@@ -47,15 +57,81 @@ class FpsMonitorManager @Inject constructor(
                     val latencyData = getSurfaceFlingerLatency(layerName)
                     processLatencyData(latencyData)
                 }
+                
+                if (isBenchmarking) {
+                    _fpsData.value = _fpsData.value.copy(
+                        currentBenchmarkDuration = System.currentTimeMillis() - benchmarkStartTime
+                    )
+                }
+                
                 delay(1000) // update every second
             }
         }
     }
 
     fun stopMonitoring() {
+        if (isBenchmarking) stopBenchmarking()
         isMonitoring = false
         currentPackageName = null
         _fpsData.value = _fpsData.value.copy(isTracking = false, currentFps = 0f, fps1Low = 0f, fps01Low = 0f)
+    }
+
+    fun startBenchmarking() {
+        if (isBenchmarking || !isMonitoring) return
+        isBenchmarking = true
+        benchmarkStartTime = System.currentTimeMillis()
+        recordedFrameTimes.clear()
+        totalJankCount = 0
+        totalBigJankCount = 0
+        _fpsData.value = _fpsData.value.copy(
+            isBenchmarking = true,
+            benchmarkStartTime = benchmarkStartTime,
+            currentBenchmarkDuration = 0L
+        )
+    }
+
+    data class BenchmarkResult(
+        val packageName: String,
+        val startTime: Long,
+        val durationMs: Long,
+        val avgFps: Float,
+        val fps1Low: Float,
+        val fps01Low: Float,
+        val jankCount: Int,
+        val bigJankCount: Int,
+        val frameTimes: List<Float>
+    )
+
+    fun stopBenchmarking(): BenchmarkResult? {
+        if (!isBenchmarking) return null
+        
+        val durationMs = System.currentTimeMillis() - benchmarkStartTime
+        isBenchmarking = false
+        _fpsData.value = _fpsData.value.copy(isBenchmarking = false)
+        
+        if (recordedFrameTimes.isEmpty()) return null
+
+        val avgFrameTime = recordedFrameTimes.average().toFloat()
+        val avgFps = 1000f / avgFrameTime
+        
+        val sorted = recordedFrameTimes.sortedDescending()
+        val p1Index = (sorted.size * 0.01).toInt().coerceAtMost(sorted.size - 1)
+        val p01Index = (sorted.size * 0.001).toInt().coerceAtMost(sorted.size - 1)
+        
+        val fps1Low = 1000f / sorted[p1Index].coerceAtLeast(1f)
+        val fps01Low = 1000f / sorted[p01Index].coerceAtLeast(1f)
+
+        return BenchmarkResult(
+            packageName = currentPackageName ?: "unknown",
+            startTime = benchmarkStartTime,
+            durationMs = durationMs,
+            avgFps = avgFps.coerceAtMost(refreshRate),
+            fps1Low = fps1Low.coerceAtMost(refreshRate),
+            fps01Low = fps01Low.coerceAtMost(refreshRate),
+            jankCount = totalJankCount,
+            bigJankCount = totalBigJankCount,
+            frameTimes = recordedFrameTimes.toList()
+        )
     }
 
     private suspend fun getRefreshRate(): Float {
@@ -118,8 +194,17 @@ class FpsMonitorManager @Inject constructor(
                     
                     if (frameTimeMs > 0 && frameTimeMs < 1000) { // sanity check
                         frameTimes.add(frameTimeMs)
+                        if (isBenchmarking) {
+                            recordedFrameTimes.add(frameTimeMs)
+                        }
+                        
                         if (frameTimeMs > (1000f / refreshRate) * 1.5f) {
                             janks++
+                            if (isBenchmarking) totalJankCount++
+                            
+                            if (frameTimeMs > (1000f / refreshRate) * 3f) {
+                                if (isBenchmarking) totalBigJankCount++
+                            }
                         }
                     }
                 }
