@@ -137,7 +137,7 @@ class FpsMonitorManager @Inject constructor(
     private suspend fun getRefreshRate(): Float {
         return try {
             val result = rootRepository.run("dumpsys display | grep -i 'fps=' | grep -E -o '[0-9]+.[0-9]+'")
-            result.getOrNull()?.trim()?.toFloatOrNull() ?: 60f
+            result.trim().split("\n").firstOrNull()?.toFloatOrNull() ?: 60f
         } catch (e: Exception) {
             60f
         }
@@ -146,8 +146,7 @@ class FpsMonitorManager @Inject constructor(
     private suspend fun getActiveLayerName(packageName: String): String? {
         return try {
             // Find SurfaceFlinger layer that matches package name and contains SurfaceView or BLAST
-            val result = rootRepository.run("dumpsys SurfaceFlinger --list")
-            val output = result.getOrNull() ?: return null
+            val output = rootRepository.run("dumpsys SurfaceFlinger --list")
             
             output.lines().firstOrNull { 
                 it.contains(packageName) && (it.contains("SurfaceView") || it.contains("BLAST")) 
@@ -159,8 +158,7 @@ class FpsMonitorManager @Inject constructor(
 
     private suspend fun getSurfaceFlingerLatency(layerName: String): String {
         return try {
-            val result = rootRepository.run("dumpsys SurfaceFlinger --latency \"$layerName\"")
-            result.getOrNull() ?: ""
+            rootRepository.run("dumpsys SurfaceFlinger --latency \"$layerName\"")
         } catch (e: Exception) {
             ""
         }

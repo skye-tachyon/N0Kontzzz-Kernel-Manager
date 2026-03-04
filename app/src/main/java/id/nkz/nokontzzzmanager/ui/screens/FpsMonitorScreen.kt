@@ -146,8 +146,8 @@ fun FpsMonitorScreen(
                             }
                             BenchmarkItem(
                                 benchmark = benchmark,
-                                onClick = { selectedBenchmark = it },
-                                onDelete = { viewModel.deleteBenchmark(it) },
+                                onClick = { selectedBenchmark = benchmark },
+                                onDelete = { viewModel.deleteBenchmark(benchmark) },
                                 cardShape = shape
                             )
                         }
