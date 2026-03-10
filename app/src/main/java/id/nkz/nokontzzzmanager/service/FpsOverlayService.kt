@@ -215,7 +215,15 @@ class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewMode
                 fps01Low = result.fps01Low,
                 jankCount = result.jankCount,
                 bigJankCount = result.bigJankCount,
-                frameTimeDataJson = Json.encodeToString(result.frameTimes)
+                avgCpuUsage = result.avgCpuUsage,
+                avgGpuUsage = result.avgGpuUsage,
+                avgTemp = result.avgTemp,
+                frameTimeDataJson = Json.encodeToString(result.frameTimes),
+                cpuUsageDataJson = Json.encodeToString(result.cpuUsageHistory),
+                gpuUsageDataJson = Json.encodeToString(result.gpuUsageHistory),
+                tempDataJson = Json.encodeToString(result.tempHistory),
+                cpuTempDataJson = Json.encodeToString(result.cpuTempHistory),
+                gpuFreqDataJson = Json.encodeToString(result.gpuFreqHistory)
             )
             benchmarkRepository.insertBenchmark(entity)
         }

@@ -200,7 +200,11 @@ class MainActivity : ComponentActivity() {
                     "dexopt" -> stringResource(id = R.string.dexopt_title)
                     "kernel_log" -> stringResource(id = R.string.kernel_log_title)
                     "fps_monitor" -> stringResource(id = R.string.fps_monitor_title)
-                    else -> stringResource(id = R.string.n0kz_kernel_manager) // Default title for home, tuning, misc
+                    else -> if (currentRoute?.startsWith("benchmark_detail/") == true) {
+                        stringResource(id = R.string.benchmark_result)
+                    } else {
+                        stringResource(id = R.string.n0kz_kernel_manager)
+                    }
                 }
 
                 val showSettingsIcon = when (currentRoute) {
@@ -618,6 +622,28 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             FpsMonitorScreen(navController = navController)
+                        }
+                        composable(
+                            "benchmark_detail/{benchmarkId}",
+                            arguments = listOf(
+                                androidx.navigation.navArgument("benchmarkId") {
+                                    type = androidx.navigation.NavType.LongType
+                                }
+                            ),
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                            BenchmarkDetailScreen(navController = navController)
                         }
                     }
                 }

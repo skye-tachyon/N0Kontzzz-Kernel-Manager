@@ -742,4 +742,33 @@
     <string name="fps_monitor_desc">Real-time FPS overlay and performance benchmarking for games</string>
     <string name="fps_permission_warning">Overlay permission is required to display FPS metrics over games.</string>
     <string name="grant_permission">Grant Permission</string>
+    <string name="fps_games_tab">Games</string>
+    <string name="fps_history_tab">History</string>
+    <string name="fps_add_game">Add Game</string>
+    <string name="fps_no_games">No games added. Tap + to add your first game.</string>
+    <string name="fps_no_history">No benchmarking history available.</string>
+    <string name="fps_benchmarking_active">Benchmarking Active</string>
+    <string name="fps_stop_benchmark">Stop Benchmark</string>
+    <string name="fps_start_benchmark">Start Benchmark</string>
+    
+    <!-- Benchmark Detail -->
+    <string name="benchmark_result">Benchmark Result</string>
+    <string name="benchmark_avg_fps">Avg FPS</string>
+    <string name="benchmark_1low_fps">1% Low</string>
+    <string name="benchmark_01low_fps">0.1% Low</string>
+    <string name="benchmark_avg_cpu">Avg CPU</string>
+    <string name="benchmark_avg_gpu">Avg GPU</string>
+    <string name="benchmark_avg_temp">Avg Temp</string>
+    <string name="benchmark_duration">Duration</string>
+    <string name="benchmark_janks">Janks</string>
+    <string name="benchmark_big_janks">Big Janks</string>
+    <string name="benchmark_fps_stability">FPS Stability</string>
+    <string name="benchmark_frame_time">Frame Time Jitter</string>
+    <string name="benchmark_cpu_usage">CPU Usage</string>
+    <string name="benchmark_cpu_temp">CPU Temperature</string>
+    <string name="benchmark_gpu_usage">GPU Usage</string>
+    <string name="benchmark_gpu_freq">GPU Frequency</string>
+    <string name="benchmark_battery_temp">Battery Temperature</string>
+    <string name="benchmark_no_data">No data recorded</string>
+    <string name="benchmark_delete_confirm">Delete this benchmark record?</string>
 </resources>

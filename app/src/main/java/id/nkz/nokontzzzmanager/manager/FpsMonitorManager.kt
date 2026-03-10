@@ -22,7 +22,8 @@ data class FpsData(
 
 @Singleton
 class FpsMonitorManager @Inject constructor(
-    private val rootRepository: RootRepository
+    private val rootRepository: RootRepository,
+    private val systemRepository: id.nkz.nokontzzzmanager.data.repository.SystemRepository
 ) {
     private val _fpsData = MutableStateFlow(FpsData())
     val fpsData: StateFlow<FpsData> = _fpsData
@@ -36,6 +37,11 @@ class FpsMonitorManager @Inject constructor(
     private var isBenchmarking = false
     private var benchmarkStartTime = 0L
     private val recordedFrameTimes = mutableListOf<Float>()
+    private val recordedCpuUsage = mutableListOf<Float>()
+    private val recordedGpuUsage = mutableListOf<Float>()
+    private val recordedTemp = mutableListOf<Float>()
+    private val recordedCpuTemp = mutableListOf<Float>()
+    private val recordedGpuFreq = mutableListOf<Int>()
     private var totalJankCount = 0
     private var totalBigJankCount = 0
     
@@ -66,6 +72,28 @@ class FpsMonitorManager @Inject constructor(
             var allCandidates = listOf<String>()
             var layerValidated = false
             var currentLayerFailureCount = 0
+            
+            // Secondary job for polling system metrics (CPU, GPU, Temp) during benchmarking
+            val metricsJob = launch {
+                while (isActive) {
+                    if (isBenchmarking) {
+                        try {
+                            val cpuInfo = systemRepository.getCpuRealtime()
+                            val gpuInfo = systemRepository.getGpuRealtime()
+                            val batteryInfo = systemRepository.getBatteryInfo()
+                            
+                            recordedCpuUsage.add(cpuInfo.cpuLoadPercentage ?: 0f)
+                            recordedCpuTemp.add(cpuInfo.temp)
+                            recordedGpuUsage.add(gpuInfo.usagePercentage ?: 0f)
+                            recordedGpuFreq.add(gpuInfo.currentFreq)
+                            recordedTemp.add(batteryInfo.temp)
+                        } catch (e: Exception) {
+                            Log.e("FpsMonitor", "Error polling metrics", e)
+                        }
+                    }
+                    delay(1000)
+                }
+            }
 
             while (isMonitoring && isActive) {
                 // Refresh candidates if we don't have a working layer
@@ -130,6 +158,7 @@ class FpsMonitorManager @Inject constructor(
                 
                 delay(1000) // update every second
             }
+            metricsJob.cancel()
         }
     }
 
@@ -166,7 +195,15 @@ class FpsMonitorManager @Inject constructor(
         val fps01Low: Float,
         val jankCount: Int,
         val bigJankCount: Int,
-        val frameTimes: List<Float>
+        val avgCpuUsage: Float,
+        val avgGpuUsage: Float,
+        val avgTemp: Float,
+        val frameTimes: List<Float>,
+        val cpuUsageHistory: List<Float>,
+        val gpuUsageHistory: List<Float>,
+        val tempHistory: List<Float>,
+        val cpuTempHistory: List<Float>,
+        val gpuFreqHistory: List<Int>
     )
 
     fun stopBenchmarking(): BenchmarkResult? {
@@ -197,7 +234,15 @@ class FpsMonitorManager @Inject constructor(
             fps01Low = fps01Low.coerceAtMost(refreshRate),
             jankCount = totalJankCount,
             bigJankCount = totalBigJankCount,
-            frameTimes = recordedFrameTimes.toList()
+            avgCpuUsage = if (recordedCpuUsage.isNotEmpty()) recordedCpuUsage.average().toFloat() else 0f,
+            avgGpuUsage = if (recordedGpuUsage.isNotEmpty()) recordedGpuUsage.average().toFloat() else 0f,
+            avgTemp = if (recordedTemp.isNotEmpty()) recordedTemp.average().toFloat() else 0f,
+            frameTimes = recordedFrameTimes.toList(),
+            cpuUsageHistory = recordedCpuUsage.toList(),
+            gpuUsageHistory = recordedGpuUsage.toList(),
+            tempHistory = recordedTemp.toList(),
+            cpuTempHistory = recordedCpuTemp.toList(),
+            gpuFreqHistory = recordedGpuFreq.toList()
         )
     }
 

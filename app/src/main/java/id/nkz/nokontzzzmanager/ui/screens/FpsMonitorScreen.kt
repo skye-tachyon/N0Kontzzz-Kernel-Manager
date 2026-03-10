@@ -58,7 +58,7 @@ fun FpsMonitorScreen(
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Games", "History")
+    val tabs = listOf(stringResource(R.string.fps_games_tab), stringResource(R.string.fps_history_tab))
     
     val sheetState = rememberModalBottomSheetState()
     var showAddDialog by remember { mutableStateOf(false) }
@@ -119,7 +119,7 @@ fun FpsMonitorScreen(
                     },
                     modifier = Modifier.size(72.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Game")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.fps_add_game))
                 }
             }
         }
@@ -170,7 +170,11 @@ fun FpsMonitorScreen(
             if (selectedTab == 0) {
                 if (games.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No games registered. Tap + to add one.")
+                        Text(
+                            text = stringResource(R.string.fps_no_games),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(32.dp)
+                        )
                     }
                 } else {
                     LazyColumn(
@@ -196,7 +200,11 @@ fun FpsMonitorScreen(
             } else {
                 if (benchmarks.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No benchmark history yet.")
+                        Text(
+                            text = stringResource(R.string.fps_no_history),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(32.dp)
+                        )
                     }
                 } else {
                     LazyColumn(
@@ -212,7 +220,9 @@ fun FpsMonitorScreen(
                             }
                             BenchmarkItem(
                                 benchmark = benchmark,
-                                onClick = { selectedBenchmark = benchmark },
+                                onClick = { 
+                                    navController.navigate("benchmark_detail/${benchmark.id}")
+                                },
                                 onDelete = { viewModel.deleteBenchmark(benchmark) },
                                 cardShape = shape
                             )

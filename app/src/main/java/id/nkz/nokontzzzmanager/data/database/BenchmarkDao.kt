@@ -14,7 +14,10 @@ interface BenchmarkDao {
     @Query("SELECT * FROM benchmarks WHERE packageName = :packageName ORDER BY timestamp DESC")
     fun getBenchmarksByPackageName(packageName: String): Flow<List<BenchmarkEntity>>
 
-    @Insert
+    @Query("SELECT * FROM benchmarks WHERE id = :id")
+    fun getBenchmarkById(id: Long): Flow<BenchmarkEntity?>
+
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE)
     suspend fun insertBenchmark(benchmark: BenchmarkEntity)
 
     @Delete

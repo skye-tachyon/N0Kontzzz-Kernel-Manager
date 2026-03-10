@@ -12,6 +12,8 @@ class BenchmarkRepository @Inject constructor(
 
     fun getBenchmarksByPackageName(packageName: String): Flow<List<BenchmarkEntity>> = benchmarkDao.getBenchmarksByPackageName(packageName)
 
+    fun getBenchmarkById(id: Long): Flow<BenchmarkEntity?> = benchmarkDao.getBenchmarkById(id)
+
     suspend fun insertBenchmark(benchmark: BenchmarkEntity) {
         benchmarkDao.insertBenchmark(benchmark)
     }

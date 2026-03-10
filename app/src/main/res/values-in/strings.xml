@@ -741,4 +741,34 @@
     <string name="fps_monitor_desc">Overlay FPS realtime dan benchmarking performa untuk game</string>
     <string name="fps_permission_warning">Izin overlay diperlukan untuk menampilkan metrik FPS di atas game.</string>
     <string name="grant_permission">Berikan Izin</string>
+    <string name="fps_games_tab">Game</string>
+    <string name="fps_history_tab">Histori</string>
+    <string name="fps_add_game">Tambah Game</string>
+    <string name="fps_no_games">Belum ada game. Ketuk + untuk menambah game pertama Anda.</string>
+    <string name="fps_no_history">Belum ada histori benchmarking.</string>
+    <string name="fps_benchmarking_active">Benchmarking Aktif</string>
+    <string name="fps_stop_benchmark">Hentikan Benchmark</string>
+    <string name="fps_start_benchmark">Mulai Benchmark</string>
+
+    <!-- Benchmark Detail -->
+    <string name="benchmark_result">Hasil Benchmark</string>
+    <string name="benchmark_avg_fps">Rata-rata FPS</string>
+    <string name="benchmark_1low_fps">1% Low</string>
+    <string name="benchmark_01low_fps">0.1% Low</string>
+    <string name="benchmark_avg_cpu">Rata-rata CPU</string>
+    <string name="benchmark_avg_gpu">Rata-rata GPU</string>
+    <string name="benchmark_avg_temp">Rata-rata Suhu</string>
+    <string name="benchmark_duration">Durasi</string>
+    <string name="benchmark_janks">Jank</string>
+    <string name="benchmark_big_janks">Jank Besar</string>
+    <string name="benchmark_fps_stability">Stabilitas FPS</string>
+    <string name="benchmark_frame_time">Jitter Frame Time</string>
+    <string name="benchmark_cpu_usage">Penggunaan CPU</string>
+    <string name="benchmark_cpu_temp">Suhu CPU</string>
+    <string name="benchmark_gpu_usage">Penggunaan GPU</string>
+    <string name="benchmark_gpu_freq">Frekuensi GPU</string>
+    <string name="benchmark_battery_temp">Suhu Baterai</string>
+    <string name="benchmark_no_data">Tidak ada data tercatat</string>
+    <string name="benchmark_delete_confirm">Hapus rekaman benchmark ini?</string>
+    <string name="backup_file_name" translatable="false">nkm_backup.json</string>
 </resources>
