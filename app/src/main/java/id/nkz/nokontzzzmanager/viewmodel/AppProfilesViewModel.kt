@@ -28,6 +28,8 @@ import id.nkz.nokontzzzmanager.data.repository.SystemRepository
 import id.nkz.nokontzzzmanager.data.repository.ThermalRepository
 import kotlinx.coroutines.flow.first
 
+import androidx.core.content.ContextCompat
+
 @HiltViewModel
 class AppProfilesViewModel @Inject constructor(
     private val application: Application,
@@ -195,11 +197,10 @@ class AppProfilesViewModel @Inject constructor(
     }
 
     fun toggleService(enabled: Boolean) {
-        // We can use PreferenceManager to store a "Service Enabled" toggle if we want the user to easily disable the whole feature.
-        // For now, let's just start/stop service.
+        preferenceManager.setAppMonitorEnabled(enabled)
         val intent = Intent(application, AppMonitorService::class.java)
         if (enabled) {
-            application.startService(intent)
+            ContextCompat.startForegroundService(application, intent)
         } else {
             application.stopService(intent)
         }

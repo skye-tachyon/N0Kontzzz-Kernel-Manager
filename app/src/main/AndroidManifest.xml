@@ -103,13 +103,19 @@
         <service
             android:name=".service.FpsOverlayService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="fps_overlay" />
+        </service>
 
         <!-- App Monitor Service -->
         <service
             android:name=".service.AppMonitorService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="app_monitoring" />
+        </service>
 
         <!-- Boot Receiver for auto-start functionality -->
         <receiver

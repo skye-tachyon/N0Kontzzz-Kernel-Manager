@@ -18,6 +18,7 @@ class PreferenceManager @Inject constructor(
         private const val KEY_BYPASS_CHARGING = "bypass_charging"
         private const val KEY_FORCE_FAST_CHARGE = "force_fast_charge"
         private const val KEY_BATTERY_MONITOR_ENABLED = "battery_monitor_enabled"
+        private const val KEY_APP_MONITOR_ENABLED = "app_monitor_enabled"
         private const val KEY_BATTERY_CHARGING_ICON_ENABLED = "battery_charging_icon_enabled"
 
         private const val KEY_CHARGING_CONTROL_ENABLED = "charging_control_enabled"
@@ -170,6 +171,21 @@ class PreferenceManager @Inject constructor(
         val primary = credentialPrefs()?.getBoolean(KEY_BATTERY_MONITOR_ENABLED, false)
         if (primary == true) return true
         return deviceProtectedPrefs().getBoolean(KEY_BATTERY_MONITOR_ENABLED, false)
+    }
+
+    fun setAppMonitorEnabled(enabled: Boolean) {
+        credentialPrefs()?.edit {
+            putBoolean(KEY_APP_MONITOR_ENABLED, enabled)
+        }
+        deviceProtectedPrefs().edit {
+            putBoolean(KEY_APP_MONITOR_ENABLED, enabled)
+        }
+    }
+
+    fun isAppMonitorEnabled(): Boolean {
+        val primary = credentialPrefs()?.getBoolean(KEY_APP_MONITOR_ENABLED, false)
+        if (primary == true) return true
+        return deviceProtectedPrefs().getBoolean(KEY_APP_MONITOR_ENABLED, false)
     }
 
     fun setBatteryChargingIconEnabled(enabled: Boolean) {

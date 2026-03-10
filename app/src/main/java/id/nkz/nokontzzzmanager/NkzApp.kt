@@ -36,10 +36,20 @@ class NkzApp : Application(), Configuration.Provider {
         // Initialize theme mode - this will be managed by ThemeManager
         // The actual theme will be applied in the MainActivity based on user preference
 
-        // Auto-start Battery Monitor if enabled when app process starts
+        // Auto-start Services if enabled when app process starts
+        Log.d("NkzApp", "Application onCreate - checking for services to start")
         runCatching {
             if (preferenceManager.isBatteryMonitorEnabled()) {
+                Log.d("NkzApp", "Starting BatteryMonitorService")
                 BatteryMonitorService.start(this)
+            }
+        }
+        runCatching {
+            if (preferenceManager.isAppMonitorEnabled()) {
+                Log.d("NkzApp", "Starting AppMonitorService")
+                id.nkz.nokontzzzmanager.service.AppMonitorService.start(this)
+            } else {
+                Log.d("NkzApp", "AppMonitorService not enabled in preferences")
             }
         }
     }

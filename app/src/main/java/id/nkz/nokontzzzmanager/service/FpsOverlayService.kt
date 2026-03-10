@@ -1,5 +1,6 @@
 package id.nkz.nokontzzzmanager.service
 
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -52,7 +53,7 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class FpsOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
+class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
 
     @Inject
     lateinit var fpsMonitorManager: FpsMonitorManager
@@ -72,6 +73,13 @@ class FpsOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedS
     
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
+    private val notificationManager by lazy {
+        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    }
+
+    private val CHANNEL_ID = "fps_overlay_service_channel"
+    private val NOTIFICATION_ID = 1003
+
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
 
@@ -88,8 +96,45 @@ class FpsOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedS
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         
+        createNotificationChannel()
+        startForegroundService()
+        
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         showOverlay()
+    }
+
+    private fun createNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val name = "FPS Meter"
+            val descriptionText = "Shows FPS overlay during gameplay"
+            val importance = android.app.NotificationManager.IMPORTANCE_LOW
+            val channel = android.app.NotificationChannel(CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun startForegroundService() {
+        val notification = androidx.core.app.NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("FPS Meter Active")
+            .setContentText("Overlay is being displayed")
+            .setSmallIcon(id.nkz.nokontzzzmanager.R.drawable.ic_notification)
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
+
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // For FPS overlay, we might use SPECIAL_USE or just omit type if not strictly required by policy, 
+                // but Android 14+ requires it for foreground services.
+                startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("FpsOverlay", "Failed to start foreground service", e)
+        }
     }
 
     private fun showOverlay() {
@@ -176,6 +221,12 @@ class FpsOverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedS
         }
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Ensure the service remains in foreground if it was already running
+        startForegroundService()
+        return START_STICKY
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
@@ -247,6 +298,3 @@ fun FpsOverlayContent(
         }
     }
 }
-
-// Minimal implementation of LifecycleOwner, usually standard implementations can be extended.
-interface LifecycleOwner : androidx.lifecycle.LifecycleOwner

@@ -1,6 +1,7 @@
 package id.nkz.nokontzzzmanager.service
 
 import android.app.Service
+import android.content.Context
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Intent
@@ -43,9 +44,7 @@ class AppMonitorService : Service() {
     @Inject
     lateinit var fpsMonitorManager: id.nkz.nokontzzzmanager.manager.FpsMonitorManager
     
-    // Raw shared prefs removed as we now use PreferenceManager
-
-    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val serviceScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
     private var monitorJob: Job? = null
     private var lastPackageName: String? = null
     private var isProfileApplied = false
@@ -58,14 +57,67 @@ class AppMonitorService : Service() {
         getSystemService(POWER_SERVICE) as android.os.PowerManager
     }
 
+    private val notificationManager by lazy {
+        getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
+    }
+
+    private val CHANNEL_ID = "app_monitor_service_channel"
+    private val NOTIFICATION_ID = 1002
+
     override fun onBind(intent: Intent?): IBinder? = null
+
+    companion object {
+        fun start(context: Context) {
+            val intent = Intent(context, AppMonitorService::class.java)
+            androidx.core.content.ContextCompat.startForegroundService(context, intent)
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
+        Log.d("AppMonitorService", "Service onCreate")
+        createNotificationChannel()
+        startForegroundService()
         startMonitoring()
     }
 
+    private fun createNotificationChannel() {
+        Log.d("AppMonitorService", "Creating notification channel")
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val name = "App Monitor Service"
+            val descriptionText = "Monitors foreground apps to apply performance profiles and FPS overlay"
+            val importance = android.app.NotificationManager.IMPORTANCE_LOW
+            val channel = android.app.NotificationChannel(CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun startForegroundService() {
+        Log.d("AppMonitorService", "Starting foreground service")
+        val notification = androidx.core.app.NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("App Monitor Active")
+            .setContentText("Monitoring for game profiles")
+            .setSmallIcon(id.nkz.nokontzzzmanager.R.drawable.ic_notification)
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
+
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+            Log.d("AppMonitorService", "Foreground service started successfully")
+        } catch (e: Exception) {
+            Log.e("AppMonitorService", "Failed to start foreground service", e)
+        }
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("AppMonitorService", "onStartCommand received")
         if (monitorJob == null || !monitorJob!!.isActive) {
             startMonitoring()
         }
@@ -73,14 +125,17 @@ class AppMonitorService : Service() {
     }
 
     override fun onDestroy() {
+        Log.d("AppMonitorService", "Service onDestroy")
         super.onDestroy()
         stopMonitoring()
         serviceScope.cancel()
     }
 
     private fun startMonitoring() {
+        Log.d("AppMonitorService", "Starting monitoring job")
         monitorJob?.cancel()
         monitorJob = serviceScope.launch {
+            Log.d("AppMonitorService", "Monitoring job loop started")
             while (isActive) {
                 if (powerManager.isInteractive) {
                     checkForegroundApp()
@@ -98,55 +153,89 @@ class AppMonitorService : Service() {
     }
 
     private suspend fun checkForegroundApp() {
-        val endTime = System.currentTimeMillis()
-        val startTime = endTime - 2000 // Look back 2 seconds
-
-        val events = usageStatsManager.queryEvents(startTime, endTime)
-        val event = UsageEvents.Event()
-        var currentApp = ""
-
-        // Iterate to find the latest ACTIVITY_RESUMED event
-        while (events.hasNextEvent()) {
-            events.getNextEvent(event)
-            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
-                currentApp = event.packageName
-            }
-        }
-
-        // If no new event found, currentApp will be empty, so we skip
-        if (currentApp.isNotEmpty() && currentApp != lastPackageName) {
+        val currentApp = getForegroundPackageName()
+        
+        if (currentApp != null && currentApp != lastPackageName) {
+            Log.d("AppMonitorService", "App changed: $lastPackageName -> $currentApp")
             lastPackageName = currentApp
             handleAppChange(currentApp)
+        } else if (currentApp == null) {
+            // Log once in a while or only if it was not null before to avoid spam
+            // But for debugging, let's log if it's null
+            Log.w("AppMonitorService", "getForegroundPackageName returned null. Check Usage Access permission.")
         }
     }
 
+    private fun getForegroundPackageName(): String? {
+        val endTime = System.currentTimeMillis()
+        val startTime = endTime - 10000 // Look back 10 seconds
+        
+        // 1. Try UsageEvents (most accurate for transitions)
+        val events = usageStatsManager.queryEvents(startTime, endTime)
+        val event = UsageEvents.Event()
+        var lastResumedApp: String? = null
+        var eventCount = 0
+
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            eventCount++
+            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
+                lastResumedApp = event.packageName
+            }
+        }
+        
+        if (lastResumedApp != null) {
+            Log.d("AppMonitorService", "Found foreground app via UsageEvents: $lastResumedApp (from $eventCount events)")
+            return lastResumedApp
+        }
+
+        // 2. Fallback to queryUsageStats (good for initial state)
+        val stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime)
+        if (!stats.isNullOrEmpty()) {
+            val topApp = stats.maxByOrNull { it.lastTimeUsed }?.packageName
+            Log.d("AppMonitorService", "Found foreground app via queryUsageStats: $topApp (from ${stats.size} stats)")
+            return topApp
+        }
+
+        Log.w("AppMonitorService", "No usage events or stats found. Usage Access might be missing.")
+        return null
+    }
+
     private suspend fun handleAppChange(packageName: String) {
+        Log.d("AppMonitorService", "Handling app change: $packageName")
         val profile = appProfileRepository.getProfile(packageName)
 
         if (profile != null && profile.isEnabled) {
+            Log.d("AppMonitorService", "Found profile for $packageName, applying...")
             applyProfile(profile)
             isProfileApplied = true
         } else {
             // Only revert if we previously applied a profile
             if (isProfileApplied) {
+                Log.d("AppMonitorService", "No profile for $packageName, reverting to global settings")
                 applyGlobalSettings()
                 isProfileApplied = false
             }
         }
 
-        // Handle FPS Overlay for games
-        val game = gameRepository.getGameByPackageName(packageName).first()
-        if (game != null && game.isBenchmarkEnabled) {
-            startFpsOverlay(packageName)
-        } else {
+        // Handle FPS Overlay for games - check game repository independently
+        try {
+            val game = gameRepository.getGameByPackageName(packageName).first()
+            if (game != null && game.isBenchmarkEnabled) {
+                Log.d("AppMonitorService", "App $packageName is a registered game with overlay enabled. Starting overlay.")
+                startFpsOverlay(packageName)
+            } else {
+                Log.d("AppMonitorService", "App $packageName is not a registered game or overlay is disabled.")
+                stopFpsOverlay()
+            }
+        } catch (e: Exception) {
+            Log.e("AppMonitorService", "Error checking game repository for $packageName", e)
             stopFpsOverlay()
         }
     }
 
     private fun startFpsOverlay(packageName: String) {
-        serviceScope.launch {
-            fpsMonitorManager.startMonitoring(packageName)
-        }
+        fpsMonitorManager.startMonitoring(packageName)
         val intent = Intent(this, FpsOverlayService::class.java)
         startService(intent)
     }

@@ -72,6 +72,10 @@ fun FpsMonitorScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 hasOverlayPermission = Settings.canDrawOverlays(context)
+                // Start monitoring service if overlay permission is granted
+                if (hasOverlayPermission) {
+                    id.nkz.nokontzzzmanager.service.AppMonitorService.start(context)
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

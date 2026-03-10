@@ -103,6 +103,27 @@ class BootReceiver : BroadcastReceiver() {
         }.onFailure {
             Log.e(TAG, "Failed to auto-start BatteryMonitorService", it)
         }
+        
+        runCatching {
+            if (isAppMonitorEnabled(context)) {
+                id.nkz.nokontzzzmanager.service.AppMonitorService.start(context)
+                Log.d(TAG, "AppMonitorService auto-started")
+            }
+        }.onFailure {
+            Log.e(TAG, "Failed to auto-start AppMonitorService", it)
+        }
+    }
+
+    private fun isAppMonitorEnabled(context: Context): Boolean {
+        val deviceContext = context.createDeviceProtectedStorageContext()
+        val dpPrefs = deviceContext.getSharedPreferences("nkm_preferences", Context.MODE_PRIVATE)
+        if (dpPrefs.getBoolean("app_monitor_enabled", false)) return true
+        return try {
+            context.getSharedPreferences("nkm_preferences", Context.MODE_PRIVATE)
+                .getBoolean("app_monitor_enabled", false)
+        } catch (_: IllegalStateException) {
+            false
+        }
     }
 
     private fun tryStartFgs(context: Context): Boolean {

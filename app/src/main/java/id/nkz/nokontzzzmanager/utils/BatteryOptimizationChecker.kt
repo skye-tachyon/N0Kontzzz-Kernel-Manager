@@ -17,7 +17,8 @@ class BatteryOptimizationChecker(private val context: Context) {
 
     fun hasRequiredPermissions(): Boolean {
         return isIgnoringBatteryOptimizations() &&
-                hasDataSyncPermission()
+                hasDataSyncPermission() &&
+                hasUsageAccess()
     }
 
     private fun hasDataSyncPermission(): Boolean {
@@ -28,6 +29,40 @@ class BatteryOptimizationChecker(private val context: Context) {
             ) == PackageManager.PERMISSION_GRANTED
         } else {
             true
+        }
+    }
+
+    fun hasUsageAccess(): Boolean {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as android.app.AppOpsManager
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(
+                android.app.AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(),
+                context.packageName
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            appOps.checkOpNoThrow(
+                android.app.AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(),
+                context.packageName
+            )
+        }
+        return mode == android.app.AppOpsManager.MODE_ALLOWED
+    }
+
+    fun requestUsageAccess(activity: Activity) {
+        try {
+            val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                data = "package:${context.packageName}".toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            activity.startActivity(intent)
+        } catch (e: Exception) {
+            val fallbackIntent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            activity.startActivity(fallbackIntent)
         }
     }
 
@@ -71,6 +106,11 @@ class BatteryOptimizationChecker(private val context: Context) {
     fun checkAndRequestPermissions(activity: Activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !hasDataSyncPermission()) {
             openAppSettings(activity)
+            return
+        }
+
+        if (!hasUsageAccess()) {
+            requestUsageAccess(activity)
             return
         }
 

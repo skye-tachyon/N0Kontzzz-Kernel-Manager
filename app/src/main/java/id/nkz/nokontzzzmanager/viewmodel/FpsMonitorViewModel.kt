@@ -23,7 +23,8 @@ import javax.inject.Inject
 class FpsMonitorViewModel @Inject constructor(
     private val application: Application,
     private val gameRepository: GameRepository,
-    private val benchmarkRepository: BenchmarkRepository
+    private val benchmarkRepository: BenchmarkRepository,
+    private val preferenceManager: id.nkz.nokontzzzmanager.utils.PreferenceManager
 ) : AndroidViewModel(application) {
 
     val games: StateFlow<List<GameEntity>> = gameRepository.getAllGames()
@@ -97,6 +98,8 @@ class FpsMonitorViewModel @Inject constructor(
                     isBenchmarkEnabled = true
                 )
             )
+            // Ensure monitor is enabled when adding a game
+            preferenceManager.setAppMonitorEnabled(true)
         }
     }
 
@@ -109,6 +112,14 @@ class FpsMonitorViewModel @Inject constructor(
     fun toggleBenchmark(game: GameEntity, enabled: Boolean) {
         viewModelScope.launch {
             gameRepository.insertGame(game.copy(isBenchmarkEnabled = enabled))
+            
+            // Check if any games still have benchmarking enabled
+            val allGames = games.value
+            val anyEnabled = allGames.any { if (it.packageName == game.packageName) enabled else it.isBenchmarkEnabled }
+            
+            if (anyEnabled) {
+                preferenceManager.setAppMonitorEnabled(true)
+            }
         }
     }
 
