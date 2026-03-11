@@ -270,19 +270,9 @@ fun BenchmarkSummaryCard(
                 StatItem(stringResource(R.string.benchmark_1low_fps), "${benchmark.fps1Low.toInt()}", colorLow1)
                 StatItem(stringResource(R.string.benchmark_01low_fps), "${benchmark.fps01Low.toInt()}", colorLow01)
             }
-            
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            
-            val statValueColor = MaterialTheme.colorScheme.onSurface
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                StatItem(stringResource(R.string.benchmark_avg_cpu), "${benchmark.avgCpuUsage.toInt()}%", statValueColor)
-                StatItem(stringResource(R.string.benchmark_avg_gpu), "${benchmark.avgGpuUsage.toInt()}%", statValueColor)
-                StatItem(stringResource(R.string.benchmark_avg_temp), "${String.format("%.1f", benchmark.avgTemp)}°C", statValueColor)
-            }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
+            
             val totalSeconds = benchmark.durationMs / 1000
             val formattedDuration = if (totalSeconds >= 60) {
                 val minutes = totalSeconds / 60
@@ -292,8 +282,35 @@ fun BenchmarkSummaryCard(
                 stringResource(R.string.duration_format_s, totalSeconds)
             }
 
+            val statValueColor = MaterialTheme.colorScheme.onSurface
+            
+            // FPS Detail Row
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                StatItem(stringResource(R.string.benchmark_max_fps), "${benchmark.maxFps.toInt()}", statValueColor)
+                StatItem(stringResource(R.string.benchmark_min_fps), "${benchmark.minFps.toInt()}", statValueColor)
+                StatItem(stringResource(R.string.benchmark_fps_variance), String.format("%.1f", benchmark.fpsVariance), statValueColor)
+            }
+            
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                StatItem(stringResource(R.string.benchmark_avg_cpu), "${benchmark.avgCpuUsage.toInt()}%", statValueColor)
+                StatItem(stringResource(R.string.benchmark_avg_gpu), "${benchmark.avgGpuUsage.toInt()}%", statValueColor)
+                StatItem(stringResource(R.string.benchmark_avg_temp), String.format("%.1f°C", benchmark.avgTemp), statValueColor)
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            
+            // Power & Max Temp Row
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                StatItem(stringResource(R.string.benchmark_avg_power), String.format("%.2fW", benchmark.avgPower), statValueColor)
+                StatItem(stringResource(R.string.benchmark_max_temp), String.format("%.1f°C", benchmark.maxTemp), statValueColor)
                 StatItem(stringResource(R.string.benchmark_duration), formattedDuration, statValueColor)
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                 StatItem(stringResource(R.string.benchmark_janks), "${benchmark.jankCount}", statValueColor)
                 StatItem(stringResource(R.string.benchmark_big_janks), "${benchmark.bigJankCount}", statValueColor)
             }

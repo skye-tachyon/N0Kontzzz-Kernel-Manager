@@ -758,6 +758,11 @@
     <string name="benchmark_avg_cpu">Rata-rata CPU</string>
     <string name="benchmark_avg_gpu">Rata-rata GPU</string>
     <string name="benchmark_avg_temp">Rata-rata Suhu</string>
+    <string name="benchmark_max_temp">Suhu Maks</string>
+    <string name="benchmark_max_fps">FPS Maks</string>
+    <string name="benchmark_min_fps">FPS Min</string>
+    <string name="benchmark_fps_variance">Variansi</string>
+    <string name="benchmark_avg_power">Daya Rata-rata</string>
     <string name="benchmark_duration">Durasi</string>
     <string name="duration_format_ms">%1$dm %2$dd</string>
     <string name="duration_format_s">%dd</string>

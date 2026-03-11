@@ -269,6 +269,11 @@ class FpsMonitorManager @Inject constructor(
         val avgCpuUsage: Float,
         val avgGpuUsage: Float,
         val avgTemp: Float,
+        val maxTemp: Float,
+        val avgPower: Float,
+        val maxFps: Float,
+        val minFps: Float,
+        val fpsVariance: Float,
         val frameTimes: List<Float>,
         val cpuUsageHistory: List<Float>,
         val gpuUsageHistory: List<Float>,
@@ -291,9 +296,35 @@ class FpsMonitorManager @Inject constructor(
         
         if (recordedFrameTimes.isEmpty()) return null
 
+        // Calculate aggregate FPS per second for consistent stats
+        val fpsPerSecond = mutableListOf<Float>()
+        var currentWindowMs = 0f
+        var frameCount = 0
+        for (interval in recordedFrameTimes) {
+            currentWindowMs += interval
+            frameCount++
+            if (currentWindowMs >= 1000f) {
+                fpsPerSecond.add(frameCount.toFloat().coerceAtMost(refreshRate))
+                currentWindowMs -= 1000f
+                frameCount = 0
+            }
+        }
+        if (frameCount > 0 && currentWindowMs > 200f) {
+            fpsPerSecond.add((frameCount * (1000f / currentWindowMs)).coerceAtMost(refreshRate))
+        }
+
         val avgFrameTime = recordedFrameTimes.average().toFloat()
-        val avgFps = 1000f / avgFrameTime
+        val avgFps = if (fpsPerSecond.isNotEmpty()) fpsPerSecond.average().toFloat() else 1000f / avgFrameTime
         
+        val maxFps = if (fpsPerSecond.isNotEmpty()) fpsPerSecond.maxOrNull() ?: 0f else 0f
+        val minFps = if (fpsPerSecond.isNotEmpty()) fpsPerSecond.minOrNull() ?: 0f else 0f
+        
+        // Variance calculation
+        val variance = if (fpsPerSecond.size > 1) {
+            val mean = fpsPerSecond.average()
+            fpsPerSecond.map { (it - mean) * (it - mean) }.average().toFloat()
+        } else 0f
+
         val sorted = recordedFrameTimes.sortedDescending()
         val p1Index = (sorted.size * 0.01).toInt().coerceAtMost(sorted.size - 1)
         val p01Index = (sorted.size * 0.001).toInt().coerceAtMost(sorted.size - 1)
@@ -313,6 +344,11 @@ class FpsMonitorManager @Inject constructor(
             avgCpuUsage = if (recordedCpuUsage.isNotEmpty()) recordedCpuUsage.average().toFloat() else 0f,
             avgGpuUsage = if (recordedGpuUsage.isNotEmpty()) recordedGpuUsage.average().toFloat() else 0f,
             avgTemp = if (recordedTemp.isNotEmpty()) recordedTemp.average().toFloat() else 0f,
+            maxTemp = if (recordedTemp.isNotEmpty()) recordedTemp.maxOrNull() ?: 0f else 0f,
+            avgPower = if (recordedBatteryPower.isNotEmpty()) recordedBatteryPower.average().toFloat() else 0f,
+            maxFps = maxFps,
+            minFps = minFps,
+            fpsVariance = variance,
             frameTimes = recordedFrameTimes.toList(),
             cpuUsageHistory = recordedCpuUsage.toList(),
             gpuUsageHistory = recordedGpuUsage.toList(),

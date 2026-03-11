@@ -759,6 +759,11 @@
     <string name="benchmark_avg_cpu">Avg CPU</string>
     <string name="benchmark_avg_gpu">Avg GPU</string>
     <string name="benchmark_avg_temp">Avg Temp</string>
+    <string name="benchmark_max_temp">Max Temp</string>
+    <string name="benchmark_max_fps">Max FPS</string>
+    <string name="benchmark_min_fps">Min FPS</string>
+    <string name="benchmark_fps_variance">Variance</string>
+    <string name="benchmark_avg_power">Avg Power</string>
     <string name="benchmark_duration">Duration</string>
     <string name="duration_format_ms">%1$dm %2$ds</string>
     <string name="duration_format_s">%ds</string>
