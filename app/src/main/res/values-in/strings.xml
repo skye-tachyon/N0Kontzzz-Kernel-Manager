@@ -759,6 +759,8 @@
     <string name="benchmark_avg_gpu">Rata-rata GPU</string>
     <string name="benchmark_avg_temp">Rata-rata Suhu</string>
     <string name="benchmark_duration">Durasi</string>
+    <string name="duration_format_ms">%1$dm %2$dd</string>
+    <string name="duration_format_s">%dd</string>
     <string name="benchmark_janks">Jank</string>
     <string name="benchmark_big_janks">Jank Besar</string>
     <string name="benchmark_fps_stability">Stabilitas FPS</string>

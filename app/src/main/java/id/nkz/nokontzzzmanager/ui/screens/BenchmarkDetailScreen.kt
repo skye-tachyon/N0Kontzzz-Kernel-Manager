@@ -55,17 +55,22 @@ fun BenchmarkDetailScreen(
         val frameIntervals = remember(b.frameTimeDataJson) { decodeJsonList(b.frameTimeDataJson) }
         val fpsOverTime = remember(frameIntervals) { calculateFpsOverTime(frameIntervals) }
 
+        val topCardShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
+        val middleCardShape = RoundedCornerShape(8.dp)
+        val bottomCardShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             item {
                 BenchmarkHeader(b)
+                Spacer(modifier = Modifier.height(14.dp))
             }
 
             item {
-                BenchmarkSummaryCard(b, colorFps, colorLow1, colorLow01)
+                BenchmarkSummaryCard(b, colorFps, colorLow1, colorLow01, shape = topCardShape)
             }
 
             // FPS Graph (Aggregated per second for accuracy)
@@ -76,7 +81,8 @@ fun BenchmarkDetailScreen(
                     data = fpsOverTime,
                     lineColor = colorFps,
                     unit = "FPS",
-                    targetValue = 60f
+                    targetValue = 60f,
+                    shape = middleCardShape
                 )
             }
 
@@ -88,7 +94,8 @@ fun BenchmarkDetailScreen(
                     data = frameIntervals,
                     lineColor = colorFrameTime,
                     unit = "ms",
-                    targetValue = 16.6f
+                    targetValue = 16.6f,
+                    shape = middleCardShape
                 )
             }
 
@@ -99,7 +106,8 @@ fun BenchmarkDetailScreen(
                     icon = Icons.Default.Memory,
                     data = decodeJsonList(b.cpuUsageDataJson),
                     lineColor = colorCpu,
-                    unit = "%"
+                    unit = "%",
+                    shape = middleCardShape
                 )
             }
 
@@ -112,7 +120,7 @@ fun BenchmarkDetailScreen(
                 if (little.isNotEmpty() || big.isNotEmpty() || prime.isNotEmpty()) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
+                        shape = middleCardShape,
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -144,7 +152,8 @@ fun BenchmarkDetailScreen(
                     icon = Icons.Default.DeviceThermostat,
                     data = decodeJsonList(b.cpuTempDataJson),
                     lineColor = colorCpuTemp,
-                    unit = "°C"
+                    unit = "°C",
+                    shape = middleCardShape
                 )
             }
 
@@ -155,7 +164,8 @@ fun BenchmarkDetailScreen(
                     icon = Icons.Default.GraphicEq,
                     data = decodeJsonList(b.gpuUsageDataJson),
                     lineColor = colorGpu,
-                    unit = "%"
+                    unit = "%",
+                    shape = middleCardShape
                 )
             }
 
@@ -166,7 +176,8 @@ fun BenchmarkDetailScreen(
                     icon = Icons.Default.FlashOn,
                     data = decodeJsonList(b.gpuFreqDataJson),
                     lineColor = colorGpuFreq,
-                    unit = "MHz"
+                    unit = "MHz",
+                    shape = middleCardShape
                 )
             }
 
@@ -177,7 +188,8 @@ fun BenchmarkDetailScreen(
                     icon = Icons.Default.BatteryChargingFull,
                     data = decodeJsonList(b.batteryPowerDataJson),
                     lineColor = colorBatteryPower,
-                    unit = "W"
+                    unit = "W",
+                    shape = middleCardShape
                 )
             }
 
@@ -188,7 +200,8 @@ fun BenchmarkDetailScreen(
                     icon = Icons.Default.BatteryFull,
                     data = decodeJsonList(b.batteryLevelDataJson),
                     lineColor = colorBatteryLevel,
-                    unit = "%"
+                    unit = "%",
+                    shape = middleCardShape
                 )
             }
 
@@ -199,7 +212,8 @@ fun BenchmarkDetailScreen(
                     icon = Icons.Default.Thermostat,
                     data = decodeJsonList(b.tempDataJson),
                     lineColor = colorTemp,
-                    unit = "°C"
+                    unit = "°C",
+                    shape = bottomCardShape
                 )
             }
             
@@ -239,11 +253,12 @@ fun BenchmarkSummaryCard(
     benchmark: BenchmarkEntity,
     colorFps: Color,
     colorLow1: Color,
-    colorLow01: Color
+    colorLow01: Color,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(24.dp)
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
         Column(
@@ -268,11 +283,21 @@ fun BenchmarkSummaryCard(
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
+            val totalSeconds = benchmark.durationMs / 1000
+            val formattedDuration = if (totalSeconds >= 60) {
+                val minutes = totalSeconds / 60
+                val seconds = totalSeconds % 60
+                stringResource(R.string.duration_format_ms, minutes, seconds)
+            } else {
+                stringResource(R.string.duration_format_s, totalSeconds)
+            }
+
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                StatItem(stringResource(R.string.benchmark_duration), "${benchmark.durationMs / 1000}s", statValueColor)
+                StatItem(stringResource(R.string.benchmark_duration), formattedDuration, statValueColor)
                 StatItem(stringResource(R.string.benchmark_janks), "${benchmark.jankCount}", statValueColor)
                 StatItem(stringResource(R.string.benchmark_big_janks), "${benchmark.bigJankCount}", statValueColor)
             }
+
         }
     }
 }
@@ -292,11 +317,12 @@ fun ChartCard(
     data: List<Float>,
     lineColor: Color,
     unit: String,
-    targetValue: Float? = null
+    targetValue: Float? = null,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(24.dp)
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
