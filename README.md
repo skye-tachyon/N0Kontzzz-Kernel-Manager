@@ -93,6 +93,19 @@
   - **Graphics Optimization**: Toggle `KGSL Skip Pool Zeroing` and `Avoid Dirty PTE` for specific games to boost FPS.
   - **Battery Protection**: Automatically enable `Bypass Charging` for intensive apps to prevent battery wear and heat.
 
+- **FPS Meter & Benchmarking**
+  Advanced performance monitoring tool for gamers and power users.
+  - **Real-time Overlay**: High-precision floating window displaying current FPS, 1% Low FPS, and Frame Time (ms).
+  - **Interactive Design**: Fully draggable interface with **Contextual Opacity**—the overlay automatically fades when you touch outside to minimize visual distraction and returns to full opacity when touched internally.
+  - **Comprehensive Benchmarking**: Record gameplay sessions to generate detailed performance reports with deep hardware telemetry.
+  - **Advanced Analytics**:
+    - **Performance Stats**: Track Average, Maximum, Minimum, and Variance FPS alongside 1% and 0.1% Lows.
+    - **Frame Time Jitter**: Visualize frame delivery consistency to identify and debug micro-stutters.
+    - **CPU Cluster Telemetry**: Simultaneous tracking of frequencies for Little, Big, and Prime clusters.
+    - **Power & Thermal Tracking**: Monitor real-time power consumption (Watts), battery level, and temperatures (Avg/Max).
+    - **Resource Correlation**: Align FPS data with live CPU and GPU utilization graphs.
+  - **History & Visualization**: Review past sessions with high-resolution multi-line charts and localized duration summaries.
+
 - **Bypass Charging**  
   Directly power the device from the AC adapter while pausing battery charging. This effectively minimizes heat buildup during intensive workloads and extends overall battery health. *Note: This feature requires kernel support.*
 
