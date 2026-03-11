@@ -749,6 +749,9 @@
     <string name="fps_benchmarking_active">Benchmarking Aktif</string>
     <string name="fps_stop_benchmark">Hentikan Benchmark</string>
     <string name="fps_start_benchmark">Mulai Benchmark</string>
+    <string name="fps_layer_search_info">Saat menambahkan game dan menjalankan overlay untuk pertama kalinya, aplikasi melakukan pencarian layer di latar belakang. Hal ini dapat menyebabkan FPS terbaca 0 atau N/A selama beberapa detik selagi monitor mempelajari pola rendering.</string>
+    <string name="benchmark_got_it">Mengerti</string>
+    <string name="benchmark_info_title">Informasi Penting</string>
 
     <!-- Benchmark Detail -->
     <string name="benchmark_result">Hasil Benchmark</string>

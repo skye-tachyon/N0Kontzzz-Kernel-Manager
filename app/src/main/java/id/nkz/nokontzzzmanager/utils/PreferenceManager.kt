@@ -81,6 +81,9 @@ class PreferenceManager @Inject constructor(
 
         // Performance Mode
         private const val KEY_PERFORMANCE_MODE = "last_applied_performance_mode"
+
+        // FPS Monitor Info
+        private const val KEY_FPS_LAYER_SEARCH_INFO_DISMISSED = "fps_layer_search_info_dismissed"
     }
 
     private fun credentialPrefs(): SharedPreferences? {
@@ -655,5 +658,16 @@ class PreferenceManager @Inject constructor(
     fun getPerformanceMode(): String {
         return credentialPrefs()?.getString(KEY_PERFORMANCE_MODE, null)
             ?: deviceProtectedPrefs().getString(KEY_PERFORMANCE_MODE, "Balanced") ?: "Balanced"
+    }
+
+    // FPS Monitor Info
+    fun setFpsLayerSearchInfoDismissed(dismissed: Boolean) {
+        credentialPrefs()?.edit { putBoolean(KEY_FPS_LAYER_SEARCH_INFO_DISMISSED, dismissed) }
+        deviceProtectedPrefs().edit { putBoolean(KEY_FPS_LAYER_SEARCH_INFO_DISMISSED, dismissed) }
+    }
+
+    fun isFpsLayerSearchInfoDismissed(): Boolean {
+        return credentialPrefs()?.getBoolean(KEY_FPS_LAYER_SEARCH_INFO_DISMISSED, false)
+            ?: deviceProtectedPrefs().getBoolean(KEY_FPS_LAYER_SEARCH_INFO_DISMISSED, false)
     }
 }

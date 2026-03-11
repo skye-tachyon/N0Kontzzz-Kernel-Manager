@@ -750,6 +750,9 @@
     <string name="fps_benchmarking_active">Benchmarking Active</string>
     <string name="fps_stop_benchmark">Stop Benchmark</string>
     <string name="fps_start_benchmark">Start Benchmark</string>
+    <string name="fps_layer_search_info">When adding a game and running the overlay for the first time, the application performs a background layer discovery. This may cause the FPS to show as 0 or N/A for a few seconds while the monitor learns the rendering pattern.</string>
+    <string name="benchmark_got_it">Got it</string>
+    <string name="benchmark_info_title">Important Information</string>
     
     <!-- Benchmark Detail -->
     <string name="benchmark_result">Benchmark Result</string>

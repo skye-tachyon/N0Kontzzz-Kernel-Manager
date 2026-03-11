@@ -44,6 +44,9 @@ class FpsMonitorViewModel @Inject constructor(
     private val _isLoadingApps = MutableStateFlow(false)
     val isLoadingApps: StateFlow<Boolean> = _isLoadingApps.asStateFlow()
 
+    private val _isLayerSearchInfoDismissed = MutableStateFlow(preferenceManager.isFpsLayerSearchInfoDismissed())
+    val isLayerSearchInfoDismissed: StateFlow<Boolean> = _isLayerSearchInfoDismissed.asStateFlow()
+
     fun loadInstalledApps() {
         viewModelScope.launch {
             _isLoadingApps.value = true
@@ -127,5 +130,10 @@ class FpsMonitorViewModel @Inject constructor(
         viewModelScope.launch {
             benchmarkRepository.deleteBenchmark(benchmark)
         }
+    }
+
+    fun dismissLayerSearchInfo() {
+        preferenceManager.setFpsLayerSearchInfoDismissed(true)
+        _isLayerSearchInfoDismissed.value = true
     }
 }
