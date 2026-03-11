@@ -171,6 +171,9 @@
 - **Query All Packages (`android.permission.QUERY_ALL_PACKAGES`)**  
   Necessary for listing installed applications when creating new per-app profiles.
 
+- **Display over other apps (`android.permission.SYSTEM_ALERT_WINDOW`)**  
+  Required for the **FPS Meter** feature to show the real-time performance overlay on top of other applications and games.
+
 - **Battery Optimization (`android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`)**  
   Ensures the background monitoring service remains active to reliably apply profiles and track battery statistics without being killed by the system.
 
