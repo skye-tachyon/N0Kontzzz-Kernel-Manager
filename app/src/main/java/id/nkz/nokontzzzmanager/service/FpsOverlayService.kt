@@ -8,7 +8,10 @@ import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.WindowManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,6 +26,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,6 +76,8 @@ class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewMode
 
     private var windowManager: WindowManager? = null
     private var composeView: ComposeView? = null
+    private val _overlayAlpha = MutableStateFlow(1.0f)
+    val overlayAlpha = _overlayAlpha.asStateFlow()
     
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val store = ViewModelStore()
@@ -143,23 +155,6 @@ class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewMode
             return
         }
 
-        composeView = ComposeView(this).apply {
-            setViewTreeLifecycleOwner(this@FpsOverlayService)
-            setViewTreeViewModelStoreOwner(this@FpsOverlayService)
-            setViewTreeSavedStateRegistryOwner(this@FpsOverlayService)
-            
-            setContent {
-                MaterialTheme {
-                    FpsOverlayContent(
-                        fpsMonitorManager = fpsMonitorManager,
-                        onToggleBenchmark = {
-                            toggleBenchmarking()
-                        }
-                    )
-                }
-            }
-        }
-
         val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
@@ -172,12 +167,52 @@ class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewMode
             WindowManager.LayoutParams.WRAP_CONTENT,
             layoutFlag,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             x = 100
             y = 100
+        }
+
+        composeView = ComposeView(this).apply {
+            setViewTreeLifecycleOwner(this@FpsOverlayService)
+            setViewTreeViewModelStoreOwner(this@FpsOverlayService)
+            setViewTreeSavedStateRegistryOwner(this@FpsOverlayService)
+            
+            setContent {
+                MaterialTheme {
+                    val alpha by overlayAlpha.collectAsState()
+                    FpsOverlayContent(
+                        fpsMonitorManager = fpsMonitorManager,
+                        onToggleBenchmark = {
+                            toggleBenchmarking()
+                        },
+                        onDrag = { dx, dy ->
+                            params.x += dx.toInt()
+                            params.y += dy.toInt()
+                            windowManager?.updateViewLayout(this, params)
+                        },
+                        onTouched = {
+                            _overlayAlpha.value = 1.0f
+                        },
+                        alpha = alpha
+                    )
+                }
+            }
+
+            setOnTouchListener { _, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_OUTSIDE -> {
+                        _overlayAlpha.value = 0.3f
+                    }
+                    MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP -> {
+                        _overlayAlpha.value = 1.0f
+                    }
+                }
+                false
+            }
         }
 
         try {
@@ -258,13 +293,37 @@ class FpsOverlayService : Service(), androidx.lifecycle.LifecycleOwner, ViewMode
 @Composable
 fun FpsOverlayContent(
     fpsMonitorManager: FpsMonitorManager,
-    onToggleBenchmark: () -> Unit
+    onToggleBenchmark: () -> Unit,
+    onDrag: (Float, Float) -> Unit,
+    onTouched: () -> Unit,
+    alpha: Float
 ) {
     val fpsData by fpsMonitorManager.fpsData.collectAsState()
 
     Box(
         modifier = Modifier
+            .alpha(alpha)
             .background(Color(0xBB000000), shape = RoundedCornerShape(12.dp))
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = { onTouched() },
+                    onDragEnd = { onTouched() },
+                    onDragCancel = { onTouched() },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        onDrag(dragAmount.x, dragAmount.y)
+                    }
+                )
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        onTouched()
+                        tryAwaitRelease()
+                    },
+                    onTap = { onTouched() }
+                )
+            }
             .padding(8.dp)
     ) {
         Row(
@@ -279,7 +338,10 @@ fun FpsOverlayContent(
                         if (fpsData.isBenchmarking) Color.Red.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.1f),
                         CircleShape
                     )
-                    .clickable { onToggleBenchmark() },
+                    .clickable { 
+                        onTouched()
+                        onToggleBenchmark() 
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
