@@ -103,39 +103,6 @@ fun BenchmarkDetailScreen(
                 )
             }
 
-            // CPU Temp Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_cpu_temp),
-                    icon = Icons.Default.DeviceThermostat,
-                    data = decodeJsonList(b.cpuTempDataJson),
-                    lineColor = colorCpuTemp,
-                    unit = "°C"
-                )
-            }
-
-            // GPU Usage Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_gpu_usage),
-                    icon = Icons.Default.GraphicEq,
-                    data = decodeJsonList(b.gpuUsageDataJson),
-                    lineColor = colorGpu,
-                    unit = "%"
-                )
-            }
-
-            // GPU Freq Graph
-            item {
-                ChartCard(
-                    title = stringResource(R.string.benchmark_gpu_freq),
-                    icon = Icons.Default.FlashOn,
-                    data = decodeJsonList(b.gpuFreqDataJson),
-                    lineColor = colorGpuFreq,
-                    unit = "MHz"
-                )
-            }
-
             // CPU Clusters Freq Graph
             item {
                 val little = decodeJsonList(b.cpuFreqLittleDataJson)
@@ -168,6 +135,39 @@ fun BenchmarkDetailScreen(
                         }
                     }
                 }
+            }
+
+            // CPU Temp Graph
+            item {
+                ChartCard(
+                    title = stringResource(R.string.benchmark_cpu_temp),
+                    icon = Icons.Default.DeviceThermostat,
+                    data = decodeJsonList(b.cpuTempDataJson),
+                    lineColor = colorCpuTemp,
+                    unit = "°C"
+                )
+            }
+
+            // GPU Usage Graph
+            item {
+                ChartCard(
+                    title = stringResource(R.string.benchmark_gpu_usage),
+                    icon = Icons.Default.GraphicEq,
+                    data = decodeJsonList(b.gpuUsageDataJson),
+                    lineColor = colorGpu,
+                    unit = "%"
+                )
+            }
+
+            // GPU Freq Graph
+            item {
+                ChartCard(
+                    title = stringResource(R.string.benchmark_gpu_freq),
+                    icon = Icons.Default.FlashOn,
+                    data = decodeJsonList(b.gpuFreqDataJson),
+                    lineColor = colorGpuFreq,
+                    unit = "MHz"
+                )
             }
 
             // Battery Power Graph
