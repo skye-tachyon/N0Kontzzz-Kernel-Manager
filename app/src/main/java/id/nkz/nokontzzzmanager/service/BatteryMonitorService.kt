@@ -89,6 +89,7 @@ class BatteryMonitorService : Service() {
     private var monitoringJob: Job? = null
     private var lastManualUpdateTime = 0L
     private val MANUAL_UPDATE_THROTTLE_MS = 2000L
+    private val MIN_DRAIN_WINDOW_MS = 10 * 60 * 1000L // 10 minutes minimum for stable drain rate
     
     // Screen on-time tracking
     private var screenReceiver: BroadcastReceiver? = null
@@ -187,6 +188,7 @@ class BatteryMonitorService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d("BatteryMonitorService", "onDestroy")
         isRunning = false
         monitoringJob?.cancel()
         scope.cancel()
@@ -255,6 +257,7 @@ class BatteryMonitorService : Service() {
 
             while (isRunning) {
                 try {
+                    Log.d("BatteryMonitorService", "Heartbeat: Loop tick (Interactive=${pm.isInteractive})")
                     val stats = withContext(Dispatchers.IO) { collectSystemStats() }
                     updateNotification(stats)
                 } catch (e: Exception) {
@@ -276,6 +279,7 @@ class BatteryMonitorService : Service() {
         
         scope.launch(Dispatchers.Main.immediate) {
             try {
+                Log.d("BatteryMonitorService", "Triggering manual update (immediate=$immediate)")
                 val stats = withContext(Dispatchers.IO) { collectSystemStats() }
                 updateNotification(stats)
             } catch (e: Exception) {
@@ -361,13 +365,19 @@ class BatteryMonitorService : Service() {
             val dt = nowElapsed - lastSampleElapsedMs
             if (dt > 0) {
                 val deltaUah = (lastSampleChargeUah - currentCharge)
+                // Sanity check: ignore charging deltas if misreported as discharging
+                val safeDeltaUah = if (deltaUah >= 0) deltaUah else 0L
+                
                 val prev = prevInteractiveForSample ?: interactive
-                if (prev) consumedOnUah += deltaUah else consumedOffUah += deltaUah
+                if (prev) consumedOnUah += safeDeltaUah else consumedOffUah += safeDeltaUah
+                
                 // Also accumulate percent drop
                 val currentPercent = computeCurrentBatteryPercent(level, currentCharge)
                 if (!lastSamplePercent.isNaN()) {
                     val dPct = (lastSamplePercent - currentPercent)
-                    if (prev) onPercentDrop += dPct else offPercentDrop += dPct
+                    // Sanity check: ignore negative drops (charging)
+                    val safeDPct = if (dPct >= 0) dPct else 0.0
+                    if (prev) onPercentDrop += safeDPct else offPercentDrop += safeDPct
                 }
                 lastSamplePercent = currentPercent
             }
@@ -445,15 +455,20 @@ class BatteryMonitorService : Service() {
         val offHours = screenOffMs / 3_600_000.0
         val activeRate = if (onHours > 0) (onPercentDrop / onHours).coerceAtLeast(0.0) else 0.0
         val idleRate = if (offHours > 0) (offPercentDrop / offHours).coerceAtLeast(0.0) else 0.0
-        val activeDrainStr = if (onPercentDrop <= 0.0 || onHours <= 0.0 || currentScreenOnMs < 60_000L) {
-            "0% /hr"
-        } else {
-            String.format(Locale.US, "%.2f%% /hr", activeRate)
+        
+        // mAh-based drain calculation for better precision
+        val activeMaDrain = if (onHours > 0) (consumedOnUah / 1000.0) / onHours else 0.0
+        val idleMaDrain = if (offHours > 0) (consumedOffUah / 1000.0) / offHours else 0.0
+        
+        val activeDrainStr = when {
+            currentScreenOnMs < MIN_DRAIN_WINDOW_MS -> "Calculating..."
+            onPercentDrop <= 0.0 && activeMaDrain <= 0.0 -> "0.00% /hr"
+            else -> String.format(Locale.US, "%.2f%% /hr (%.0fmA)", activeRate, activeMaDrain)
         }
-        val idleDrainStr = if (offPercentDrop <= 0.0 || offHours <= 0.0 || screenOffMs < 60_000L) {
-            "0% /hr"
-        } else {
-            String.format(Locale.US, "%.2f%% /hr", idleRate)
+        val idleDrainStr = when {
+            screenOffMs < MIN_DRAIN_WINDOW_MS -> "Calculating..."
+            offPercentDrop <= 0.0 && idleMaDrain <= 0.0 -> "0.00% /hr"
+            else -> String.format(Locale.US, "%.2f%% /hr (%.0fmA)", idleRate, idleMaDrain)
         }
 
         // Save history every 1 minute
