@@ -136,7 +136,6 @@ fun MiscScreen(
 
     val checkBatteryOptimizationAndEnable = {
         val pm = context.getSystemService(PowerManager::class.java)
-        // Request ignore battery optimizations if not whitelisted (Android 6.0+)
         if (pm != null && !pm.isIgnoringBatteryOptimizations(context.packageName)) {
             try {
                 val i = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
@@ -168,108 +167,72 @@ fun MiscScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        // Group: Kernel
         item {
             Text(stringResource(id = R.string.kernel), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
-        // Custom Tunable
         item {
             CustomTunableEntryCard(
                 onClick = { navController?.navigate("custom_tunable") },
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp)
             )
         }
-        
-        // TCP Congestion Control Algorithm feature
         item {
             TcpCongestionControlCard(
                 tcpCongestionAlgorithm = tcpCongestionAlgorithm,
                 availableAlgorithms = availableTcpAlgorithms,
-                onAlgorithmChange = { algorithm ->
-                    viewModel.updateTcpCongestionAlgorithm(algorithm)
-                },
+                onAlgorithmChange = { viewModel.updateTcpCongestionAlgorithm(it) },
                 shape = RoundedCornerShape(8.dp)
             )
         }
-        
-        // I/O Scheduler feature
         item {
             IoSchedulerCard(
                 ioScheduler = ioScheduler,
                 availableSchedulers = availableIoSchedulers,
-                onSchedulerChange = { scheduler ->
-                    viewModel.updateIoScheduler(scheduler)
-                },
+                onSchedulerChange = { viewModel.updateIoScheduler(it) },
                 shape = RoundedCornerShape(8.dp)
             )
         }
-        
-        // Apply Network & Storage on Boot
         item {
             NetworkStorageOnBootCard(
                 applyOnBoot = applyNetworkStorageOnBoot,
-                onToggle = { enabled ->
-                    viewModel.setApplyNetworkStorageOnBoot(enabled)
-                }
+                onToggle = { viewModel.setApplyNetworkStorageOnBoot(it) }
             )
         }
-
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        // Group 1: GPU & Power
+        item { Spacer(modifier = Modifier.height(16.dp)) }
         item {
             Text(stringResource(id = R.string.gpu_power), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
-        // KGSL Skip Pool Zeroing feature
         item {
             KgslSkipZeroingCard(
                 kgslSkipZeroingEnabled = kgslSkipZeroingEnabled,
                 isKgslFeatureAvailable = isKgslFeatureAvailable,
-                onToggleKgslSkipZeroing = { enabled ->
-                    viewModel.toggleKgslSkipZeroing(enabled)
-                }
+                onToggleKgslSkipZeroing = { viewModel.toggleKgslSkipZeroing(it) }
             )
         }
-
-        // Avoid Dirty PTE feature
         item {
             AvoidDirtyPteCard(
                 avoidDirtyPteEnabled = avoidDirtyPteEnabled,
                 isAvoidDirtyPteAvailable = isAvoidDirtyPteAvailable,
-                onToggleAvoidDirtyPte = { enabled ->
-                    viewModel.toggleAvoidDirtyPte(enabled)
-                }
+                onToggleAvoidDirtyPte = { viewModel.toggleAvoidDirtyPte(it) }
             )
         }
-
-        // Bypass Charging feature
         item {
             BypassChargingCard(
                 bypassChargingEnabled = bypassChargingEnabled,
                 isBypassChargingAvailable = isBypassChargingAvailable,
                 isChargingControlEnabled = chargingControlEnabled,
-                onToggleBypassCharging = { enabled ->
-                    viewModel.toggleBypassCharging(enabled)
-                }
+                onToggleBypassCharging = { viewModel.toggleBypassCharging(it) }
             )
         }
-
-        // USB Fast Charge feature
         item {
             ForceFastChargeCard(
                 forceFastChargeEnabled = forceFastChargeEnabled,
                 isForceFastChargeAvailable = isForceFastChargeAvailable,
-                onToggleForceFastCharge = { enabled ->
-                    viewModel.toggleForceFastCharge(enabled)
-                }
+                onToggleForceFastCharge = { viewModel.toggleForceFastCharge(it) }
             )
         }
-
-        // Charging Control feature
         item {
             ChargingControlCard(
                 enabled = chargingControlEnabled,
@@ -278,19 +241,11 @@ fun MiscScreen(
                 onClick = { showChargingControlDialog = true }
             )
         }
-
-        // Spacer between groups
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        // Group: Battery
+        item { Spacer(modifier = Modifier.height(16.dp)) }
         item {
             Text(stringResource(id = R.string.battery_settings), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
-
-        // Battery Monitor toggle
         item {
             BatteryMonitorCard(
                 enabled = batteryMonitorEnabled,
@@ -298,239 +253,77 @@ fun MiscScreen(
                     if (enabled) {
                         var hasPermission = true
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            val granted = ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.POST_NOTIFICATIONS
-                            ) == PackageManager.PERMISSION_GRANTED
+                            val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
                             if (!granted) {
                                 hasPermission = false
                                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                             }
                         }
-
-                        if (hasPermission) {
-                            checkBatteryOptimizationAndEnable()
-                        }
+                        if (hasPermission) checkBatteryOptimizationAndEnable()
                     } else {
                         viewModel.toggleBatteryMonitor(false)
                     }
                 }
             )
         }
-
-        // Battery Monitor Auto Reset Config
         item {
-            BatteryMonitorAutoResetCard(
-                onClick = { showMonitorAutoResetDialog = true }
-            )
+            BatteryMonitorAutoResetCard(onClick = { showMonitorAutoResetDialog = true })
         }
-
-        // Battery Monitor manual reset
         item {
-            BatteryMonitorResetCard(
-                onReset = {
-                    viewModel.resetBatteryMonitor()
-                },
-                onEnsurePermission = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        val granted = ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.POST_NOTIFICATIONS
-                        ) == PackageManager.PERMISSION_GRANTED
-                        if (!granted) {
-                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        }
+            BatteryMonitorResetCard(onReset = { viewModel.resetBatteryMonitor() }, onEnsurePermission = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     }
                 }
-            )
+            })
         }
-
-        // Battery History
         item {
-            BatteryHistoryCard(
-                onClick = { navController?.navigate("battery_history") },
-                onSettingsClick = { showAutoResetDialog = true }
-            )
+            BatteryHistoryCard(onClick = { navController?.navigate("battery_history") }, onSettingsClick = { showAutoResetDialog = true })
         }
-
-        // Spacer between groups
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        // Group 3: Automation
+        item { Spacer(modifier = Modifier.height(16.dp)) }
         item {
             Text(stringResource(id = R.string.automation_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
-        
-        // App Profiles
-        item {
-            AppProfilesCard(
-                onClick = { navController?.navigate("app_profiles") }
-            )
-        }
-
-        // FPS Monitor
-        item {
-            FpsMonitorCard(
-                onClick = { navController?.navigate("fps_monitor") }
-            )
-        }
-
-        // Background App Blocker
-        item {
-            BgBlockerCard(
-                onClick = { navController?.navigate("bg_blocker") }
-            )
-        }
-
-        // Spacer between groups
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-        
-        // Group: System Monitor
+        item { AppProfilesCard(onClick = { navController?.navigate("app_profiles") }) }
+        item { FpsMonitorCard(onClick = { navController?.navigate("fps_monitor") }) }
+        item { BgBlockerCard(onClick = { navController?.navigate("bg_blocker") }) }
+        item { Spacer(modifier = Modifier.height(16.dp)) }
         item {
             Text(stringResource(id = R.string.system_stats_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.height(8.dp))
         }
-        
-        // Process Monitor
-        item {
-            ProcessMonitorCard(
-                onClick = { navController?.navigate("process_monitor") }
-            )
-        }
-
-        // Dexopt
-        item {
-            DexoptCard(
-                onClick = { navController?.navigate("dexopt") }
-            )
-        }
-        
-        // Kernel Log
-        item {
-            KernelLogCard(
-                onClick = { navController?.navigate("kernel_log") }
-            )
-        }
+        item { ProcessMonitorCard(onClick = { navController?.navigate("process_monitor") }) }
+        item { DexoptCard(onClick = { navController?.navigate("dexopt") }) }
+        item { WakelockCard(onClick = { navController?.navigate("wakelock_monitor") }) }
+        item { KernelLogCard(onClick = { navController?.navigate("kernel_log") }) }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NetworkStorageOnBootCard(
-    applyOnBoot: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = {
-            onToggle(!applyOnBoot)
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Save,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun NetworkStorageOnBootCard(applyOnBoot: Boolean, onToggle: (Boolean) -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { onToggle(!applyOnBoot) }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Save, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.apply_on_boot_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.apply_on_boot_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.apply_on_boot_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.apply_on_boot_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-
-                Switch(
-                    checked = applyOnBoot,
-                    onCheckedChange = null,
-                    thumbContent = if (applyOnBoot) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    }
-                )
+                Switch(checked = applyOnBoot, onCheckedChange = null, thumbContent = if (applyOnBoot) { { Icon(Icons.Default.Check, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } } else { { Icon(Icons.Default.Close, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } })
             }
-            
             if (applyOnBoot) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = stringResource(id = R.string.apply_on_boot_active),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer), modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Default.Info, null, tint = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.apply_on_boot_active), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
-                        Text(
-                            text = stringResource(id = R.string.apply_on_boot_active_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Text(stringResource(R.string.apply_on_boot_active_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
             }
@@ -540,131 +333,28 @@ fun NetworkStorageOnBootCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun KgslSkipZeroingCard(
-    kgslSkipZeroingEnabled: Boolean,
-    isKgslFeatureAvailable: Boolean?,
-    onToggleKgslSkipZeroing: (Boolean) -> Unit,
-) {
-    // Treat null as false for UI purposes, preventing flicker during initial load
+fun KgslSkipZeroingCard(kgslSkipZeroingEnabled: Boolean, isKgslFeatureAvailable: Boolean?, onToggleKgslSkipZeroing: (Boolean) -> Unit) {
     val featureAvailable = isKgslFeatureAvailable == true
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = {
-            if (featureAvailable) {
-                onToggleKgslSkipZeroing(!kgslSkipZeroingEnabled)
-            }
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.VideogameAsset,
-                        contentDescription = null,
-                        tint = if (featureAvailable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 8.dp, bottomEnd = 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { if (featureAvailable) onToggleKgslSkipZeroing(!kgslSkipZeroingEnabled) }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.VideogameAsset, null, tint = if (featureAvailable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.kgsl_skip_pool_zeroing),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    )
-                    Text(
-                        text = if (featureAvailable) {
-                            stringResource(id = R.string.kgsl_skip_pool_zeroing_desc)
-                        } else {
-                            stringResource(id = R.string.feature_not_available)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    )
+                    Text(stringResource(R.string.kgsl_skip_pool_zeroing), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text(if (featureAvailable) stringResource(R.string.kgsl_skip_pool_zeroing_desc) else stringResource(R.string.feature_not_available), style = MaterialTheme.typography.bodySmall, color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
-
-                Switch(
-                    checked = kgslSkipZeroingEnabled,
-                    onCheckedChange = null,
-                    enabled = featureAvailable,
-                    thumbContent = if (kgslSkipZeroingEnabled) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    }
-                )
+                Switch(checked = kgslSkipZeroingEnabled, onCheckedChange = null, enabled = featureAvailable, thumbContent = if (kgslSkipZeroingEnabled) { { Icon(Icons.Default.Check, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } } else { { Icon(Icons.Default.Close, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } })
             }
-
             if (kgslSkipZeroingEnabled && featureAvailable) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = stringResource(id = R.string.performance_mode_active),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer), modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Default.Info, null, tint = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.performance_mode_active), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
-                        Text(
-                            text = stringResource(id = R.string.kgsl_warning),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Text(stringResource(R.string.kgsl_warning), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
             }
@@ -674,130 +364,28 @@ fun KgslSkipZeroingCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AvoidDirtyPteCard(
-    avoidDirtyPteEnabled: Boolean,
-    isAvoidDirtyPteAvailable: Boolean?,
-    onToggleAvoidDirtyPte: (Boolean) -> Unit,
-) {
+fun AvoidDirtyPteCard(avoidDirtyPteEnabled: Boolean, isAvoidDirtyPteAvailable: Boolean?, onToggleAvoidDirtyPte: (Boolean) -> Unit) {
     val featureAvailable = isAvoidDirtyPteAvailable == true
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = {
-            if (featureAvailable) {
-                onToggleAvoidDirtyPte(!avoidDirtyPteEnabled)
-            }
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Memory,
-                        contentDescription = null,
-                        tint = if (featureAvailable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { if (featureAvailable) onToggleAvoidDirtyPte(!avoidDirtyPteEnabled) }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Memory, null, tint = if (featureAvailable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.avoid_dirty_pte),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    )
-                    Text(
-                        text = if (featureAvailable) {
-                            stringResource(id = R.string.avoid_dirty_pte_desc)
-                        } else {
-                            stringResource(id = R.string.feature_not_available)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    )
+                    Text(stringResource(R.string.avoid_dirty_pte), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text(if (featureAvailable) stringResource(R.string.avoid_dirty_pte_desc) else stringResource(R.string.feature_not_available), style = MaterialTheme.typography.bodySmall, color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
-
-                Switch(
-                    checked = avoidDirtyPteEnabled,
-                    onCheckedChange = null,
-                    enabled = featureAvailable,
-                    thumbContent = if (avoidDirtyPteEnabled) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    }
-                )
+                Switch(checked = avoidDirtyPteEnabled, onCheckedChange = null, enabled = featureAvailable, thumbContent = if (avoidDirtyPteEnabled) { { Icon(Icons.Default.Check, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } } else { { Icon(Icons.Default.Close, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } })
             }
-
             if (avoidDirtyPteEnabled && featureAvailable) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = stringResource(id = R.string.avoid_dirty_pte_activated),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer), modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Default.Info, null, tint = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.avoid_dirty_pte_activated), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
-                        Text(
-                            text = stringResource(id = R.string.avoid_dirty_pte_active_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Text(stringResource(R.string.avoid_dirty_pte_active_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
             }
@@ -807,62 +395,18 @@ fun AvoidDirtyPteCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppProfilesCard(
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AppSettingsAlt,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun AppProfilesCard(onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.AppSettingsAlt, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.app_profiles_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.app_profiles_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.app_profiles_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.app_profiles_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Open App Profiles",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -870,62 +414,18 @@ fun AppProfilesCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FpsMonitorCard(
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Speed,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun FpsMonitorCard(onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Speed, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.fps_monitor_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.fps_monitor_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.fps_monitor_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.fps_monitor_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Open FPS Monitor",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -933,62 +433,18 @@ fun FpsMonitorCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BgBlockerCard(
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Block,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun BgBlockerCard(onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Block, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.bg_blocker_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.bg_blocker_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.bg_blocker_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.bg_blocker_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Open Bg Blocker",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -996,69 +452,20 @@ fun BgBlockerCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BatteryMonitorResetCard(
-    onReset: () -> Unit,
-    onEnsurePermission: () -> Unit,
-) {
+fun BatteryMonitorResetCard(onReset: () -> Unit, onEnsurePermission: () -> Unit) {
     val context = LocalContext.current
-    val toastMessage = stringResource(R.string.battery_stats_reset_toast)
-    
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = {
-            onReset()
-            Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show()
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DeleteSweep,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+    val msg = stringResource(R.string.battery_stats_reset_toast)
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { onReset(); Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.DeleteSweep, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.battery_monitor_reset_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.battery_monitor_reset_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.battery_monitor_reset_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.battery_monitor_reset_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Reset",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.Default.Refresh, "Reset", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1066,62 +473,18 @@ fun BatteryMonitorResetCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BatteryMonitorAutoResetCard(
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.History,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun BatteryMonitorAutoResetCard(onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.History, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.battery_monitor_config_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.battery_monitor_config_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.battery_monitor_config_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.battery_monitor_config_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Configure",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1129,382 +492,107 @@ fun BatteryMonitorAutoResetCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BatteryMonitorCard(
-    enabled: Boolean,
-    onToggle: (Boolean) -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = { onToggle(!enabled) }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MonitorHeart,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun BatteryMonitorCard(enabled: Boolean, onToggle: (Boolean) -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { onToggle(!enabled) }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.MonitorHeart, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.battery_monitor),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.battery_monitor_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.battery_monitor), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.battery_monitor_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                Switch(checked = enabled, onCheckedChange = null, thumbContent = if (enabled) { { Icon(Icons.Default.Check, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } } else { { Icon(Icons.Default.Close, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } })
+            }
+        }
+    }
+}
 
-                Switch(
-                    checked = enabled,
-                    onCheckedChange = null,
-                    thumbContent = if (enabled) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    }
-                )
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomTunableEntryCard(onClick: () -> Unit, shape: RoundedCornerShape) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = shape, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Tune, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.custom_tunable_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.custom_tunable_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
 }
 
 @Composable
-fun TcpCongestionControlCard(
-    tcpCongestionAlgorithm: String?,
-    availableAlgorithms: List<String>,
-    onAlgorithmChange: (String) -> Unit,
-    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(8.dp)
-) {
+fun TcpCongestionControlCard(tcpCongestionAlgorithm: String?, availableAlgorithms: List<String>, onAlgorithmChange: (String) -> Unit, shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(8.dp)) {
     var showDialog by remember { mutableStateOf(false) }
-    
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = shape,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = { 
-            if (availableAlgorithms.isNotEmpty()) {
-                showDialog = true 
-            }
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Router,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+    Card(modifier = Modifier.fillMaxWidth(), shape = shape, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { if (availableAlgorithms.isNotEmpty()) showDialog = true }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Router, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.tcp_congestion_control),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = tcpCongestionAlgorithm ?: "...",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.tcp_congestion_control), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(tcpCongestionAlgorithm ?: "...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(id = R.string.change_algorithm),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Change", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
-    
-    if (showDialog) {
-        TcpCongestionDialog(
-            currentAlgorithm = tcpCongestionAlgorithm ?: "",
-            availableAlgorithms = availableAlgorithms,
-            onAlgorithmSelected = { algorithm ->
-                onAlgorithmChange(algorithm)
-                showDialog = false
-            },
-            onDismiss = { showDialog = false }
-        )
-    }
+    if (showDialog) { TcpCongestionDialog(currentAlgorithm = tcpCongestionAlgorithm ?: "", availableAlgorithms = availableAlgorithms, onAlgorithmSelected = { onAlgorithmChange(it); showDialog = false }, onDismiss = { showDialog = false }) }
 }
 
 @Composable
-fun IoSchedulerCard(
-    ioScheduler: String?,
-    availableSchedulers: List<String>,
-    onSchedulerChange: (String) -> Unit,
-    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(8.dp)
-) {
+fun IoSchedulerCard(ioScheduler: String?, availableSchedulers: List<String>, onSchedulerChange: (String) -> Unit, shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(8.dp)) {
     var showDialog by remember { mutableStateOf(false) }
-    
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = shape,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = { 
-            if (availableSchedulers.isNotEmpty()) {
-                showDialog = true 
-            }
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Storage,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+    Card(modifier = Modifier.fillMaxWidth(), shape = shape, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { if (availableSchedulers.isNotEmpty()) showDialog = true }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Storage, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.io_scheduler),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = ioScheduler ?: "...",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.io_scheduler), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(ioScheduler ?: "...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(id = R.string.change_scheduler),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Change", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
-    
-    if (showDialog) {
-        IoSchedulerDialog(
-            currentScheduler = ioScheduler ?: "",
-            availableSchedulers = availableSchedulers,
-            onSchedulerSelected = { scheduler ->
-                onSchedulerChange(scheduler)
-                showDialog = false
-            },
-            onDismiss = { showDialog = false }
-        )
-    }
+    if (showDialog) { IoSchedulerDialog(currentScheduler = ioScheduler ?: "", availableSchedulers = availableSchedulers, onSchedulerSelected = { onSchedulerChange(it); showDialog = false }, onDismiss = { showDialog = false }) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BypassChargingCard(
-    bypassChargingEnabled: Boolean,
-    isBypassChargingAvailable: Boolean?,
-    isChargingControlEnabled: Boolean,
-    onToggleBypassCharging: (Boolean) -> Unit,
-) {
-    // Treat null as false for UI purposes, preventing flicker during initial load
+fun BypassChargingCard(bypassChargingEnabled: Boolean, isBypassChargingAvailable: Boolean?, isChargingControlEnabled: Boolean, onToggleBypassCharging: (Boolean) -> Unit) {
     val featureAvailable = isBypassChargingAvailable == true
     val isEnabled = featureAvailable && !isChargingControlEnabled
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = {
-            if (isEnabled) {
-                onToggleBypassCharging(!bypassChargingEnabled)
-            }
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.BatteryChargingFull,
-                        contentDescription = null,
-                        tint = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { if (isEnabled) onToggleBypassCharging(!bypassChargingEnabled) }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.BatteryChargingFull, null, tint = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.bypass_charging),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    )
-                    Text(
-                        text = if (isChargingControlEnabled) {
-                            stringResource(id = R.string.charging_control_active_subtitle)
-                        } else if (featureAvailable) {
-                            stringResource(id = R.string.bypass_charging_desc)
-                        } else {
-                            stringResource(id = R.string.feature_not_available)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    )
+                    Text(stringResource(R.string.bypass_charging), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text(if (isChargingControlEnabled) stringResource(R.string.charging_control_active_subtitle) else if (featureAvailable) stringResource(R.string.bypass_charging_desc) else stringResource(R.string.feature_not_available), style = MaterialTheme.typography.bodySmall, color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
-
-                Switch(
-                    checked = bypassChargingEnabled,
-                    onCheckedChange = null,
-                    enabled = isEnabled,
-                    thumbContent = if (bypassChargingEnabled) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    }
-                )
+                Switch(checked = bypassChargingEnabled, onCheckedChange = null, enabled = isEnabled, thumbContent = if (bypassChargingEnabled) { { Icon(Icons.Default.Check, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } } else { { Icon(Icons.Default.Close, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } })
             }
-
             if (bypassChargingEnabled && featureAvailable) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = stringResource(id = R.string.bypass_charging_activated),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer), modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Default.Info, null, tint = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.bypass_charging_activated), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
-                        Text(
-                            text = stringResource(id = R.string.bypass_charging_active_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Text(stringResource(R.string.bypass_charging_active_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
             }
@@ -1514,90 +602,19 @@ fun BypassChargingCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChargingControlCard(
-    enabled: Boolean,
-    isBatteryMonitorEnabled: Boolean,
-    isBypassChargingEnabled: Boolean,
-    onClick: () -> Unit
-) {
-    // Enable card if:
-    // 1. Battery Monitor is ON
-    // 2. AND (Bypass is OFF OR Charging Control is ALREADY ON)
-    // This allows the user to turn OFF Charging Control even if it has currently activated bypass.
+fun ChargingControlCard(enabled: Boolean, isBatteryMonitorEnabled: Boolean, isBypassChargingEnabled: Boolean, onClick: () -> Unit) {
     val isEnabled = isBatteryMonitorEnabled && (!isBypassChargingEnabled || enabled)
-    
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = {
-            if (isEnabled) {
-                onClick()
-            }
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.BatterySaver,
-                        contentDescription = null,
-                        tint = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { if (isEnabled) onClick() }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = if (isEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.BatterySaver, null, tint = if (isEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.charging_control_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                    Text(
-                        text = if (isBypassChargingEnabled && !enabled) {
-                             stringResource(id = R.string.bypass_active_subtitle)
-                        } else if (isBatteryMonitorEnabled) {
-                            stringResource(id = R.string.charging_control_desc)
-                        } else {
-                            stringResource(id = R.string.requires_battery_monitor)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                    
-                    if (isBatteryMonitorEnabled && (!isBypassChargingEnabled || enabled)) {
-                        Text(
-                            text = stringResource(id = R.string.charging_control_bypass_note),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
+                    Text(stringResource(R.string.charging_control_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = if (isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text(if (isBypassChargingEnabled && !enabled) stringResource(R.string.bypass_active_subtitle) else if (isBatteryMonitorEnabled) stringResource(R.string.charging_control_desc) else stringResource(R.string.requires_battery_monitor), style = MaterialTheme.typography.bodySmall, color = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Configure",
-                    tint = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = if (isEnabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
             }
         }
     }
@@ -1605,75 +622,19 @@ fun ChargingControlCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BatteryHistoryCard(
-    onClick: () -> Unit,
-    onSettingsClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.BarChart,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun BatteryHistoryCard(onClick: () -> Unit, onSettingsClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.BarChart, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.battery_history_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.battery_history_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.battery_history_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.battery_history_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Auto-Reset Settings",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = "View History",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                IconButton(onClick = onSettingsClick) { Icon(Icons.Default.Settings, "Settings", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1681,131 +642,28 @@ fun BatteryHistoryCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ForceFastChargeCard(
-    forceFastChargeEnabled: Boolean,
-    isForceFastChargeAvailable: Boolean?,
-    onToggleForceFastCharge: (Boolean) -> Unit,
-) {
-    // Treat null as false for UI purposes, preventing flicker during initial load
+fun ForceFastChargeCard(forceFastChargeEnabled: Boolean, isForceFastChargeAvailable: Boolean?, onToggleForceFastCharge: (Boolean) -> Unit) {
     val featureAvailable = isForceFastChargeAvailable == true
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = {
-            if (featureAvailable) {
-                onToggleForceFastCharge(!forceFastChargeEnabled)
-            }
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ElectricBolt,
-                        contentDescription = null,
-                        tint = if (featureAvailable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = { if (featureAvailable) onToggleForceFastCharge(!forceFastChargeEnabled) }) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = if (featureAvailable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.ElectricBolt, null, tint = if (featureAvailable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.force_fast_charge),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    )
-                    Text(
-                        text = if (featureAvailable) {
-                            stringResource(id = R.string.force_fast_charge_desc)
-                        } else {
-                            stringResource(id = R.string.feature_not_available)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    )
+                    Text(stringResource(R.string.force_fast_charge), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = if (featureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text(if (featureAvailable) stringResource(R.string.force_fast_charge_desc) else stringResource(R.string.feature_not_available), style = MaterialTheme.typography.bodySmall, color = if (featureAvailable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
-
-                Switch(
-                    checked = forceFastChargeEnabled,
-                    onCheckedChange = null,
-                    enabled = featureAvailable,
-                    thumbContent = if (forceFastChargeEnabled) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    }
-                )
+                Switch(checked = forceFastChargeEnabled, onCheckedChange = null, enabled = featureAvailable, thumbContent = if (forceFastChargeEnabled) { { Icon(Icons.Default.Check, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } } else { { Icon(Icons.Default.Close, null, modifier = Modifier.size(SwitchDefaults.IconSize)) } })
             }
-
             if (forceFastChargeEnabled && featureAvailable) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = stringResource(id = R.string.force_fast_charge_activated),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer), modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Default.Info, null, tint = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.force_fast_charge_activated), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
-                        Text(
-                            text = stringResource(id = R.string.force_fast_charge_active_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Text(stringResource(R.string.force_fast_charge_active_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
             }
@@ -1815,62 +673,18 @@ fun ForceFastChargeCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProcessMonitorCard(
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Analytics,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun ProcessMonitorCard(onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Analytics, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.process_monitor_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.process_monitor_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.process_monitor_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.process_monitor_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Open Process Monitor",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1878,62 +692,18 @@ fun ProcessMonitorCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DexoptCard(
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon with themed background
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SettingsSuggest,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun DexoptCard(onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.SettingsSuggest, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.dexopt_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.dexopt_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.dexopt_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.dexopt_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Open Dexopt",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -1941,61 +711,37 @@ fun DexoptCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun KernelLogCard(
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Description,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+fun WakelockCard(onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                 }
-
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(id = R.string.kernel_log_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.kernel_log_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Text(stringResource(R.string.wakelock_monitor_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.wakelock_monitor_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Open Kernel Log",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun KernelLogCard(onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), onClick = onClick) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(42.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Description, null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.kernel_log_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.kernel_log_desc), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Open", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

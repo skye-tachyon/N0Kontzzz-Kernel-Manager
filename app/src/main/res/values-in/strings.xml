@@ -567,9 +567,22 @@
     <string name="zram_performance_settings_subtitle">Pengaturan Performa ZRAM</string>
     <string name="compression_feature_explanation">Algoritma kompresi yang digunakan oleh ZRAM untuk mengompres data di memori. LZ4 memprioritaskan kecepatan, ZSTD efisiensi tinggi, LZO keseimbangan optimal antara kecepatan dan rasio kompresi.</string>
     <!-- Process Monitor -->
-    <string name="process_monitor_title">Monitor Proses</string>
+    <string name="process_monitor_title">Proses Monitor</string>
     <string name="process_monitor_desc">Pantau penggunaan CPU dan RAM proses yang berjalan</string>
-    <string name="process_monitor_sample_rate">Laju Sampel (ms)</string>
+
+    <!-- Wakelock Monitor -->
+    <string name="wakelock_monitor_title">Wakelock Monitor</string>
+    <string name="wakelock_monitor_desc">Pantau kernel dan sistem wakelock yang mencegah deep sleep</string>
+    <string name="wakelock_name">Nama</string>
+    <string name="wakelock_active_count">Jumlah Aktif</string>
+    <string name="wakelock_wakeup_count">Jumlah Bangun</string>
+    <string name="wakelock_total_time">Total Waktu</string>
+    <string name="wakelock_prevent_suspend">Cegah Suspend</string>
+    <string name="wakelock_last_change">Perubahan Terakhir</string>
+    <string name="wakelock_search_placeholder">Cari wakelock…</string>
+    <string name="wakelock_no_results">Wakelock tidak ditemukan</string>
+
+    <string name="process_monitor_sample_rate">Sample Rate (ms)</string>
     <string name="process_monitor_max_processes">Maks Proses</string>
     <string name="process_monitor_settings">Pengaturan Monitor</string>
     <string name="process_name">Nama Proses</string>

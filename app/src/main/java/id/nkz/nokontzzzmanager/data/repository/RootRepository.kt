@@ -51,16 +51,16 @@ class RootRepository @Inject constructor() {
     }
 
     /**
-     * Executes a command with retry logic and proper error handling
+     * Executes a command with optional retry logic
      */
-    suspend fun run(cmd: String): String {
-        return executeCommand(cmd)
+    suspend fun run(cmd: String, useRetry: Boolean = true): String {
+        return executeCommand(cmd, if (useRetry) 2 else 0)
     }
 
     /**
      * Executes a command with retry mechanism
      */
-    private suspend fun executeCommand(cmd: String, maxRetries: Int = 2): String {
+    private suspend fun executeCommand(cmd: String, maxRetries: Int): String {
         var attempts = 0
         var lastError: Exception? = null
 

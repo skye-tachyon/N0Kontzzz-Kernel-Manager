@@ -569,6 +569,19 @@
     <!-- Process Monitor -->
     <string name="process_monitor_title">Process Monitor</string>
     <string name="process_monitor_desc">Monitor running processes CPU and RAM usage</string>
+    
+    <!-- Wakelock Monitor -->
+    <string name="wakelock_monitor_title">Wakelock Monitor</string>
+    <string name="wakelock_monitor_desc">Monitor kernel and system wakelocks that prevent deep sleep</string>
+    <string name="wakelock_name">Name</string>
+    <string name="wakelock_active_count">Active Count</string>
+    <string name="wakelock_wakeup_count">Wakeup Count</string>
+    <string name="wakelock_total_time">Total Time</string>
+    <string name="wakelock_prevent_suspend">Prevent Suspend</string>
+    <string name="wakelock_last_change">Last Change</string>
+    <string name="wakelock_search_placeholder">Search wakelocks…</string>
+    <string name="wakelock_no_results">No wakelocks found</string>
+
     <string name="process_monitor_sample_rate">Sample Rate (ms)</string>
     <string name="process_monitor_max_processes">Max Processes</string>
     <string name="process_monitor_settings">Monitor Settings</string>

@@ -198,6 +198,7 @@ class MainActivity : ComponentActivity() {
                     "process_monitor" -> stringResource(id = R.string.process_monitor_title)
                     "permission_manager" -> stringResource(id = R.string.permission_manager_title)
                     "dexopt" -> stringResource(id = R.string.dexopt_title)
+                    "wakelock_monitor" -> stringResource(id = R.string.wakelock_monitor_title)
                     "kernel_log" -> stringResource(id = R.string.kernel_log_title)
                     "fps_monitor" -> stringResource(id = R.string.fps_monitor_title)
                     else -> if (currentRoute?.startsWith("benchmark_detail/") == true) {
@@ -580,6 +581,23 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             DexoptScreen(navController = navController)
+                        }
+                        composable(
+                            "wakelock_monitor",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }, animationSpec = spring(stiffness = Spring.StiffnessMediumLow))
+                            }
+                        ) {
+                            WakelockScreen(navController = navController)
                         }
                         composable(
                             "kernel_log",

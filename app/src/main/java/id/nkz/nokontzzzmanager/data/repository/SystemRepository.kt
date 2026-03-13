@@ -67,6 +67,10 @@ class SystemRepository @Inject constructor(
     private val systemInfoMutex = Mutex()
     private var cachedSystemInfo: SystemInfo? = null
 
+    // Wakelock detection memory
+    private enum class WakelockSource { MODERN, LEGACY, CLASS_SYS }
+    private var lastSuccessfulSource: WakelockSource? = null
+
     private suspend fun getCachedSystemInfo(): SystemInfo {
         // Menggunakan double-checked locking untuk thread-safety sederhana jika diakses dari coroutine berbeda
         // Meskipun dalam kasus ini, kemungkinan besar akan dipanggil dari scope callbackFlow yang sama.
@@ -75,7 +79,7 @@ class SystemRepository @Inject constructor(
         }
     }
 
-    private suspend fun readFileToString(filePath: String, fileDescription: String, attemptSu: Boolean = true): String? {
+    private suspend fun readFileToString(filePath: String, fileDescription: String, attemptSu: Boolean = true, useRetry: Boolean = true): String? {
         val file = File(filePath)
         try {
             if (file.exists() && file.canRead()) {
@@ -97,7 +101,7 @@ class SystemRepository @Inject constructor(
         if (attemptSu) {
             try {
                 // Use the root repository for more reliable command execution
-                val result = rootRepository.run("cat \"$filePath\"")
+                val result = rootRepository.run("cat \"$filePath\"", useRetry = useRetry)
                 if (result.isNotBlank()) {
                     return result.trim()
                 }
@@ -1678,6 +1682,135 @@ class SystemRepository @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         replay = 1
     )
+
+    suspend fun getWakelocks(): List<WakelockInfo> {
+        // 0. Use cached source if available for instant results
+        val rawList = lastSuccessfulSource?.let { source ->
+            val data = when (source) {
+                WakelockSource.MODERN -> getWakelocksModern()
+                WakelockSource.LEGACY -> getWakelocksLegacy()
+                WakelockSource.CLASS_SYS -> getWakelocksClassSys()
+            }
+            if (data.isNotEmpty()) data else {
+                lastSuccessfulSource = null
+                null
+            }
+        } ?: run {
+            // Discovery phase
+            val modern = getWakelocksModern()
+            if (modern.isNotEmpty()) {
+                lastSuccessfulSource = WakelockSource.MODERN
+                modern
+            } else {
+                val legacy = getWakelocksLegacy()
+                if (legacy.isNotEmpty()) {
+                    lastSuccessfulSource = WakelockSource.LEGACY
+                    legacy
+                } else {
+                    val classSys = getWakelocksClassSys()
+                    if (classSys.isNotEmpty()) {
+                        lastSuccessfulSource = WakelockSource.CLASS_SYS
+                        classSys
+                    } else emptyList()
+                }
+            }
+        }
+
+        if (rawList.isEmpty()) return emptyList()
+
+        // Aggregate duplicates by name
+        return rawList.groupBy { it.name }.map { (name, group) ->
+            WakelockInfo(
+                name = name,
+                activeCount = group.sumOf { it.activeCount },
+                wakeupCount = group.sumOf { it.wakeupCount },
+                totalTimeMs = group.sumOf { it.totalTimeMs },
+                maxTimeMs = group.maxOf { it.maxTimeMs },
+                preventSuspendTimeMs = group.sumOf { it.preventSuspendTimeMs }
+            )
+        }.sortedByDescending { it.preventSuspendTimeMs.coerceAtLeast(it.totalTimeMs) }
+    }
+
+    private suspend fun getWakelocksModern(): List<WakelockInfo> {
+        val wakelocks = mutableListOf<WakelockInfo>()
+        try {
+            val rawData = readFileToString("/sys/kernel/debug/wakeup_sources", "Modern Wakeup Sources", attemptSu = true, useRetry = false)
+            if (!rawData.isNullOrBlank()) {
+                rawData.lines().filter { it.isNotBlank() }.drop(1).forEach { line ->
+                    val parts = line.trim().split(Regex("\\s+"))
+                    if (parts.size >= 10) {
+                        val name = parts[0]
+                        val activeCount = parts[1].toLongOrNull() ?: 0
+                        val wakeupCount = parts[3].toLongOrNull() ?: 0
+                        val totalTime = parts[6].toLongOrNull() ?: 0
+                        val maxTime = parts[7].toLongOrNull() ?: 0
+                        val preventSuspendTime = parts[9].toLongOrNull() ?: 0
+                        if (totalTime > 0 || preventSuspendTime > 0 || activeCount > 0) {
+                            wakelocks.add(WakelockInfo(name, activeCount, wakeupCount, totalTime, 0, maxTime, 0, preventSuspendTime))
+                        }
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+        return wakelocks.sortedByDescending { it.preventSuspendTimeMs.coerceAtLeast(it.totalTimeMs) }
+    }
+
+    private suspend fun getWakelocksLegacy(): List<WakelockInfo> {
+        val wakelocks = mutableListOf<WakelockInfo>()
+        try {
+            val rawData = readFileToString("/proc/wakelocks", "Legacy Proc Wakelocks", attemptSu = true, useRetry = false)
+            if (!rawData.isNullOrBlank()) {
+                rawData.lines().filter { it.isNotBlank() }.drop(1).forEach { line ->
+                    val parts = line.trim().split(Regex("\\s+"))
+                    if (parts.size >= 9) {
+                        val name = parts[0]
+                        val count = parts[1].toLongOrNull() ?: 0
+                        val wakeCount = parts[3].toLongOrNull() ?: 0
+                        val totalTime = parts[5].toLongOrNull() ?: 0
+                        val maxTime = parts[6].toLongOrNull() ?: 0
+                        val preventSuspendTime = parts[8].toLongOrNull() ?: 0
+                        if (totalTime > 0 || preventSuspendTime > 0 || count > 0) {
+                            wakelocks.add(WakelockInfo(name, count, wakeCount, totalTime / 1000000L, 0, maxTime / 1000000L, 0, preventSuspendTime / 1000000L))
+                        }
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+        return wakelocks.sortedByDescending { it.preventSuspendTimeMs.coerceAtLeast(it.totalTimeMs) }
+    }
+
+    private suspend fun getWakelocksClassSys(): List<WakelockInfo> {
+        val wakelockMap = mutableMapOf<String, MutableMap<String, String>>()
+        try {
+            // High-speed grep: find all properties in one go
+            val script = "grep -r . /sys/class/wakeup/*/{name,active_count,wakeup_count,total_time_ms,max_time_ms,prevent_suspend_time_ms} 2>/dev/null"
+            val output = rootRepository.run(script, useRetry = false)
+            
+            output.lines().filter { it.contains(":") }.forEach { line ->
+                val pathPart = line.substringBeforeLast(":")
+                val value = line.substringAfterLast(":").trim()
+                val dirName = pathPart.substringBeforeLast("/").substringAfterLast("/")
+                val property = pathPart.substringAfterLast("/")
+                
+                wakelockMap.getOrPut(dirName) { mutableMapOf() }[property] = value
+            }
+            
+            val wakelocks = wakelockMap.values.mapNotNull { props ->
+                val name = props["name"] ?: return@mapNotNull null
+                val activeCount = props["active_count"]?.toLongOrNull() ?: 0
+                val wakeupCount = props["wakeup_count"]?.toLongOrNull() ?: 0
+                val totalTime = props["total_time_ms"]?.toLongOrNull() ?: 0
+                val maxTime = props["max_time_ms"]?.toLongOrNull() ?: 0
+                val preventSuspendTime = props["prevent_suspend_time_ms"]?.toLongOrNull() ?: 0
+                
+                if (totalTime > 0 || preventSuspendTime > 0 || activeCount > 0) {
+                    WakelockInfo(name, activeCount, wakeupCount, totalTime, 0, maxTime, 0, preventSuspendTime)
+                } else null
+            }
+            return wakelocks.sortedByDescending { it.preventSuspendTimeMs.coerceAtLeast(it.totalTimeMs) }
+        } catch (_: Exception) {}
+        return emptyList()
+    }
 
     fun onDestroy() {
         repositoryScope.cancel()
