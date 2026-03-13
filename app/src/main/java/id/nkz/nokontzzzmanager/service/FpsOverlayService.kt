@@ -360,6 +360,11 @@ fun FpsOverlayContent(
                     Text(text = " FPS", color = Color.Green.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
                 }
                 
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(text = "${fpsData.batteryLevel}%", color = Color.Cyan, style = MaterialTheme.typography.labelSmall)
+                    Text(text = "${String.format("%.1f", fpsData.batteryTemp)}°C", color = Color.Yellow, style = MaterialTheme.typography.labelSmall)
+                }
+                
                 if (fpsData.isBenchmarking) {
                     val seconds = (fpsData.currentBenchmarkDuration / 1000) % 60
                     val minutes = (fpsData.currentBenchmarkDuration / (1000 * 60)) % 60
@@ -370,7 +375,7 @@ fun FpsOverlayContent(
                     )
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(text = "1%: ${fpsData.fps1Low.toInt()}", color = Color.Yellow, style = MaterialTheme.typography.labelSmall)
+                        Text(text = "1%: ${fpsData.fps1Low.toInt()}", color = Color(0xFFFF9800), style = MaterialTheme.typography.labelSmall)
                         Text(text = "FT: ${String.format("%.1f", fpsData.frameTimeMs)}", color = Color.White, style = MaterialTheme.typography.labelSmall)
                     }
                 }

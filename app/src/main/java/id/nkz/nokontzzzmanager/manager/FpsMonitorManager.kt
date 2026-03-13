@@ -14,6 +14,8 @@ data class FpsData(
     val fps01Low: Float = 0f,
     val frameTimeMs: Float = 0f,
     val jankCount: Int = 0,
+    val batteryLevel: Int = 0,
+    val batteryTemp: Float = 0f,
     val isTracking: Boolean = false,
     val isBenchmarking: Boolean = false,
     val benchmarkStartTime: Long = 0L,
@@ -118,12 +120,19 @@ class FpsMonitorManager @Inject constructor(
                 }
 
                 while (isActive) {
-                    if (isBenchmarking) {
-                        try {
+                    try {
+                        val batteryInfo = systemRepository.getBatteryInfo()
+                        
+                        // Update real-time state for overlay
+                        _fpsData.value = _fpsData.value.copy(
+                            batteryLevel = batteryInfo.level,
+                            batteryTemp = batteryInfo.temp
+                        )
+
+                        if (isBenchmarking) {
                             val cpuInfo = systemRepository.getCpuRealtime()
                             val gpuInfo = systemRepository.getGpuRealtime()
-                            val batteryInfo = systemRepository.getBatteryInfo()
-                            
+
                             recordedCpuUsage.add(cpuInfo.cpuLoadPercentage ?: 0f)
                             recordedCpuTemp.add(cpuInfo.temp)
                             recordedGpuUsage.add(gpuInfo.usagePercentage ?: 0f)
@@ -147,10 +156,9 @@ class FpsMonitorManager @Inject constructor(
                             // Record Battery Info
                             recordedBatteryPower.add(batteryInfo.chargingWattage)
                             recordedBatteryLevel.add(batteryInfo.level)
-                            
-                        } catch (e: Exception) {
-                            Log.e("FpsMonitor", "Error polling metrics", e)
                         }
+                    } catch (e: Exception) {
+                        Log.e("FpsMonitor", "Error polling metrics", e)
                     }
                     delay(1000)
                 }
