@@ -13,7 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -32,6 +36,13 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
 import java.util.*
+import android.graphics.Bitmap
+import android.content.Context
+import android.content.Intent
+import androidx.core.content.FileProvider
+import java.io.File
+import java.io.FileOutputStream
+import kotlinx.coroutines.launch
 
 @Composable
 fun BenchmarkDetailScreen(
@@ -39,6 +50,19 @@ fun BenchmarkDetailScreen(
     viewModel: BenchmarkDetailViewModel = hiltViewModel()
 ) {
     val benchmark by viewModel.benchmark.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val graphicsLayer = rememberGraphicsLayer()
+    
+    // Handle share trigger from ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.shareTrigger.collect {
+            coroutineScope.launch {
+                val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                shareBitmap(context, bitmap, "benchmark_${System.currentTimeMillis()}.png")
+            }
+        }
+    }
     
     // Use Material 3 Color Roles for dynamic theme support and guaranteed contrast
     val colorFps = MaterialTheme.colorScheme.primary
@@ -65,7 +89,16 @@ fun BenchmarkDetailScreen(
         val bottomCardShape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .drawWithContent {
+                    // Draw the content into the graphics layer
+                    graphicsLayer.record {
+                        this@drawWithContent.drawContent()
+                    }
+                    // Draw the graphics layer into the canvas
+                    drawLayer(graphicsLayer)
+                },
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
@@ -469,3 +502,30 @@ fun calculateFpsOverTime(frameIntervals: List<Float>): List<Float> {
     
     return result
 }
+
+private fun shareBitmap(context: Context, bitmap: Bitmap, fileName: String) {
+    try {
+        val cachePath = File(context.cacheDir, "shared_images")
+        cachePath.mkdirs()
+        val imageFile = File(cachePath, fileName)
+        val stream = FileOutputStream(imageFile)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        stream.close()
+
+        val contentUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
+
+        if (contentUri != null) {
+            val shareIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                setDataAndType(contentUri, context.contentResolver.getType(contentUri))
+                putExtra(Intent.EXTRA_STREAM, contentUri)
+                type = "image/png"
+            }
+            context.startActivity(Intent.createChooser(shareIntent, "Share Benchmark Result"))
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+

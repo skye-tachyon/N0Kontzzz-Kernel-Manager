@@ -11,6 +11,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
+
 @HiltViewModel
 class BenchmarkDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -21,4 +26,13 @@ class BenchmarkDetailViewModel @Inject constructor(
 
     val benchmark: StateFlow<BenchmarkEntity?> = benchmarkRepository.getBenchmarkById(benchmarkId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private val _shareTrigger = MutableSharedFlow<Unit>()
+    val shareTrigger: SharedFlow<Unit> = _shareTrigger.asSharedFlow()
+
+    fun triggerShare() {
+        viewModelScope.launch {
+            _shareTrigger.emit(Unit)
+        }
+    }
 }

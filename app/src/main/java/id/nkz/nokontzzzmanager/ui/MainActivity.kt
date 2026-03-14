@@ -227,6 +227,12 @@ class MainActivity : ComponentActivity() {
                                 scrollBehavior = scrollBehavior,
                                 isAmoledMode = isAmoledMode,
                                 actions = {
+                                    if (currentRoute?.startsWith("benchmark_detail/") == true) {
+                                        val benchmarkDetailViewModel: BenchmarkDetailViewModel = hiltViewModel()
+                                        IconButton(onClick = { benchmarkDetailViewModel.triggerShare() }) {
+                                            Icon(Icons.Default.Share, contentDescription = "Share Benchmark", tint = MaterialTheme.colorScheme.primary)
+                                        }
+                                    }
                                     if (currentRoute == "kernel_log") {
                                         kernelLogViewModel?.let { viewModel ->
                                             val isSearchVisible by viewModel.isSearchVisible.collectAsStateWithLifecycle()
