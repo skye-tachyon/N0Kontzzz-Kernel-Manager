@@ -293,12 +293,32 @@ private fun getRelevantPermissions(context: Context, hasRoot: Boolean): List<App
         isInstallTime = true
     ))
 
+    // 11. Foreground Data Sync (Android 14+)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        val fgsDataSyncGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC) == PackageManager.PERMISSION_GRANTED
+        list.add(AppPermissionInfo(
+            titleRes = R.string.perm_data_sync_title,
+            descRes = R.string.perm_data_sync_desc,
+            isGranted = fgsDataSyncGranted,
+            isInstallTime = true
+        ))
+    }
+
     // 10. Display Over Other Apps
     val overlayGranted = Settings.canDrawOverlays(context)
     list.add(AppPermissionInfo(
         titleRes = R.string.perm_overlay_title,
         descRes = R.string.perm_overlay_desc,
         isGranted = overlayGranted
+    ))
+
+    // 14. Query All Packages (Install Time/Manifest)
+    val queryPackagesGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.QUERY_ALL_PACKAGES) == PackageManager.PERMISSION_GRANTED
+    list.add(AppPermissionInfo(
+        titleRes = R.string.perm_query_packages_title,
+        descRes = R.string.perm_query_packages_desc,
+        isGranted = queryPackagesGranted,
+        isInstallTime = true
     ))
 
     return list

@@ -624,6 +624,14 @@
     <string name="perm_fgs_desc">Run critical monitoring services in the background.</string>
     <string name="perm_overlay_title">Display Over Other Apps</string>
     <string name="perm_overlay_desc">Required to show the real-time FPS overlay on top of games.</string>
+    <string name="perm_secure_settings_title">Secure Settings</string>
+    <string name="perm_secure_settings_desc">Required to show/hide the system battery icon when the monitor is active.</string>
+
+    <string name="perm_battery_stats_title">Battery Statistics</string>
+    <string name="perm_battery_stats_desc">Required for detailed battery history and charging statistics.</string>
+    <string name="perm_query_packages_title">Query Packages</string>
+    <string name="perm_query_packages_desc">Required to detect installed games for the FPS Meter.</string>
+
 
     <!-- Backup & Restore -->
     <string name="backup_restore_title">Backup &amp; Restore</string>

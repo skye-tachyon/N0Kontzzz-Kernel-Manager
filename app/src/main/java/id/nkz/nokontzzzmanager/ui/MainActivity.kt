@@ -69,6 +69,7 @@ import id.nkz.nokontzzzmanager.utils.LocaleHelper
 import id.nkz.nokontzzzmanager.viewmodel.MainViewModel
 import id.nkz.nokontzzzmanager.viewmodel.KernelLogViewModel
 import androidx.lifecycle.lifecycleScope
+import id.nkz.nokontzzzmanager.viewmodel.BenchmarkDetailViewModel
 import kotlinx.coroutines.launch
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")

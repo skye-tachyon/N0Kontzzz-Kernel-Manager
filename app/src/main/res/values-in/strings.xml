@@ -621,9 +621,17 @@
     <string name="perm_boot_title">Boot Selesai</string>
     <string name="perm_boot_desc">Mulai layanan otomatis dan terapkan pengaturan saat reboot perangkat.</string>
     <string name="perm_fgs_title">Layanan Latar Depan</string>
-    <string name="perm_fgs_desc">Jalankan layanan pemantauan penting di latar belakang.</string>
+    <string name="perm_fgs_desc">Menjalankan layanan pemantauan kritis di latar belakang.</string>
     <string name="perm_overlay_title">Tampilkan di Atas Aplikasi Lain</string>
-    <string name="perm_overlay_desc">Diperlukan untuk menampilkan overlay FPS secara real-time di atas game.</string>
+    <string name="perm_overlay_desc">Diperlukan untuk menampilkan overlay FPS real-time di atas game.</string>
+    <string name="perm_secure_settings_title">Pengaturan Aman</string>
+    <string name="perm_secure_settings_desc">Diperlukan untuk menyembunyikan/menampilkan ikon baterai sistem saat monitor aktif.</string>
+
+    <string name="perm_battery_stats_title">Statistik Baterai</string>
+    <string name="perm_battery_stats_desc">Diperlukan untuk riwayat baterai terperinci dan statistik pengisian daya.</string>
+    <string name="perm_query_packages_title">Daftar Paket</string>
+    <string name="perm_query_packages_desc">Diperlukan untuk mendeteksi game yang terinstal untuk FPS Meter.</string>
+
 
     <!-- Backup & Restore -->
     <string name="backup_restore_title">Cadangkan &amp; Pulihkan</string>
