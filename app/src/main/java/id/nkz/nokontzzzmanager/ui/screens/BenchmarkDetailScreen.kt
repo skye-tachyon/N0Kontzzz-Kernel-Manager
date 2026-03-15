@@ -1,70 +1,87 @@
 package id.nkz.nokontzzzmanager.ui.screens
 
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.BatteryFull
+import androidx.compose.material.icons.filled.DeviceThermostat
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import id.nkz.nokontzzzmanager.R
 import id.nkz.nokontzzzmanager.data.database.BenchmarkEntity
-import id.nkz.nokontzzzmanager.ui.components.SimpleLineChart
-import id.nkz.nokontzzzmanager.ui.components.MultiLineChart
 import id.nkz.nokontzzzmanager.ui.components.IndeterminateExpressiveLoadingIndicator
+import id.nkz.nokontzzzmanager.ui.components.MultiLineChart
+import id.nkz.nokontzzzmanager.ui.components.SimpleLineChart
 import id.nkz.nokontzzzmanager.utils.CompressionUtils
 import id.nkz.nokontzzzmanager.viewmodel.BenchmarkDetailViewModel
-import kotlinx.serialization.decodeFromString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import java.text.SimpleDateFormat
-import java.util.*
-import android.graphics.Bitmap
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-
-import android.graphics.Canvas
-import android.graphics.Paint
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalConfiguration
-import android.widget.Toast
-
-import androidx.compose.ui.layout.Layout
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.ui.draw.alpha
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 enum class CaptureAction { SHARE, DOWNLOAD }
 
@@ -80,12 +97,18 @@ fun BenchmarkDetailScreen(
     var captureAction by remember { mutableStateOf<CaptureAction?>(null) }
     var pendingBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+    // Pre-resolve strings to avoid lint errors and ensure consistency
+    val captureFailedTemplate = stringResource(R.string.benchmark_capture_failed)
+    val saveSuccessMsg = stringResource(R.string.benchmark_save_success)
+    val saveFailedTemplate = stringResource(R.string.benchmark_save_failed)
+    val shareChooserTitle = stringResource(R.string.benchmark_share_chooser)
+
     val createDocumentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("image/png")
     ) { uri ->
         uri?.let {
             coroutineScope.launch {
-                saveBitmapToUri(context, pendingBitmap, it)
+                saveBitmapToUri(context, pendingBitmap, it, saveSuccessMsg, saveFailedTemplate)
                 pendingBitmap = null
             }
         } ?: run {
@@ -109,29 +132,28 @@ fun BenchmarkDetailScreen(
     
     if (captureAction != null) {
         LaunchedEffect(captureAction) {
-            coroutineScope.launch {
-                try {
-                    // Give more time for the hidden layout to stabilize
-                    kotlinx.coroutines.delay(1000)
-                    val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                    
-                    when (captureAction) {
-                        CaptureAction.SHARE -> {
-                            shareBitmap(context, bitmap, "benchmark_${System.currentTimeMillis()}.png")
-                            captureAction = null
-                        }
-                        CaptureAction.DOWNLOAD -> {
-                            pendingBitmap = bitmap
-                            val fileName = "benchmark_${benchmark?.appName?.replace(" ", "_")}_${System.currentTimeMillis()}.png"
-                            createDocumentLauncher.launch(fileName)
-                            captureAction = null
-                        }
-                        else -> { captureAction = null }
+            try {
+                // Give more time for the hidden layout to stabilize
+                kotlinx.coroutines.delay(1000)
+                val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                
+                when (captureAction) {
+                    CaptureAction.SHARE -> {
+                        shareBitmap(context, bitmap, "benchmark_${System.currentTimeMillis()}.png", shareChooserTitle)
+                        captureAction = null
                     }
-                } catch (e: Exception) {
-                    Toast.makeText(context, context.getString(R.string.benchmark_capture_failed, e.message), Toast.LENGTH_SHORT).show()
-                    captureAction = null
+                    CaptureAction.DOWNLOAD -> {
+                        pendingBitmap = bitmap
+                        val fileName = "benchmark_${benchmark?.appName?.replace(" ", "_")}_${System.currentTimeMillis()}.png"
+                        createDocumentLauncher.launch(fileName)
+                        captureAction = null
+                    }
+                    else -> { captureAction = null }
                 }
+            } catch (e: Exception) {
+                val errorMsg = captureFailedTemplate.replace("%s", e.message ?: "Unknown error")
+                Toast.makeText(context.applicationContext, errorMsg, Toast.LENGTH_SHORT).show()
+                captureAction = null
             }
         }
     }
@@ -606,7 +628,7 @@ fun calculateFpsOverTime(frameIntervals: List<Float>): List<Float> {
     return result
 }
 
-private fun shareBitmap(context: Context, bitmap: Bitmap, fileName: String) {
+private fun shareBitmap(context: Context, bitmap: Bitmap, fileName: String, chooserTitle: String) {
     try {
         val cachePath = File(context.cacheDir, "shared_images")
         cachePath.mkdirs()
@@ -625,14 +647,20 @@ private fun shareBitmap(context: Context, bitmap: Bitmap, fileName: String) {
                 putExtra(Intent.EXTRA_STREAM, contentUri)
                 type = "image/png"
             }
-            context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.benchmark_share_chooser)))
+            context.startActivity(Intent.createChooser(shareIntent, chooserTitle))
         }
     } catch (e: Exception) {
         e.printStackTrace()
     }
 }
 
-private suspend fun saveBitmapToUri(context: Context, bitmap: Bitmap?, uri: Uri) {
+private suspend fun saveBitmapToUri(
+    context: Context,
+    bitmap: Bitmap?,
+    uri: Uri,
+    successMsg: String,
+    failedTemplate: String
+) {
     if (bitmap == null) return
     withContext(Dispatchers.IO) {
         try {
@@ -640,11 +668,12 @@ private suspend fun saveBitmapToUri(context: Context, bitmap: Bitmap?, uri: Uri)
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
             }
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, context.getString(R.string.benchmark_save_success), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context.applicationContext, successMsg, Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, context.getString(R.string.benchmark_save_failed, e.message), Toast.LENGTH_SHORT).show()
+                val msg = failedTemplate.replace("%s", e.message ?: "Unknown error")
+                Toast.makeText(context.applicationContext, msg, Toast.LENGTH_SHORT).show()
             }
         }
     }
