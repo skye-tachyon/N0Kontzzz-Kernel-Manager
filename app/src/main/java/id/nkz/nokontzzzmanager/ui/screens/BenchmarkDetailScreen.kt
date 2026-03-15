@@ -41,10 +41,15 @@ import java.util.*
 import android.graphics.Bitmap
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -61,6 +66,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.draw.alpha
 
+enum class CaptureAction { SHARE, DOWNLOAD }
+
 @Composable
 fun BenchmarkDetailScreen(
     navController: NavController,
@@ -70,27 +77,60 @@ fun BenchmarkDetailScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val graphicsLayer = rememberGraphicsLayer()
-    var isCapturing by remember { mutableStateOf(false) }
+    var captureAction by remember { mutableStateOf<CaptureAction?>(null) }
+    var pendingBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("image/png")
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                saveBitmapToUri(context, pendingBitmap, it)
+                pendingBitmap = null
+            }
+        } ?: run {
+            pendingBitmap = null
+        }
+    }
     
     // Handle share trigger from ViewModel
     LaunchedEffect(Unit) {
         viewModel.shareTrigger.collect {
-            isCapturing = true
+            captureAction = CaptureAction.SHARE
+        }
+    }
+
+    // Handle download trigger from ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.downloadTrigger.collect {
+            captureAction = CaptureAction.DOWNLOAD
         }
     }
     
-    if (isCapturing) {
-        LaunchedEffect(isCapturing) {
+    if (captureAction != null) {
+        LaunchedEffect(captureAction) {
             coroutineScope.launch {
                 try {
                     // Give more time for the hidden layout to stabilize
                     kotlinx.coroutines.delay(1000)
                     val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                    shareBitmap(context, bitmap, "benchmark_${System.currentTimeMillis()}.png")
+                    
+                    when (captureAction) {
+                        CaptureAction.SHARE -> {
+                            shareBitmap(context, bitmap, "benchmark_${System.currentTimeMillis()}.png")
+                            captureAction = null
+                        }
+                        CaptureAction.DOWNLOAD -> {
+                            pendingBitmap = bitmap
+                            val fileName = "benchmark_${benchmark?.appName?.replace(" ", "_")}_${System.currentTimeMillis()}.png"
+                            createDocumentLauncher.launch(fileName)
+                            captureAction = null
+                        }
+                        else -> { captureAction = null }
+                    }
                 } catch (e: Exception) {
-                    Toast.makeText(context, "Capture failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                } finally {
-                    isCapturing = false
+                    Toast.makeText(context, context.getString(R.string.benchmark_capture_failed, e.message), Toast.LENGTH_SHORT).show()
+                    captureAction = null
                 }
             }
         }
@@ -110,7 +150,7 @@ fun BenchmarkDetailScreen(
             }
 
             // Hidden full-height content for capture
-            if (isCapturing) {
+            if (captureAction != null) {
                 // We use a custom Layout to bypass the parent's fillMaxSize constraints
                 // and allow the content to be measured at its full intrinsic height.
                 Layout(
@@ -585,10 +625,28 @@ private fun shareBitmap(context: Context, bitmap: Bitmap, fileName: String) {
                 putExtra(Intent.EXTRA_STREAM, contentUri)
                 type = "image/png"
             }
-            context.startActivity(Intent.createChooser(shareIntent, "Share Benchmark Result"))
+            context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.benchmark_share_chooser)))
         }
     } catch (e: Exception) {
         e.printStackTrace()
+    }
+}
+
+private suspend fun saveBitmapToUri(context: Context, bitmap: Bitmap?, uri: Uri) {
+    if (bitmap == null) return
+    withContext(Dispatchers.IO) {
+        try {
+            context.contentResolver.openOutputStream(uri)?.use { stream ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, context.getString(R.string.benchmark_save_success), Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, context.getString(R.string.benchmark_save_failed, e.message), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
 

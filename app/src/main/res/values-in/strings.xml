@@ -813,6 +813,12 @@
     <string name="benchmark_battery_temp">Suhu Baterai</string>
     <string name="benchmark_no_data">Tidak ada data tercatat</string>
     <string name="benchmark_delete_confirm">Hapus rekaman benchmark ini?</string>
+    <string name="benchmark_share">Bagikan Benchmark</string>
+    <string name="benchmark_download">Unduh Benchmark</string>
+    <string name="benchmark_save_success">Berhasil disimpan!</string>
+    <string name="benchmark_save_failed">Gagal menyimpan: %s</string>
+    <string name="benchmark_capture_failed">Gagal menangkap layar: %s</string>
+    <string name="benchmark_share_chooser">Bagikan Hasil Benchmark</string>
     <string name="benchmark_generating_screenshot">Membuat Tangkapan Layar Panjang…</string>
     <string name="benchmark_auto_stopped">Benchmark dihentikan otomatis (batas 60 menit tercapai untuk mencegah crash)</string>
     <string name="backup_file_name" translatable="false">nkm_backup.json</string>

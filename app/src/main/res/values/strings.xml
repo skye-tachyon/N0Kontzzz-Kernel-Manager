@@ -814,6 +814,12 @@
     <string name="benchmark_battery_temp">Battery Temperature</string>
     <string name="benchmark_no_data">No data recorded</string>
     <string name="benchmark_delete_confirm">Delete this benchmark record?</string>
+    <string name="benchmark_share">Share Benchmark</string>
+    <string name="benchmark_download">Download Benchmark</string>
+    <string name="benchmark_save_success">Saved successfully!</string>
+    <string name="benchmark_save_failed">Save failed: %s</string>
+    <string name="benchmark_capture_failed">Capture failed: %s</string>
+    <string name="benchmark_share_chooser">Share Benchmark Result</string>
     <string name="benchmark_generating_screenshot">Generating Long Screenshot…</string>
     <string name="benchmark_auto_stopped">Benchmark auto-stopped (max 60 mins reached to prevent crash)</string>
     </resources>

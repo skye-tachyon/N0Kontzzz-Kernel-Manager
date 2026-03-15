@@ -232,8 +232,11 @@ class MainActivity : ComponentActivity() {
                                         // Use the current NavBackStackEntry as the ViewModelStoreOwner to share the instance with the screen
                                         navController.currentBackStackEntry?.let { backStackEntry ->
                                             val benchmarkDetailViewModel: BenchmarkDetailViewModel = hiltViewModel(backStackEntry)
+                                            IconButton(onClick = { benchmarkDetailViewModel.triggerDownload() }) {
+                                                Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.benchmark_download), tint = MaterialTheme.colorScheme.primary)
+                                            }
                                             IconButton(onClick = { benchmarkDetailViewModel.triggerShare() }) {
-                                                Icon(Icons.Default.Share, contentDescription = "Share Benchmark", tint = MaterialTheme.colorScheme.primary)
+                                                Icon(Icons.Default.Share, contentDescription = stringResource(R.string.benchmark_share), tint = MaterialTheme.colorScheme.primary)
                                             }
                                         }
                                     }

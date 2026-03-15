@@ -35,9 +35,18 @@ class BenchmarkDetailViewModel @Inject constructor(
     private val _shareTrigger = MutableSharedFlow<Unit>()
     val shareTrigger: SharedFlow<Unit> = _shareTrigger.asSharedFlow()
 
+    private val _downloadTrigger = MutableSharedFlow<Unit>()
+    val downloadTrigger: SharedFlow<Unit> = _downloadTrigger.asSharedFlow()
+
     fun triggerShare() {
         viewModelScope.launch {
             _shareTrigger.emit(Unit)
+        }
+    }
+
+    fun triggerDownload() {
+        viewModelScope.launch {
+            _downloadTrigger.emit(Unit)
         }
     }
 }
