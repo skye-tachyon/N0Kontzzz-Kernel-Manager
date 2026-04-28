@@ -44,15 +44,14 @@ class MainViewModel @Inject constructor(
             val versionLine = rootRepo.run("cat /proc/version")
 
             if (versionLine.isNotBlank()) {
-                // Special check for E404R kernel (keep it here because special case)
-                val e404rMatch = (versionLine.contains("4.19.404R", ignoreCase = true) || 
-                                  versionLine.contains("5.10.404R", ignoreCase = true))
-                val hostMatch = (versionLine.contains("vyn", ignoreCase = true) && 
-                                (versionLine.contains("fedora", ignoreCase = true) || 
+                // Special check for not kernel (keep it here because special case and lazyness from skye)
+                val e404rMatch = (versionLine.contains("4.19.325:not", ignoreCase = true))
+                val hostMatch = (versionLine.contains("debian", ignoreCase = true) && 
+                                (versionLine.contains("skye", ignoreCase = true) || 
                                 versionLine.contains("zorin", ignoreCase = true))) ||
                                 (versionLine.contains("sai", ignoreCase = true) && 
                                 versionLine.contains("ServerHive", ignoreCase = true))
-                val buildHostMatch = versionLine.contains("build-user@build-host", ignoreCase = true)
+                val buildHostMatch = versionLine.contains("skye@debian", ignoreCase = true)
 
                 if (e404rMatch && (hostMatch || buildHostMatch)) {
                     return true
