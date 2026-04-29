@@ -28,6 +28,7 @@ configure <com.android.build.api.dsl.ApplicationExtension> {
         targetCompatibility = JavaVersion.VERSION_17
     }
     lint {
+        disable.add("NonObservableLocale")
         disable.add("NullSafeMutableLiveData")
     }
     buildFeatures { compose = true }
